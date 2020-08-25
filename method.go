@@ -14,6 +14,7 @@ type Method struct {
 	bodyRequiredErrorResponse Response
 	methodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
+	http.Handler
 }
 
 func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
@@ -23,6 +24,7 @@ func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypeSe
 	m.contentTypeSelector = contentTypeSelector
 	m.newResponse(m.methodOperation.successResponse)
 	m.newResponse(m.methodOperation.failResponse)
+	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
 }
 
@@ -31,7 +33,26 @@ func (m *Method) newResponse(response Response) Response {
 	return response
 }
 
-func (m *Method) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		responseContentType, encoder, err := m.contentTypeSelector.NegotiateEncoder(r)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusUnsupportedMediaType), http.StatusUnsupportedMediaType)
+			return
+		}
+		_, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusUnsupportedMediaType), http.StatusUnsupportedMediaType)
+			return
+		}
+		ctx := context.WithValue(r.Context(), encoderDecoderContextKey("decoder"), decoder)
+		ctx = context.WithValue(ctx, encoderDecoderContextKey("encoder"), encoder)
+		w.Header().Add("Content-Type", responseContentType)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	getIdFunc := m.methodOperation.GetIdURLParam
 	id := ""
 	if getIdFunc != nil {
@@ -52,5 +73,7 @@ func writeResponse(w http.ResponseWriter, ctx context.Context, resp Response) {
 		return
 	}
 	w.WriteHeader(resp.Code)
-	encoder.Encode(w, resp.Body)
+	if resp.Body != nil {
+		encoder.Encode(w, resp.Body)
+	}
 }
