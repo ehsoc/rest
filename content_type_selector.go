@@ -14,14 +14,15 @@ type HTTPContentTypeSelector struct {
 	contentTypes          map[string]encdec.EncoderDecoder
 	defaultEncoderDecoder string
 	Negotiator
+	unsupportedMediaTypeResponse Response
 }
 
 //NewHTTPContentTypeSelector will return a HTTPContentTypeSelector with an empty content-type
 //map and the Default Negotiator.
 //The Negotiator is a content-type negotiator, that can be replaced by a custom Negotiator implementation.
-func NewHTTPContentTypeSelector() HTTPContentTypeSelector {
+func NewHTTPContentTypeSelector(unsupportedMediaTypeResponse Response) HTTPContentTypeSelector {
 	var contentTypes = make(map[string]encdec.EncoderDecoder)
-	return HTTPContentTypeSelector{contentTypes, "", DefaultNegotiator{}}
+	return HTTPContentTypeSelector{contentTypes, "", DefaultNegotiator{}, unsupportedMediaTypeResponse}
 }
 
 //Add will add a new content-type encoder-decoder. defaultencdec parameter will set the default one.
@@ -36,7 +37,7 @@ func (h *HTTPContentTypeSelector) GetEncoderDecoder(contentType string) (encdec.
 	if ed, ok := h.contentTypes[contentType]; ok {
 		return ed, nil
 	}
-	return nil, errors.New("content type not found")
+	return nil, ErrorNoDefaultContentTypeIsSet
 }
 
 func (h *HTTPContentTypeSelector) GetDefaultEncoderDecoder() (string, encdec.EncoderDecoder, error) {

@@ -47,3 +47,9 @@ func AssertError(t *testing.T, err error) {
 		t.Fatalf("Was expecting error")
 	}
 }
+
+func AssertEqualError(t *testing.T, err, want error) {
+	if err != want {
+		t.Errorf("got:%v want:%v", err, want)
+	}
+}

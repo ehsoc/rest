@@ -27,7 +27,7 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	t.Run("getting an existent key", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add(wantContentType, e, false)
 		encoderDecoder, err := contentTypes.GetEncoderDecoder(wantContentType)
 		if err != nil {
@@ -42,7 +42,7 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	t.Run("getting a non existent key", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add(wantContentType, e, false)
 		_, err := contentTypes.GetEncoderDecoder("randomkey")
 		if err == nil {
@@ -56,7 +56,7 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 	t.Run("no default encdec", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add(wantContentType, e, false)
 		_, _, err := contentTypes.GetDefaultEncoderDecoder()
 		if err == nil {
@@ -66,7 +66,7 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 	t.Run("get default encdec", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add("random/json", e, false)
 		contentTypes.Add("r/xml", e, true)
 		//The last overwrites all

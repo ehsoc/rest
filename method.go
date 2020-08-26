@@ -24,6 +24,7 @@ func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypeSe
 	m.contentTypeSelector = contentTypeSelector
 	m.newResponse(m.methodOperation.successResponse)
 	m.newResponse(m.methodOperation.failResponse)
+	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
 }
@@ -37,12 +38,12 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		responseContentType, encoder, err := m.contentTypeSelector.NegotiateEncoder(r)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusUnsupportedMediaType), http.StatusUnsupportedMediaType)
+			m.writeResponseFailBack(w, m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
 		_, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
 		if err != nil {
-			http.Error(w, http.StatusText(http.StatusUnsupportedMediaType), http.StatusUnsupportedMediaType)
+			writeResponse(w, r.Context(), m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
 		ctx := context.WithValue(r.Context(), encoderDecoderContextKey("decoder"), decoder)
@@ -50,6 +51,16 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 		w.Header().Add("Content-Type", responseContentType)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (m *Method) writeResponseFailBack(w http.ResponseWriter, response Response) {
+	_, encoder, err := m.contentTypeSelector.GetDefaultEncoderDecoder()
+	//if no default encdec is set will only return the header code
+	if err != nil {
+		w.WriteHeader(response.Code)
+		return
+	}
+	write(w, encoder, response)
 }
 
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -72,6 +83,10 @@ func writeResponse(w http.ResponseWriter, ctx context.Context, resp Response) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+	write(w, encoder, resp)
+}
+
+func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
 	w.WriteHeader(resp.Code)
 	if resp.Body != nil {
 		encoder.Encode(w, resp.Body)
