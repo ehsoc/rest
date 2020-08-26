@@ -7,6 +7,7 @@ import (
 	"github.com/ehsoc/resource/encdec"
 )
 
+//Method represents a http operation that is performed on a resource.
 type Method struct {
 	HTTPMethod                string
 	request                   Request
@@ -17,6 +18,7 @@ type Method struct {
 	http.Handler
 }
 
+//NewMethod returns a Method instance
 func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
 	m := Method{}
 	m.HTTPMethod = httpMethod
@@ -38,7 +40,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		responseContentType, encoder, err := m.contentTypeSelector.NegotiateEncoder(r)
 		if err != nil {
-			m.writeResponseFailBack(w, m.contentTypeSelector.unsupportedMediaTypeResponse)
+			m.writeResponseFallBack(w, m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
 		_, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
@@ -53,7 +55,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Method) writeResponseFailBack(w http.ResponseWriter, response Response) {
+func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response) {
 	_, encoder, err := m.contentTypeSelector.GetDefaultEncoderDecoder()
 	//if no default encdec is set will only return the header code
 	if err != nil {
@@ -69,9 +71,13 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if getIdFunc != nil {
 		id = m.methodOperation.GetIdURLParam(r)
 	}
-	_, err := m.methodOperation.Execute(id, r.URL.Query(), nil)
+	entity, err := m.methodOperation.Execute(id, r.URL.Query(), nil)
 	if err != nil {
 		writeResponse(w, r.Context(), m.methodOperation.failResponse)
+		return
+	}
+	if m.methodOperation.returnEntityOnSuccess {
+		writeResponse(w, r.Context(), Response{Code: m.methodOperation.successResponse.Code, Body: entity})
 		return
 	}
 	writeResponse(w, r.Context(), m.methodOperation.successResponse)
