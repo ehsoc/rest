@@ -19,11 +19,13 @@ type ResponseBody struct {
 
 type OperationStub struct {
 	wasCall bool
+	entity  interface{}
 	Car     Car
 }
 
 func (o *OperationStub) Execute(id string, query url.Values, entity interface{}) (interface{}, error) {
 	o.wasCall = true
+	o.entity = entity
 	if query.Get("error") != "" {
 		return nil, errors.New("Failed")
 	}
@@ -46,6 +48,7 @@ type Color struct {
 }
 
 type Car struct {
+	ID     int
 	Brand  string
 	Colors []Color
 }
@@ -57,7 +60,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, successResponse, failResponse, nil, false)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		response := httptest.NewRecorder()
@@ -81,7 +84,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, successResponse, failResponse, nil, false)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		response := httptest.NewRecorder()
@@ -104,7 +107,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.Response{http.StatusFailedDependency, ResponseBody{http.StatusFailedDependency, ""}}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, successResponse, failResponse, nil, false)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
@@ -127,7 +130,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		contentTypes.Negotiator = NegotiatorErrorStub{}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, resource.Response{}, resource.Response{}, nil, false)
+		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, nil, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
@@ -147,7 +150,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, false)
 		contentTypes.Negotiator = NegotiatorErrorStub{}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, resource.Response{}, resource.Response{}, nil, false)
+		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, nil, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
@@ -162,9 +165,9 @@ func TestOperations(t *testing.T) {
 		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
-		wantedCar := Car{"Fiat", []Color{{"blue"}, {"red"}}}
+		wantedCar := Car{2, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: wantedCar}
-		mo := resource.NewMethodOperation(operation, successResponse, failResponse, nil, true)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, true)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		response := httptest.NewRecorder()
@@ -178,6 +181,30 @@ func TestOperations(t *testing.T) {
 		enc.Decode(response.Body, &gotResponse)
 		if !reflect.DeepEqual(gotResponse, wantedCar) {
 			t.Errorf("got:%v want:%v", gotResponse, wantedCar)
+		}
+	})
+	t.Run("read body", func(t *testing.T) {
+		successResponse := resource.Response{http.StatusCreated, Car{}}
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
+		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
+		wantedCar := Car{200, "Fiat", []Color{{"blue"}, {"red"}}}
+		operation := &OperationStub{Car: Car{}}
+		mo := resource.NewMethodOperation(Car{}, operation, successResponse, failResponse, nil, true)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		request, _ := http.NewRequest(http.MethodPost, "/", nil)
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		if !operation.wasCall {
+			t.Errorf("Expecting operation execution.")
+		}
+		AssertResponseCode(t, response, successResponse.Code)
+		gotOpCar, ok := operation.entity.(Car)
+		if !ok {
+			t.Fatalf("Expecting type Car.")
+		}
+		if reflect.DeepEqual(gotOpCar, wantedCar) {
+			t.Errorf("got:%v want:%v", gotOpCar, wantedCar)
 		}
 	})
 }

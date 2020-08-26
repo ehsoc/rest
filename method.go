@@ -68,10 +68,19 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	getIdFunc := m.methodOperation.GetIdURLParam
 	id := ""
+	entityBody := m.methodOperation.entity
 	if getIdFunc != nil {
 		id = m.methodOperation.GetIdURLParam(r)
 	}
-	entity, err := m.methodOperation.Execute(id, r.URL.Query(), nil)
+	if r.Body != http.NoBody && r.Body != nil {
+		decoder, ok := r.Context().Value(encoderDecoderContextKey("decoder")).(encdec.Decoder)
+		if !ok {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+		decoder.Decode(r.Body, &entityBody)
+	}
+	entity, err := m.methodOperation.Execute(id, r.URL.Query(), entityBody)
 	if err != nil {
 		writeResponse(w, r.Context(), m.methodOperation.failResponse)
 		return
