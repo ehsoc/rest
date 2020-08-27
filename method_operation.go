@@ -4,8 +4,8 @@ import "net/http"
 
 //MethodOperation is a logic operation that is performed in an entity
 type MethodOperation struct {
-	//Entity type of the resource
-	entity interface{}
+	//requestBody is the expecting request body
+	requestBody interface{}
 	//Logic of the method
 	Operation
 	//Response if Operation Execute method function returns no error

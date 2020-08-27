@@ -9,12 +9,12 @@ import (
 
 //Method represents a http operation that is performed on a resource.
 type Method struct {
-	HTTPMethod                string                  `json:"name"`
-	Request                   Request                 `json:"request"`
-	responses                 []Response              `json:"responses"`
-	bodyRequiredErrorResponse Response                `json:"body_error_response"`
-	methodOperation           MethodOperation         `json:"operation"`
-	contentTypeSelector       HTTPContentTypeSelector `json:"contenttypes"`
+	HTTPMethod                string     `json:"name"`
+	Request                   Request    `json:"request"`
+	Responses                 []Response `json:"responses"`
+	bodyRequiredErrorResponse Response
+	methodOperation           MethodOperation
+	contentTypeSelector       HTTPContentTypeSelector
 	http.Handler              `json:"-"`
 }
 
@@ -27,15 +27,13 @@ func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypeSe
 	m.newResponse(m.methodOperation.successResponse)
 	m.newResponse(m.methodOperation.failResponse)
 	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
-	if m.HTTPMethod == http.MethodPost {
-		m.Request.Body = m.methodOperation.entity
-	}
+	m.Request.Body = m.methodOperation.requestBody
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
 }
 
 func (m *Method) newResponse(response Response) Response {
-	m.responses = append(m.responses, response)
+	m.Responses = append(m.Responses, response)
 	return response
 }
 
