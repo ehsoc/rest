@@ -239,3 +239,22 @@ func TestOperations(t *testing.T) {
 		}
 	})
 }
+
+func TestDocumentation(t *testing.T) {
+	car := Car{}
+	successResponse := resource.Response{http.StatusCreated, Car{}}
+	contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
+	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
+	operation := &OperationStub{Car: car}
+	mo := resource.NewMethodOperation(car, operation, successResponse, failResponse, nil, false)
+	method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+	got := reflect.TypeOf(method.Request.Body)
+	if method.Request.Body == nil {
+		t.Fatalf("Not expecting nil Body")
+	}
+	if got.Name() != "Car" {
+		t.Errorf("got:%s want:%s", got, "Car")
+	}
+
+}

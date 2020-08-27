@@ -1,5 +1,5 @@
 package resource
 
 type Request struct {
-	Body interface{}
+	Body interface{} `json:"body"`
 }

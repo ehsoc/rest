@@ -3,7 +3,7 @@ package httputil_test
 import (
 	"fmt"
 
-	"github.com/ehsoc/restapigen/httputil"
+	"github.com/ehsoc/resource/httputil"
 )
 
 func ExampleParseContentType() {
