@@ -43,13 +43,13 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 			m.writeResponseFallBack(w, m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
+		ctx := context.WithValue(r.Context(), encoderDecoderContextKey("encoder"), encoder)
 		_, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
 		if err != nil {
-			writeResponse(w, r.Context(), m.contentTypeSelector.unsupportedMediaTypeResponse)
+			writeResponse(w, ctx, m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
-		ctx := context.WithValue(r.Context(), encoderDecoderContextKey("decoder"), decoder)
-		ctx = context.WithValue(ctx, encoderDecoderContextKey("encoder"), encoder)
+		ctx = context.WithValue(ctx, encoderDecoderContextKey("decoder"), decoder)
 		w.Header().Add("Content-Type", responseContentType)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -68,24 +68,22 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	getIdFunc := m.methodOperation.GetIdURLParam
 	id := ""
-	entityBody := m.methodOperation.entity
 	if getIdFunc != nil {
 		id = m.methodOperation.GetIdURLParam(r)
 	}
-	if r.Body != http.NoBody && r.Body != nil {
-		decoder, ok := r.Context().Value(encoderDecoderContextKey("decoder")).(encdec.Decoder)
-		if !ok {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			return
-		}
-		decoder.Decode(r.Body, &entityBody)
+
+	decoder, ok := r.Context().Value(encoderDecoderContextKey("decoder")).(encdec.Decoder)
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
 	}
-	entity, err := m.methodOperation.Execute(id, r.URL.Query(), entityBody)
+
+	entity, err := m.methodOperation.Execute(id, r.URL.Query(), r.Body, decoder)
 	if err != nil {
 		writeResponse(w, r.Context(), m.methodOperation.failResponse)
 		return
 	}
-	if m.methodOperation.returnEntityOnSuccess {
+	if m.methodOperation.returnEntityOnBodySuccess {
 		writeResponse(w, r.Context(), Response{Code: m.methodOperation.successResponse.Code, Body: entity})
 		return
 	}

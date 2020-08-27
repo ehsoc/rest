@@ -1,7 +1,9 @@
 package resource_test
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -23,9 +25,13 @@ type OperationStub struct {
 	Car     Car
 }
 
-func (o *OperationStub) Execute(id string, query url.Values, entity interface{}) (interface{}, error) {
+func (o *OperationStub) Execute(id string, query url.Values, entityBody io.Reader, decoder encdec.Decoder) (interface{}, error) {
 	o.wasCall = true
-	o.entity = entity
+	car := Car{}
+	if entityBody != nil && entityBody != http.NoBody {
+		decoder.Decode(entityBody, &car)
+		o.entity = car
+	}
 	if query.Get("error") != "" {
 		return nil, errors.New("Failed")
 	}
@@ -44,13 +50,13 @@ func (n NegotiatorErrorStub) NegotiateDecoder(*http.Request, *resource.HTTPConte
 }
 
 type Color struct {
-	Name string
+	Name string `json:"name"`
 }
 
 type Car struct {
-	ID     int
-	Brand  string
-	Colors []Color
+	ID     int     `json:"id"`
+	Brand  string  `json:"brand"`
+	Colors []Color `json:"colors"`
 }
 
 func TestOperations(t *testing.T) {
@@ -123,7 +129,7 @@ func TestOperations(t *testing.T) {
 			t.Errorf("got:%v want:%v", gotResponse, failResponse.Body)
 		}
 	})
-	t.Run("unsupported media response in negotiation in POST with body", func(t *testing.T) {
+	t.Run("unsupported media response in negotiation in POST with no body", func(t *testing.T) {
 		responseBody := ResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
 		unsupportedMediaResponse := resource.Response{http.StatusUnsupportedMediaType, responseBody}
 		contentTypes := resource.NewHTTPContentTypeSelector(unsupportedMediaResponse)
@@ -160,6 +166,27 @@ func TestOperations(t *testing.T) {
 			t.Errorf("Was not expecting body, got:%v", response.Body.String())
 		}
 	})
+	t.Run("unsupported media response decoder negotiation", func(t *testing.T) {
+		responseBody := ResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
+		unsupportedMediaResponse := resource.Response{http.StatusUnsupportedMediaType, responseBody}
+		contentTypes := resource.NewHTTPContentTypeSelector(unsupportedMediaResponse)
+		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		operation := &OperationStub{}
+		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, nil, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString("{}"))
+		request.Header.Set("Content-Type", "unknown")
+		request.Header.Set("Accept", "application/json")
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		AssertResponseCode(t, response, unsupportedMediaResponse.Code)
+		enc := encdec.JSONEncoderDecoder{}
+		gotResponse := ResponseBody{}
+		enc.Decode(response.Body, &gotResponse)
+		if !reflect.DeepEqual(gotResponse, unsupportedMediaResponse.Body) {
+			t.Errorf("got:%v want:%v", gotResponse, unsupportedMediaResponse.Body)
+		}
+	})
 	t.Run("GET id return entity on Body response", func(t *testing.T) {
 		successResponse := resource.Response{http.StatusOK, Car{}}
 		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
@@ -168,8 +195,8 @@ func TestOperations(t *testing.T) {
 		wantedCar := Car{2, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: wantedCar}
 		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, true)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
-		request, _ := http.NewRequest(http.MethodPost, "/", nil)
+		method := resource.NewMethod(http.MethodGet, mo, contentTypes)
+		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
 		if !operation.wasCall {
@@ -190,9 +217,13 @@ func TestOperations(t *testing.T) {
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 		wantedCar := Car{200, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: Car{}}
-		mo := resource.NewMethodOperation(Car{}, operation, successResponse, failResponse, nil, true)
+		mo := resource.NewMethodOperation(Car{}, operation, successResponse, failResponse, nil, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
-		request, _ := http.NewRequest(http.MethodPost, "/", nil)
+		buf := bytes.NewBufferString("")
+		_, encoder, _ := contentTypes.GetDefaultEncoderDecoder()
+		encoder.Encode(buf, wantedCar)
+		request, _ := http.NewRequest(http.MethodPost, "/", buf)
+		request.Header.Set("content-type", "application/json")
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
 		if !operation.wasCall {
@@ -201,9 +232,9 @@ func TestOperations(t *testing.T) {
 		AssertResponseCode(t, response, successResponse.Code)
 		gotOpCar, ok := operation.entity.(Car)
 		if !ok {
-			t.Fatalf("Expecting type Car.")
+			t.Fatalf("Expecting type Car, got: %T", operation.entity)
 		}
-		if reflect.DeepEqual(gotOpCar, wantedCar) {
+		if !reflect.DeepEqual(gotOpCar, wantedCar) {
 			t.Errorf("got:%v want:%v", gotOpCar, wantedCar)
 		}
 	})
