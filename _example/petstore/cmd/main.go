@@ -27,7 +27,7 @@ func main() {
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 	//Resource
-	res := resource.Resource{"pets", "/pets", []resource.Method{}}
+	res := resource.Resource{"pets", resource.Type{}, "/pets", []resource.Method{}}
 
 	//Methods
 	//Method Get (By id)

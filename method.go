@@ -9,7 +9,6 @@ import (
 
 //Method represents a http operation that is performed on a resource.
 type Method struct {
-	HTTPMethod                string     `json:"name"`
 	Request                   Request    `json:"request"`
 	Responses                 []Response `json:"responses"`
 	bodyRequiredErrorResponse Response
@@ -19,15 +18,16 @@ type Method struct {
 }
 
 //NewMethod returns a Method instance
-func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
+func NewMethod(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
 	m := Method{}
-	m.HTTPMethod = httpMethod
 	m.methodOperation = methodOperation
 	m.contentTypeSelector = contentTypeSelector
 	m.newResponse(m.methodOperation.successResponse)
 	m.newResponse(m.methodOperation.failResponse)
 	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
-	m.Request.Body = m.methodOperation.requestBody
+	if m.methodOperation.entityOnRequest {
+		m.Request.Body = m.methodOperation.entity
+	}
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
 }
