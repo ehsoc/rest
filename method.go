@@ -9,6 +9,8 @@ import (
 
 //Method represents a http operation that is performed on a resource.
 type Method struct {
+	Summary                   string
+	Description               string
 	Request                   Request    `json:"request"`
 	Responses                 []Response `json:"responses"`
 	bodyRequiredErrorResponse Response
@@ -25,7 +27,7 @@ func NewMethod(methodOperation MethodOperation, contentTypeSelector HTTPContentT
 	m.newResponse(m.methodOperation.successResponse)
 	m.newResponse(m.methodOperation.failResponse)
 	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
-	if m.methodOperation.entityOnRequest {
+	if m.methodOperation.entityOnRequestBody {
 		m.Request.Body = m.methodOperation.entity
 	}
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
@@ -105,4 +107,12 @@ func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
 	if resp.Body != nil {
 		encoder.Encode(w, resp.Body)
 	}
+}
+
+func (m *Method) getMediaTypes() []string {
+	mediaTypes := []string{}
+	for m := range m.contentTypeSelector.contentTypes {
+		mediaTypes = append(mediaTypes, m)
+	}
+	return mediaTypes
 }

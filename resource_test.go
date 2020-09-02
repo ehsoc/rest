@@ -21,9 +21,6 @@ func TestOpenAPIDocument(t *testing.T) {
 	jsonString := `{
 		"/pet": {
 			"post": {
-				"tags": [
-					"pet"
-				],
 				"summary": "Add a new pet to the store",
 				"description": "",
 				"operationId": "addPet",
@@ -41,7 +38,42 @@ func TestOpenAPIDocument(t *testing.T) {
 					"description": "Pet object that needs to be added to the store",
 					"required": true,
 					"schema": {
-						"$ref": "#/definitions/Pet"
+						"type": "object",
+						"description": "A Pet object.",
+						"properties": {
+							"id": {
+								"type": "integer",
+								"format": "int64"
+							},
+							"name": {
+								"type": "string"
+							},
+							"photoUrls": {
+								"type": "array",
+								"items": {
+									"type": "string"
+								}
+							},
+							"tags": {
+								"type": "array",
+								"items": {
+									"type": "object",
+									"description": "A Tag object.",
+									"properties": {
+										"id": {
+											"type": "integer",
+											"format": "int64"
+										},
+										"name": {
+											"type": "string"
+										}
+									}
+								}
+							},
+							"status": {
+								"type": "string"
+							}
+						}
 					}
 				}],
 				"responses": {
@@ -58,8 +90,9 @@ func TestOpenAPIDocument(t *testing.T) {
 	cts := resource.NewHTTPContentTypeSelector(resource.Response{http.StatusUnsupportedMediaType, nil})
 	cts.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	method := resource.NewMethod(mo, cts)
+	method.Summary = "Add a new pet to the store"
 
-	res := resource.NewResource("/pets")
+	res := resource.NewResource("/pet")
 	res.AddMethod(http.MethodPost, method)
 	gotString := res.GenerateOpenApiJSON()
 	want := mustCompactJSON(t, jsonString)

@@ -20,11 +20,11 @@ type MethodOperation struct {
 	//only the Code of successResponse will be returned in the http response.
 	returnEntityOnBodySuccess bool
 	//The entity is expected to be send in the request body
-	entityOnRequest bool
+	entityOnRequestBody bool
 }
 
 //NewMethodOperation returns a new MethodOperation instance
-func NewMethodOperation(entity interface{}, operation Operation, successResponse, failedResponse Response, getIdFunc func(r *http.Request) string, returnEntityOnBodySuccess bool, entityOnRequest bool) MethodOperation {
-	return MethodOperation{entity, operation, successResponse, failedResponse, getIdFunc, returnEntityOnBodySuccess, entityOnRequest}
+func NewMethodOperation(entity interface{}, operation Operation, successResponse, failedResponse Response, getIdFunc func(r *http.Request) string, returnEntityOnBodySuccess bool, entityOnRequestBody bool) MethodOperation {
+	return MethodOperation{entity, operation, successResponse, failedResponse, getIdFunc, returnEntityOnBodySuccess, entityOnRequestBody}
 
 }
