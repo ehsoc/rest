@@ -2,8 +2,6 @@ package resource
 
 import (
 	"io"
-
-	"github.com/ehsoc/resource/docgen"
 )
 
 //RestAPI is the root of a REST API abstraction.
@@ -16,6 +14,6 @@ type RestAPI struct {
 	Resources []Resource
 }
 
-func GenerateAPISpec(w io.Writer, docGenerator docgen.APISpecGenerator) {
-	return docGenerator.GenerateAPISpec(w, docGenerator)
+func (r RestAPI) GenerateAPISpec(w io.Writer, docGenerator APISpecGenerator) {
+	docGenerator.GenerateAPISpec(w, r)
 }

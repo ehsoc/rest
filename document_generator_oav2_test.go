@@ -1,12 +1,10 @@
-package openapiv2_test
+package resource_test
 
 import (
 	"encoding/json"
-	"fmt"
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource/doc/openapiv2"
 	"github.com/go-openapi/spec"
 )
 
@@ -75,24 +73,23 @@ var petSchemaJson = `{
 	}
   }`
 
-func TestToSchema(t *testing.T) {
-	testCases := []struct {
-		v    interface{}
-		json string
-	}{
-		{"", `{"type":"string"}`},
-		{[]string{}, `{"type":"array","items":{"type":"string"}}`},
-		{Pet{}, petSchemaJson},
-	}
-	for _, test := range testCases {
-		t.Run(fmt.Sprintf("%T", test.v), func(t *testing.T) {
-			got := openapiv2.ToSchema(test.v)
-			gotJson, _ := got.MarshalJSON()
-			assertJsonSchemaEqual(t, string(gotJson), test.json)
-		})
-	}
-
-}
+// func TestToSchema(t *testing.T) {
+// 	testCases := []struct {
+// 		v    interface{}
+// 		json string
+// 	}{
+// 		{"", `{"type":"string"}`},
+// 		{[]string{}, `{"type":"array","items":{"type":"string"}}`},
+// 		{Pet{}, petSchemaJson},
+// 	}
+// 	for _, test := range testCases {
+// 		t.Run(fmt.Sprintf("%T", test.v), func(t *testing.T) {
+// 			got := resource.ToSchema(test.v)
+// 			gotJson, _ := got.MarshalJSON()
+// 			assertJsonSchemaEqual(t, string(gotJson), test.json)
+// 		})
+// 	}
+// }
 
 func assertJsonSchemaEqual(t *testing.T, got, want string) {
 	gotJson := spec.Schema{}
