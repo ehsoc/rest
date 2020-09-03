@@ -28,7 +28,7 @@ func NewMethod(methodOperation MethodOperation, contentTypeSelector HTTPContentT
 	m.newResponse(m.methodOperation.failResponse)
 	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
 	if m.methodOperation.entityOnRequestBody {
-		m.Request.Body = m.methodOperation.entity
+		m.Request.body = m.methodOperation.entity
 	}
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m

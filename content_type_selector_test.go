@@ -35,9 +35,9 @@ func TestEncoderDecoderSelector(t *testing.T) {
 		}
 		buf := bytes.NewBufferString("")
 		e.Encode(buf, "")
-		AssertTrue(t, e.encodeCalled)
+		assertTrue(t, e.encodeCalled)
 		encoderDecoder.Decode(buf, "")
-		AssertTrue(t, e.decodeCalled)
+		assertTrue(t, e.decodeCalled)
 	})
 	t.Run("getting a non existent key", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}

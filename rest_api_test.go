@@ -16,10 +16,10 @@ func (g *GenStub) GenerateAPISpec(w io.Writer, r resource.RestAPI) {
 	g.called = true
 }
 
-func TestGenerateAPISpec(t *testing.T) {
+func TestGenerateSpec(t *testing.T) {
 	g := &GenStub{}
 	r := resource.RestAPI{}
-	r.GenerateAPISpec(new(bytes.Buffer), g)
+	r.GenerateSpec(new(bytes.Buffer), g)
 	if !g.called {
 		t.Errorf("Expecting function called")
 	}

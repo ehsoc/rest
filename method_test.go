@@ -74,7 +74,7 @@ func TestOperations(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		AssertResponseCode(t, response, successResponse.Code)
+		assertResponseCode(t, response, successResponse.Code)
 		enc := encdec.JSONEncoderDecoder{}
 		gotResponse := ResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
@@ -98,7 +98,7 @@ func TestOperations(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		AssertResponseCode(t, response, successResponse.Code)
+		assertResponseCode(t, response, successResponse.Code)
 		enc := encdec.JSONEncoderDecoder{}
 		gotResponse := ResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
@@ -121,7 +121,7 @@ func TestOperations(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		AssertResponseCode(t, response, failResponse.Code)
+		assertResponseCode(t, response, failResponse.Code)
 		enc := encdec.JSONEncoderDecoder{}
 		gotResponse := ResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
@@ -141,7 +141,7 @@ func TestOperations(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
-		AssertResponseCode(t, response, unsupportedMediaResponse.Code)
+		assertResponseCode(t, response, unsupportedMediaResponse.Code)
 		enc := encdec.JSONEncoderDecoder{}
 		gotResponse := ResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
@@ -161,7 +161,7 @@ func TestOperations(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
-		AssertResponseCode(t, response, unsupportedMediaResponse.Code)
+		assertResponseCode(t, response, unsupportedMediaResponse.Code)
 		if response.Body.String() != "" {
 			t.Errorf("Was not expecting body, got:%v", response.Body.String())
 		}
@@ -179,7 +179,7 @@ func TestOperations(t *testing.T) {
 		request.Header.Set("Accept", "application/json")
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
-		AssertResponseCode(t, response, unsupportedMediaResponse.Code)
+		assertResponseCode(t, response, unsupportedMediaResponse.Code)
 		enc := encdec.JSONEncoderDecoder{}
 		gotResponse := ResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
@@ -202,7 +202,7 @@ func TestOperations(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		AssertResponseCode(t, response, successResponse.Code)
+		assertResponseCode(t, response, successResponse.Code)
 		enc := encdec.JSONEncoderDecoder{}
 		gotResponse := Car{}
 		enc.Decode(response.Body, &gotResponse)
@@ -229,7 +229,7 @@ func TestOperations(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		AssertResponseCode(t, response, successResponse.Code)
+		assertResponseCode(t, response, successResponse.Code)
 		gotOpCar, ok := operation.entity.(Car)
 		if !ok {
 			t.Fatalf("Expecting type Car, got: %T", operation.entity)
@@ -249,8 +249,9 @@ func TestDocumentation(t *testing.T) {
 	operation := &OperationStub{Car: car}
 	mo := resource.NewMethodOperation(car, operation, successResponse, failResponse, nil, false, true)
 	method := resource.NewMethod(mo, contentTypes)
-	got := reflect.TypeOf(method.Request.Body)
-	if method.Request.Body == nil {
+	requestBody := method.Request.GetBody()
+	got := reflect.TypeOf(requestBody)
+	if requestBody == nil {
 		t.Fatalf("Not expecting nil Body")
 	}
 	if got.Name() != "Car" {

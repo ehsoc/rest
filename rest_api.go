@@ -14,6 +14,6 @@ type RestAPI struct {
 	Resources []Resource
 }
 
-func (r RestAPI) GenerateAPISpec(w io.Writer, docGenerator APISpecGenerator) {
+func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {
 	docGenerator.GenerateAPISpec(w, r)
 }

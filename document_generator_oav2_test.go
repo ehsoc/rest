@@ -1,95 +1,47 @@
 package resource_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"testing"
 
+	"github.com/ehsoc/resource"
 	"github.com/go-openapi/spec"
+	"github.com/nsf/jsondiff"
 )
 
-type Pet struct {
-	// id
-	ID int64 `json:"id,omitempty"`
-	// name
-	// Required: true
-	Name string `json:"name"`
-	// photo urls
-	// Required: true
-	PhotoUrls []string `json:"photoUrls" xml:"photoUrl"`
-	// pet status in the store
-	// Enum: [available pending sold]
-	Status string `json:"status,omitempty"`
-	// tags
-	Tags []Tag `json:"tags" xml:"tag"`
-}
+func TestGenerateAPISpec(t *testing.T) {
+	api := generatePetStore()
+	gen := resource.OpenAPIV2SpecGenerator{}
+	generatedSpec := new(bytes.Buffer)
+	decoder := json.NewDecoder(generatedSpec)
+	gen.GenerateAPISpec(generatedSpec, api)
+	gotSwagger := spec.Swagger{}
+	decoder.Decode(&gotSwagger)
+	wantSwagger := spec.Swagger{}
+	petJson := getPetJson()
+	err := json.Unmarshal(petJson, &wantSwagger)
+	assertNoErrorFatal(t, err)
 
-// Tag tag
-//
-// swagger:model Tag
-type Tag struct {
-	// id
-	ID int64 `json:"id,omitempty"`
-	// name
-	Name string `json:"name,omitempty"`
-}
-
-var petSchemaJson = `{
-	"type": "object",
-	"description" : "A Pet object.",
-	"properties": {
-	  "id": {
-		"type": "integer",
-		"format": "int64"
-	  },
-	  "name": {
-		"type": "string"
-	  },
-	  "photoUrls": {
-		"type": "array",
-		"items": {
-		  "type": "string"
-		}
-	  },
-	  "tags": {
-		"type": "array",
-		"items":{
-			"type": "object",
-			"description": "A Tag object.",
-			"properties": {
-			  "id": {
-				"type": "integer",
-				"format": "int64"
-			  },
-			  "name": {
-				"type": "string"
-			  }
-			}
-		  }
-	  },
-	  "status": {
-		"type": "string"
-	  }
+	if gotSwagger.BasePath != wantSwagger.BasePath {
+		t.Errorf("got: %v want: %v", gotSwagger.BasePath, wantSwagger.BasePath)
 	}
-  }`
 
-// func TestToSchema(t *testing.T) {
-// 	testCases := []struct {
-// 		v    interface{}
-// 		json string
-// 	}{
-// 		{"", `{"type":"string"}`},
-// 		{[]string{}, `{"type":"array","items":{"type":"string"}}`},
-// 		{Pet{}, petSchemaJson},
-// 	}
-// 	for _, test := range testCases {
-// 		t.Run(fmt.Sprintf("%T", test.v), func(t *testing.T) {
-// 			got := resource.ToSchema(test.v)
-// 			gotJson, _ := got.MarshalJSON()
-// 			assertJsonSchemaEqual(t, string(gotJson), test.json)
-// 		})
-// 	}
-// }
+	gotPetPath, ok := gotSwagger.Paths.Paths["/pet"]
+	if !ok {
+		t.Fatalf("Path not found")
+	}
+	wantPetPath, ok := wantSwagger.Paths.Paths["/pet"]
+	if !ok {
+		t.Fatalf("Path not found")
+	}
+	assertOAv2OperationEqual(t, gotPetPath.Post, wantPetPath.Post)
+
+}
 
 func assertJsonSchemaEqual(t *testing.T, got, want string) {
 	gotJson := spec.Schema{}
@@ -105,4 +57,28 @@ func assertJsonSchemaEqual(t *testing.T, got, want string) {
 	if !reflect.DeepEqual(gotJson, wantJson) {
 		t.Errorf("\ngot: %v \nwant: %v", got, want)
 	}
+}
+
+func assertOAv2OperationEqual(t *testing.T, got, want *spec.Operation) {
+	gotJson, err := json.MarshalIndent(got, " ", "  ")
+	wantJson, err := json.MarshalIndent(want, " ", "  ")
+	if err != nil {
+		t.Fatalf("Not expecting error: %v", err)
+	}
+	opts := jsondiff.DefaultConsoleOptions()
+	opts.PrintTypes = false
+	_, result := jsondiff.Compare(gotJson, wantJson, &opts)
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Expecting equal, diff: %s", result)
+	}
+}
+
+func getPetJson() []byte {
+	jsonFile, err := os.Open("fixtures/petstore.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	return byteValue
 }
