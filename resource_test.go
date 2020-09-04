@@ -1,6 +1,8 @@
 package resource_test
 
 import (
+	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/ehsoc/resource"
@@ -58,4 +60,30 @@ func TestGetMethod(t *testing.T) {
 			t.Errorf("Not expecting method found: %v", ok)
 		}
 	})
+}
+
+func TestAddURIParamResource(t *testing.T) {
+	r := resource.Resource{}
+	paramResource, err := r.AddURIParamResource("{myParamID}", func(r *http.Request) string { return "" })
+	assertNoErrorFatal(t, err)
+	if !reflect.DeepEqual(paramResource, r.Resources[0]) {
+		t.Errorf("got: %v want: %v", paramResource, r.Resources[0])
+	}
+}
+
+func TestNewResource(t *testing.T) {
+	t.Run("new resource", func(t *testing.T) {
+		path := "/pet"
+		r, err := resource.NewResource(path)
+		assertNoErrorFatal(t, err)
+		if r.Path != path {
+			t.Errorf("got : %v want: %v", r.Path, path)
+		}
+	})
+	t.Run("new resource with brackets", func(t *testing.T) {
+		path := "/{pet}"
+		_, err := resource.NewResource(path)
+		assertEqualError(t, err, resource.ErrorResourceBracketsNotAllowed)
+	})
+
 }

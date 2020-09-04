@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"reflect"
 	"strings"
 
@@ -26,6 +27,7 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi RestAPI) {
 			docMethod.Summary = method.Summary
 			if method.methodOperation.entityOnRequestBody {
 				param := spec.BodyParam("body", o.toRef(method.Request.GetBody())).AsRequired()
+				param.SimpleSchema = spec.SimpleSchema{}
 				param.Description = method.Request.Description
 				docMethod.AddParam(param)
 			}
@@ -36,6 +38,7 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi RestAPI) {
 				if response.Body != nil {
 					res.Schema = toSchema(response.Body)
 				}
+				res.Description = http.StatusText(response.Code)
 				docMethod.RespondsWith(response.Code, res)
 			}
 			docMethod.Responses.Default = nil

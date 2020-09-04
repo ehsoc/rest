@@ -93,15 +93,25 @@ func generatePetStore() resource.RestAPI {
 	api := resource.RestAPI{}
 	api.BasePath = "/v2"
 	api.Host = "localhost"
-	pets := resource.NewResource("/pet")
+	pets, _ := resource.NewResource("/pet")
 	contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	contentTypes.Add("application/xml", encdec.JSONEncoderDecoder{}, false)
-	createMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{201, nil}, resource.Response{405, nil}, getIdFunc, true, true)
+	//POST
+	createMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{201, nil}, resource.Response{400, nil}, getIdFunc, true, true)
 	createPetMethod := resource.NewMethod(createMethodOperation, contentTypes)
 	createPetMethod.Summary = "Add a new pet to the store"
 	createPetMethod.Request.Description = "Pet object that needs to be added to the store"
 	pets.AddMethod(http.MethodPost, createPetMethod)
+	//New URIParam Resource GET By ID {petId} = /pet/{petId}
+	// getByIdMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{200, nil}, resource.Response{404, nil}, getIdFunc, true, false)
+	// getByIdPetMethod := resource.NewMethod(getByIdMethodOperation, contentTypes)
+	// getByIdPetMethod.Summary = "Find pet by ID"
+	// getByIdPetMethod.Description = "Returns a single pet"
+	// getByIdPetMethod.AddURIParam("petId", getIdFunc)
+	// pets.AddMethod(http.MethodGet, getByIdPetMethod)
+	// petIDResource := pets.AddURIParamResource("{petId}", getIdFunc)
+
 	api.Resources = append(api.Resources, pets)
 	return api
 }

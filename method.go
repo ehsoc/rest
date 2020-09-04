@@ -17,6 +17,7 @@ type Method struct {
 	methodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
 	http.Handler              `json:"-"`
+	Parameters                []Parameter
 }
 
 //NewMethod returns a Method instance
@@ -32,6 +33,11 @@ func NewMethod(methodOperation MethodOperation, contentTypeSelector HTTPContentT
 	}
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
+}
+
+func (m *Method) AddURIParam(name string, getFunc func(r *http.Request) string) {
+	param := Parameter{name, getFunc, URIParameter}
+	m.Parameters = append(m.Parameters, param)
 }
 
 func (m *Method) newResponse(response Response) Response {
