@@ -1,6 +1,7 @@
 package resource_test
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"testing"
@@ -62,14 +63,14 @@ func TestGetMethod(t *testing.T) {
 	})
 }
 
-func TestAddURIParamResource(t *testing.T) {
-	r := resource.Resource{}
-	paramResource, err := r.AddURIParamResource("{myParamID}", func(r *http.Request) string { return "" })
-	assertNoErrorFatal(t, err)
-	if !reflect.DeepEqual(paramResource, r.Resources[0]) {
-		t.Errorf("got: %v want: %v", paramResource, r.Resources[0])
-	}
-}
+// func TestAddURIParamResource(t *testing.T) {
+// 	r := resource.Resource{}
+// 	paramResource, err := r.AddURIParamResource("{myParamID}", func(r *http.Request) string { return "" })
+// 	assertNoErrorFatal(t, err)
+// 	if !reflect.DeepEqual(paramResource, r.Resources[0]) {
+// 		t.Errorf("got: %v want: %v", paramResource, r.Resources[0])
+// 	}
+// }
 
 func TestNewResource(t *testing.T) {
 	t.Run("new resource", func(t *testing.T) {
@@ -85,5 +86,43 @@ func TestNewResource(t *testing.T) {
 		_, err := resource.NewResource(path)
 		assertEqualError(t, err, resource.ErrorResourceBracketsNotAllowed)
 	})
+}
 
+func TestResourceWithURIParam(t *testing.T) {
+	t.Run("new resource with uri parameter", func(t *testing.T) {
+		paramName := "petId"
+		path := fmt.Sprintf("/pet/{%s}", paramName)
+		functionResult := "This is my function"
+		getIdParamFunc := func(r *http.Request) string {
+			return functionResult
+		}
+		r, err := resource.NewResourceWithURIParam(path, getIdParamFunc, "", reflect.String)
+		assertNoErrorFatal(t, err)
+		if r.Path != path {
+			t.Errorf("got : %v want: %v", r.Path, path)
+		}
+		URIParameter := r.GetURIParam()
+		if URIParameter.Name != paramName {
+			t.Errorf("got: %v want: %v ", URIParameter.Name, paramName)
+		}
+		if URIParameter.HttpType != resource.URIParameter {
+			t.Errorf("got: %v want: %v ", URIParameter.Type, resource.URIParameter)
+		}
+		if URIParameter.GetFunc == nil {
+			t.Fatalf("Expecting some function, got nil")
+		}
+		got := URIParameter.GetFunc(&http.Request{})
+		if got != functionResult {
+			t.Errorf("got: %T want: %T ", got, getIdParamFunc)
+		}
+	})
+	t.Run("new resource with uri parameter", func(t *testing.T) {
+		paramName := "petId"
+		path := fmt.Sprintf("/pet/{%s}", paramName)
+		r, err := resource.NewResourceWithURIParam(path, nil, "", reflect.String)
+		assertNoErrorFatal(t, err)
+		if r.Path != path {
+			t.Errorf("got : %v want: %v", r.Path, path)
+		}
+	})
 }

@@ -258,17 +258,3 @@ func TestDocumentation(t *testing.T) {
 		t.Errorf("got:%s want:%s", got, "Car")
 	}
 }
-
-func TestAddURIParam(t *testing.T) {
-	method := resource.NewMethod(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
-	name := "myId"
-	funcResult := "thisIsMyID"
-	method.AddURIParam(name, func(r *http.Request) string { return funcResult })
-	gotResult := method.Parameters[0].GetFunc(&http.Request{})
-	if gotResult != funcResult {
-		t.Errorf("got :%v want: %v", gotResult, funcResult)
-	}
-	if method.Parameters[0].Name != name {
-		t.Errorf("got :%v want: %v", method.Parameters[0].Name, name)
-	}
-}

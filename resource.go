@@ -2,6 +2,7 @@ package resource
 
 import (
 	"net/http"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -28,7 +29,7 @@ func NewResource(pathStr string) (Resource, error) {
 	return r, nil
 }
 
-func NewResourceWithURIParam(pathStr string, getURIParamFunc GetParamFunc) (Resource, error) {
+func NewResourceWithURIParam(pathStr string, getURIParamFunc GetParamFunc, paramDescription string, paramType reflect.Kind) (Resource, error) {
 	params := getURLParamName(pathStr)
 	if params == nil {
 		return Resource{}, ErrorResourceURIParamNoParamFound
@@ -39,8 +40,12 @@ func NewResourceWithURIParam(pathStr string, getURIParamFunc GetParamFunc) (Reso
 	r := Resource{}
 	r.Path = pathStr
 	r.methods = map[string]Method{}
-	r.uRIParam = Parameter{params[0], getURIParamFunc, URIParameter}
+	r.uRIParam = Parameter{paramDescription, strings.Trim(params[0], "{}"), getURIParamFunc, URIParameter, paramType, nil}
 	return r, nil
+}
+
+func (r *Resource) GetURIParam() *Parameter {
+	return &r.uRIParam
 }
 
 func getURLParamName(pathStr string) []string {
@@ -60,11 +65,11 @@ func (r *Resource) AddMethod(HttpMethod string, method Method) error {
 	return nil
 }
 
-func (r *Resource) AddURIParamResource(path string, gFunc GetParamFunc) (Resource, error) {
-	newResource := Resource{}
-	r.Resources = append(r.Resources, newResource)
-	return newResource, nil
-}
+// func (r *Resource) AddURIParamResource(path string, gFunc GetParamFunc) (Resource, error) {
+// 	newResource := Resource{}
+// 	r.Resources = append(r.Resources, newResource)
+// 	return newResource, nil
+// }
 
 func (r *Resource) GetMethod(HttpMethod string) (Method, bool) {
 	method, ok := r.methods[strings.ToUpper(HttpMethod)]

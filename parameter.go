@@ -1,6 +1,9 @@
 package resource
 
-import "net/http"
+import (
+	"net/http"
+	"reflect"
+)
 
 type ParameterType string
 
@@ -13,7 +16,10 @@ const (
 )
 
 type Parameter struct {
-	Name    string
-	GetFunc func(r *http.Request) string
-	Type    ParameterType
+	Description string
+	Name        string
+	GetFunc     func(r *http.Request) string
+	HttpType    ParameterType
+	Type        reflect.Kind
+	Body        interface{}
 }

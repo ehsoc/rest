@@ -3,6 +3,7 @@ package resource_test
 import (
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/ehsoc/resource"
@@ -103,14 +104,17 @@ func generatePetStore() resource.RestAPI {
 	createPetMethod.Summary = "Add a new pet to the store"
 	createPetMethod.Request.Description = "Pet object that needs to be added to the store"
 	pets.AddMethod(http.MethodPost, createPetMethod)
-	//New URIParam Resource GET By ID {petId} = /pet/{petId}
-	// getByIdMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{200, nil}, resource.Response{404, nil}, getIdFunc, true, false)
-	// getByIdPetMethod := resource.NewMethod(getByIdMethodOperation, contentTypes)
-	// getByIdPetMethod.Summary = "Find pet by ID"
-	// getByIdPetMethod.Description = "Returns a single pet"
-	// getByIdPetMethod.AddURIParam("petId", getIdFunc)
-	// pets.AddMethod(http.MethodGet, getByIdPetMethod)
-	// petIDResource := pets.AddURIParamResource("{petId}", getIdFunc)
+	//New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
+	petIdResource, _ := resource.NewResourceWithURIParam("{petId}", getIdFunc, "", reflect.Int64)
+	getByIdMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{200, Pet{}}, resource.Response{404, nil}, getIdFunc, true, false)
+	getByIdPetMethod := resource.NewMethod(getByIdMethodOperation, contentTypes)
+	getByIdPetMethod.Summary = "Find pet by ID"
+	getByIdPetMethod.Description = "Returns a single pet"
+	petIdResource.GetURIParam().Description = "ID of pet to return"
+	getByIdPetMethod.AddParam(petIdResource.GetURIParam())
+	petIdResource.AddMethod(http.MethodGet, getByIdPetMethod)
+
+	pets.Resources = append(pets.Resources, petIdResource)
 
 	api.Resources = append(api.Resources, pets)
 	return api

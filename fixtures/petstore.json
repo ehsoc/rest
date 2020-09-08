@@ -129,8 +129,8 @@
 				"summary": "Find pet by ID",
 				"description": "Returns a single pet",
 				"produces": [
-					"application/xml",
-					"application/json"
+					"application/json",
+					"application/xml"
 				],
 				"parameters": [{
 					"name": "petId",
@@ -142,16 +142,13 @@
 				}],
 				"responses": {
 					"200": {
-						"description": "successful operation",
+						"description": "OK",
 						"schema": {
 							"$ref": "#/definitions/Pet"
 						}
 					},
-					"400": {
-						"description": "Invalid ID supplied"
-					},
 					"404": {
-						"description": "Pet not found"
+						"description": "Not Found"
 					}
 				}
 			},
