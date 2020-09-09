@@ -40,6 +40,7 @@ func TestGenerateAPISpec(t *testing.T) {
 		t.Fatalf("Path not found")
 	}
 	assertOAv2OperationEqual(t, gotPetPath.Post, wantPetPath.Post)
+
 	gotGetPetIDPath, ok := gotSwagger.Paths.Paths["/pet/{petId}"]
 	if !ok {
 		t.Fatalf("Path not found")
@@ -51,6 +52,17 @@ func TestGenerateAPISpec(t *testing.T) {
 	assertOAv2OperationEqual(t, gotGetPetIDPath.Get, wantGetPetIDPath.Get)
 	//Delete
 	assertOAv2OperationEqual(t, gotGetPetIDPath.Delete, wantGetPetIDPath.Delete)
+
+	//Upload Image
+	gotUploadImagePath, ok := gotSwagger.Paths.Paths["/pet/{petId}/uploadImage"]
+	if !ok {
+		t.Fatalf("Path not found")
+	}
+	wantUploadImagePath, ok := wantSwagger.Paths.Paths["/pet/{petId}/uploadImage"]
+	if !ok {
+		t.Fatalf("Path not found")
+	}
+	assertOAv2OperationEqual(t, gotUploadImagePath.Post, wantUploadImagePath.Post)
 
 }
 

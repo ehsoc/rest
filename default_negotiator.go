@@ -18,13 +18,13 @@ func (d DefaultNegotiator) NegotiateEncoder(r *http.Request, cts *HTTPContentTyp
 	if strings.Trim(accept, "") != "" {
 		mediaTypes := httputil.ParseContentType(accept)
 		for _, mediaType := range mediaTypes {
-			enc, err := cts.GetEncoderDecoder(mediaType.Name)
+			enc, err := cts.GetEncoder(mediaType.Name)
 			if err == nil {
 				return mediaType.Name, enc, nil
 			}
 		}
 	}
-	return cts.GetDefaultEncoderDecoder()
+	return cts.GetDefaultEncoder()
 }
 
 //NegotiateDecoder is a default method implementation of Negotiator interface
@@ -35,7 +35,7 @@ func (d DefaultNegotiator) NegotiateDecoder(r *http.Request, cts *HTTPContentTyp
 		if strings.Trim(ct, "") != "" {
 			mediaTypes := httputil.ParseContentType(ct)
 			for _, mediaType := range mediaTypes {
-				enc, err := cts.GetEncoderDecoder(mediaType.Name)
+				enc, err := cts.GetDecoder(mediaType.Name)
 				if err == nil {
 					return mediaType.Name, enc, nil
 				}
@@ -43,5 +43,5 @@ func (d DefaultNegotiator) NegotiateDecoder(r *http.Request, cts *HTTPContentTyp
 		}
 		return "", nil, errors.New("unavailable content-type decoder")
 	}
-	return cts.GetDefaultEncoderDecoder()
+	return cts.GetDefaultDecoder()
 }

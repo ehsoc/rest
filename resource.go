@@ -15,7 +15,7 @@ type Resource struct {
 	Description string
 	//a unique operation as a combination of a path and an HTTP method is allowed
 	methods   map[string]Method
-	Resources []Resource
+	Resources []*Resource
 	uRIParam  *Parameter
 }
 

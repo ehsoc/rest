@@ -1,6 +1,7 @@
 package resource
 
 type Response struct {
-	Code int
-	Body interface{}
+	Code        int
+	Body        interface{}
+	Description string
 }

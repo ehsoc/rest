@@ -11,7 +11,7 @@ type RestAPI struct {
 	ID        string
 	Host      string
 	BasePath  string
-	Resources []Resource
+	Resources []*Resource
 }
 
 func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {

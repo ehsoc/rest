@@ -9,6 +9,7 @@ type ParameterType string
 const (
 	BodyParameter     ParameterType = "body"
 	FormDataParameter ParameterType = "formData"
+	FileParameter     ParameterType = "file"
 	HeaderParameter   ParameterType = "header"
 	QueryParameter    ParameterType = "query"
 	URIParameter      ParameterType = "uri"
@@ -37,6 +38,16 @@ func NewHeaderParameter(name string, tpe reflect.Kind, getFunc GetParamFunc) *Pa
 //NewQueryParameter creates a QueryParameter Parameter. Required is false by default
 func NewQueryParameter(name string, tpe reflect.Kind, getFunc GetParamFunc) *Parameter {
 	return &Parameter{"", name, getFunc, QueryParameter, tpe, nil, false}
+}
+
+//NewFormDataParameter creates a FormDataParameter Parameter. Required is false by default
+func NewFormDataParameter(name string, tpe reflect.Kind, getFunc GetParamFunc) *Parameter {
+	return &Parameter{"", name, getFunc, FormDataParameter, tpe, nil, false}
+}
+
+//NewFileParameter creates a FileParameter Parameter. Required is false by default
+func NewFileParameter(name string, getFunc GetParamFunc) *Parameter {
+	return &Parameter{"", name, getFunc, FileParameter, reflect.Slice, nil, false}
 }
 
 //WithDescription set description property

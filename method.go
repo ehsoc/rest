@@ -65,7 +65,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 }
 
 func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response) {
-	_, encoder, err := m.contentTypeSelector.GetDefaultEncoderDecoder()
+	_, encoder, err := m.contentTypeSelector.GetDefaultEncoder()
 	//if no default encdec is set will only return the header code
 	if err != nil {
 		w.WriteHeader(response.Code)
@@ -116,12 +116,22 @@ func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
 	}
 }
 
-func (m *Method) getMediaTypes() []string {
+func (m *Method) getEncoderMediaTypes() []string {
 	mediaTypes := []string{}
-	for m := range m.contentTypeSelector.contentTypes {
+	for m := range m.contentTypeSelector.encoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
-	//Sorting keys of map for order consistency
+	//Sorting map keys for order consistency
+	sort.Strings(mediaTypes)
+	return mediaTypes
+}
+
+func (m *Method) getDecoderMediaTypes() []string {
+	mediaTypes := []string{}
+	for m := range m.contentTypeSelector.decoderContentTypes {
+		mediaTypes = append(mediaTypes, m)
+	}
+	//Sorting map keys for order consistency
 	sort.Strings(mediaTypes)
 	return mediaTypes
 }

@@ -18,7 +18,7 @@ type OpenAPIV2SpecGenerator struct {
 	rest spec.Swagger
 }
 
-func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource Resource) {
+func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *Resource) {
 	pathItem := spec.PathItem{}
 	for httpMethod, method := range apiResource.methods {
 		docMethod := spec.NewOperation("")
@@ -29,15 +29,30 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource Re
 			param.SimpleSchema = spec.SimpleSchema{}
 			param.Description = method.Request.Description
 			docMethod.AddParam(param)
-			docMethod.Consumes = method.getMediaTypes()
 		}
 		//Parameters
 		//Sorting parameters map for a consistent order in Marshaling
 		pKeys := make([]string, 0)
-		for key := range method.Parameters {
+		//URI params will go first
+		pURIKeys := make([]string, 0)
+		pHeaderKeys := make([]string, 0)
+		for key, p := range method.Parameters {
+			if p.HTTPType == URIParameter {
+				pURIKeys = append(pURIKeys, key)
+				continue
+			}
+			if p.HTTPType == HeaderParameter {
+				pHeaderKeys = append(pHeaderKeys, key)
+				continue
+			}
 			pKeys = append(pKeys, key)
 		}
+		sort.Strings(pHeaderKeys)
+		sort.Strings(pURIKeys)
 		sort.Strings(pKeys)
+		//Append two slices, uri params and the rest
+		pHeaderKeys = append(pHeaderKeys, pURIKeys...)
+		pKeys = append(pHeaderKeys, pKeys...)
 		for _, key := range pKeys {
 			parameter := method.Parameters[key]
 			specParam := &spec.Parameter{}
@@ -51,25 +66,35 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource Re
 			case HeaderParameter:
 				specParam = spec.HeaderParam(parameter.Name)
 				typedParam(specParam, parameter.Type)
+			case FormDataParameter:
+				specParam = spec.FormDataParam(parameter.Name)
+				typedParam(specParam, parameter.Type)
+			case FileParameter:
+				specParam = spec.FileParam(parameter.Name)
+				//typedParam(specParam, parameter.Type)
 			}
 			specParam.Description = parameter.Description
 			specParam.Required = parameter.Required
 			docMethod.AddParam(specParam)
 		}
+		docMethod.Consumes = method.getDecoderMediaTypes()
+		docMethod.Produces = method.getEncoderMediaTypes()
 
-		docMethod.Produces = method.getMediaTypes()
 		//Responses
 		for _, response := range method.Responses {
 			res := spec.NewResponse()
 			if response.Body != nil {
-				if reflect.TypeOf(response.Body) == reflect.TypeOf(method.methodOperation.entity) {
-					res.Schema = o.toRef(response.Body)
-				} else {
-					res.Schema = toSchema(response.Body)
-				}
-
+				res.Schema = o.toRef(response.Body)
+				//res.Schema = toSchema(response.Body)
 			}
-			res.Description = http.StatusText(response.Code)
+
+			//If response.Description is empty we will set a default response base on the status code
+			if response.Description != "" {
+				res.Description = response.Description
+			} else {
+				res.Description = http.StatusText(response.Code)
+			}
+
 			docMethod.RespondsWith(response.Code, res)
 		}
 		docMethod.Responses.Default = nil
@@ -98,9 +123,9 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource Re
 func typedParam(param *spec.Parameter, tpe reflect.Kind) {
 	schema, err := simpleTypesToSchema(tpe)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Warning on processing parameter", param.Name, ":", err)
 	}
-	if len(schema.Type[0]) > 0 {
+	if schema != nil && len(schema.Type[0]) > 0 {
 		param.Typed(schema.Type[0], schema.Format)
 	}
 }

@@ -24,12 +24,35 @@ func (e *EncodeDecoderSpy) Decode(r io.Reader, v interface{}) error {
 }
 
 func TestEncoderDecoderSelector(t *testing.T) {
-	t.Run("getting an existent key", func(t *testing.T) {
+	t.Run("getting an existent key on encoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantContentType := "test/message"
 		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add(wantContentType, e, false)
-		encoderDecoder, err := contentTypes.GetEncoderDecoder(wantContentType)
+		encoder, err := contentTypes.GetEncoder(wantContentType)
+		if err != nil {
+			t.Fatalf("Not expecting error: %v", err)
+		}
+		buf := bytes.NewBufferString("")
+		encoder.Encode(buf, "")
+		assertTrue(t, e.encodeCalled)
+	})
+	t.Run("getting a non existent key on encoder", func(t *testing.T) {
+		e := &EncodeDecoderSpy{}
+		wantContentType := "test/message"
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
+		contentTypes.Add(wantContentType, e, false)
+		_, err := contentTypes.GetEncoder("randomkey")
+		if err == nil {
+			t.Errorf("Was expecting error.")
+		}
+	})
+	t.Run("getting an existent key on decoder", func(t *testing.T) {
+		e := &EncodeDecoderSpy{}
+		wantContentType := "test/message"
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
+		contentTypes.Add(wantContentType, e, false)
+		encoderDecoder, err := contentTypes.GetDecoder(wantContentType)
 		if err != nil {
 			t.Fatalf("Not expecting error: %v", err)
 		}
@@ -39,12 +62,12 @@ func TestEncoderDecoderSelector(t *testing.T) {
 		encoderDecoder.Decode(buf, "")
 		assertTrue(t, e.decodeCalled)
 	})
-	t.Run("getting a non existent key", func(t *testing.T) {
+	t.Run("getting a non existent key on decoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantContentType := "test/message"
 		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add(wantContentType, e, false)
-		_, err := contentTypes.GetEncoderDecoder("randomkey")
+		_, err := contentTypes.GetDecoder("randomkey")
 		if err == nil {
 			t.Errorf("Was expecting error.")
 		}
@@ -58,7 +81,7 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 		wantContentType := "test/message"
 		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add(wantContentType, e, false)
-		_, _, err := contentTypes.GetDefaultEncoderDecoder()
+		_, _, err := contentTypes.GetDefaultEncoder()
 		if err == nil {
 			t.Errorf("Was expecting error.")
 		}
@@ -73,7 +96,7 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 		contentTypes.Add(wantContentType, e, true)
 		contentTypes.Add("r/tson", e, false)
 		contentTypes.Add("r/ttext", e, false)
-		got, _, err := contentTypes.GetDefaultEncoderDecoder()
+		got, _, err := contentTypes.GetDefaultDecoder()
 		if err != nil {
 			t.Fatalf("Not expecting error: %v", err)
 		}
