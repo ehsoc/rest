@@ -49,6 +49,8 @@ func TestGenerateAPISpec(t *testing.T) {
 		t.Fatalf("Path not found")
 	}
 	assertOAv2OperationEqual(t, gotGetPetIDPath.Get, wantGetPetIDPath.Get)
+	//Delete
+	assertOAv2OperationEqual(t, gotGetPetIDPath.Delete, wantGetPetIDPath.Delete)
 
 }
 
@@ -69,6 +71,7 @@ func assertJsonSchemaEqual(t *testing.T, got, want string) {
 }
 
 func assertOAv2OperationEqual(t *testing.T, got, want *spec.Operation) {
+	t.Helper()
 	gotJson, err := json.MarshalIndent(got, " ", "  ")
 	wantJson, err := json.MarshalIndent(want, " ", "  ")
 	if err != nil {

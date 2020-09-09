@@ -3,12 +3,15 @@ package resource
 import (
 	"context"
 	"net/http"
+	"net/url"
+	"sort"
 
 	"github.com/ehsoc/resource/encdec"
 )
 
 //Method represents a http operation that is performed on a resource.
 type Method struct {
+	HTTPMethod                string
 	Summary                   string
 	Description               string
 	Request                   Request    `json:"request"`
@@ -17,12 +20,13 @@ type Method struct {
 	methodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
 	http.Handler              `json:"-"`
-	Parameters                []*Parameter
+	Parameters                map[string]Parameter
 }
 
 //NewMethod returns a Method instance
-func NewMethod(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
+func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
 	m := Method{}
+	m.HTTPMethod = HTTPMethod
 	m.methodOperation = methodOperation
 	m.contentTypeSelector = contentTypeSelector
 	m.newResponse(m.methodOperation.successResponse)
@@ -31,12 +35,9 @@ func NewMethod(methodOperation MethodOperation, contentTypeSelector HTTPContentT
 	if m.methodOperation.entityOnRequestBody {
 		m.Request.body = m.methodOperation.entity
 	}
+	m.Parameters = make(map[string]Parameter)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
-}
-
-func (m *Method) AddParam(parameter *Parameter) {
-	m.Parameters = append(m.Parameters, parameter)
 }
 
 func (m *Method) newResponse(response Response) Response {
@@ -74,11 +75,6 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 }
 
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
-	getIdFunc := m.methodOperation.GetIdURLParam
-	id := ""
-	if getIdFunc != nil {
-		id = m.methodOperation.GetIdURLParam(r)
-	}
 
 	decoder, ok := r.Context().Value(encoderDecoderContextKey("decoder")).(encdec.Decoder)
 	if !ok {
@@ -86,7 +82,13 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entity, err := m.methodOperation.Execute(id, r.URL.Query(), r.Body, decoder)
+	pValues := url.Values{}
+	for name, parameter := range m.Parameters {
+		value := parameter.GetFunc(r)
+		pValues.Add(name, value)
+	}
+
+	entity, err := m.methodOperation.Execute(r.Body, pValues, decoder)
 	if err != nil {
 		writeResponse(w, r.Context(), m.methodOperation.failResponse)
 		return
@@ -119,5 +121,14 @@ func (m *Method) getMediaTypes() []string {
 	for m := range m.contentTypeSelector.contentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
+	//Sorting keys of map for order consistency
+	sort.Strings(mediaTypes)
 	return mediaTypes
+}
+
+func (m *Method) AddParameter(parameter Parameter) {
+	if m.Parameters == nil {
+		m.Parameters = make(map[string]Parameter)
+	}
+	m.Parameters[parameter.Name] = parameter
 }

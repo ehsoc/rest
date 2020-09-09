@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"path"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/go-openapi/spec"
@@ -31,24 +32,29 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource Re
 			docMethod.Consumes = method.getMediaTypes()
 		}
 		//Parameters
-		for _, parameter := range method.Parameters {
-			switch parameter.HttpType {
+		//Sorting parameters map for a consistent order in Marshaling
+		pKeys := make([]string, 0)
+		for key := range method.Parameters {
+			pKeys = append(pKeys, key)
+		}
+		sort.Strings(pKeys)
+		for _, key := range pKeys {
+			parameter := method.Parameters[key]
+			specParam := &spec.Parameter{}
+			switch parameter.HTTPType {
 			case BodyParameter:
 				schema := o.toRef(parameter.Body)
-				docMethod.AddParam(spec.BodyParam(parameter.Name, schema))
+				specParam = spec.BodyParam(parameter.Name, schema)
 			case URIParameter:
-				param := spec.PathParam(parameter.Name)
-				schema, err := simpleTypesToSchema(parameter.Type)
-				if err != nil {
-					fmt.Println(err)
-				}
-				if len(schema.Type[0]) > 0 {
-					param.Typed(schema.Type[0], schema.Format)
-				}
-				param.Description = parameter.Description
-				docMethod.AddParam(param)
+				specParam = spec.PathParam(parameter.Name)
+				typedParam(specParam, parameter.Type)
+			case HeaderParameter:
+				specParam = spec.HeaderParam(parameter.Name)
+				typedParam(specParam, parameter.Type)
 			}
-
+			specParam.Description = parameter.Description
+			specParam.Required = parameter.Required
+			docMethod.AddParam(specParam)
 		}
 
 		docMethod.Produces = method.getMediaTypes()
@@ -67,12 +73,16 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource Re
 			docMethod.RespondsWith(response.Code, res)
 		}
 		docMethod.Responses.Default = nil
-		if httpMethod == http.MethodPost {
+
+		switch httpMethod {
+		case http.MethodPost:
 			pathItem.Post = docMethod
-		}
-		if httpMethod == http.MethodGet {
+		case http.MethodGet:
 			pathItem.Get = docMethod
+		case http.MethodDelete:
+			pathItem.Delete = docMethod
 		}
+
 	}
 	if o.rest.Paths == nil {
 		o.rest.Paths = &spec.Paths{}
@@ -82,6 +92,16 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource Re
 	o.rest.Paths.Paths[path.Join(basePath, apiResource.Path)] = pathItem
 	for _, apiResource := range apiResource.Resources {
 		o.resolveResource(newBasePath, apiResource)
+	}
+}
+
+func typedParam(param *spec.Parameter, tpe reflect.Kind) {
+	schema, err := simpleTypesToSchema(tpe)
+	if err != nil {
+		fmt.Println(err)
+	}
+	if len(schema.Type[0]) > 0 {
+		param.Typed(schema.Type[0], schema.Format)
 	}
 }
 

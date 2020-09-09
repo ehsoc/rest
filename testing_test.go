@@ -99,23 +99,30 @@ func generatePetStore() resource.RestAPI {
 	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	contentTypes.Add("application/xml", encdec.JSONEncoderDecoder{}, false)
 	//POST
-	createMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{201, nil}, resource.Response{400, nil}, getIdFunc, true, true)
-	createPetMethod := resource.NewMethod(createMethodOperation, contentTypes)
+	createMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{201, nil}, resource.Response{400, nil}, true, true)
+	createPetMethod := resource.NewMethod(http.MethodPost, createMethodOperation, contentTypes)
 	createPetMethod.Summary = "Add a new pet to the store"
 	createPetMethod.Request.Description = "Pet object that needs to be added to the store"
-	pets.AddMethod(http.MethodPost, createPetMethod)
+	pets.AddMethod(createPetMethod)
 	//New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
 	petIdResource, _ := resource.NewResourceWithURIParam("{petId}", getIdFunc, "", reflect.Int64)
-	getByIdMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{200, Pet{}}, resource.Response{404, nil}, getIdFunc, true, false)
-	getByIdPetMethod := resource.NewMethod(getByIdMethodOperation, contentTypes)
+	getByIdMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{200, Pet{}}, resource.Response{404, nil}, true, false)
+	getByIdPetMethod := resource.NewMethod(http.MethodGet, getByIdMethodOperation, contentTypes)
 	getByIdPetMethod.Summary = "Find pet by ID"
 	getByIdPetMethod.Description = "Returns a single pet"
-	petIdResource.GetURIParam().Description = "ID of pet to return"
-	getByIdPetMethod.AddParam(petIdResource.GetURIParam())
-	petIdResource.AddMethod(http.MethodGet, getByIdPetMethod)
+	petIdResource.GetURIParam().WithDescription("ID of pet to return")
+	getByIdPetMethod.AddParameter(*petIdResource.GetURIParam())
+	petIdResource.AddMethod(getByIdPetMethod)
 
 	pets.Resources = append(pets.Resources, petIdResource)
-
+	//Delete
+	deleteByIdMethodOperation := resource.NewMethodOperation(Pet{}, nil, resource.Response{200, nil}, resource.Response{404, nil}, false, false)
+	deleteByIdMethod := resource.NewMethod(http.MethodDelete, deleteByIdMethodOperation, contentTypes)
+	deleteByIdMethod.Summary = "Deletes a pet"
+	deleteByIdMethod.AddParameter(*petIdResource.GetURIParam().WithDescription("Pet id to delete"))
+	apiKeyParam := resource.NewHeaderParameter("api_key", reflect.String, nil).AsOptional()
+	deleteByIdMethod.AddParameter(*apiKeyParam)
+	petIdResource.AddMethod(deleteByIdMethod)
 	api.Resources = append(api.Resources, pets)
 	return api
 }

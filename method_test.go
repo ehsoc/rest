@@ -25,14 +25,14 @@ type OperationStub struct {
 	Car     Car
 }
 
-func (o *OperationStub) Execute(id string, query url.Values, entityBody io.Reader, decoder encdec.Decoder) (interface{}, error) {
+func (o *OperationStub) Execute(body io.ReadCloser, params url.Values, decoder encdec.Decoder) (interface{}, error) {
 	o.wasCall = true
 	car := Car{}
-	if entityBody != nil && entityBody != http.NoBody {
-		decoder.Decode(entityBody, &car)
+	if body != nil && body != http.NoBody {
+		decoder.Decode(body, &car)
 		o.entity = car
 	}
-	if query.Get("error") != "" {
+	if params.Get("error") != "" {
 		return nil, errors.New("Failed")
 	}
 	return o.Car, nil
@@ -66,8 +66,8 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, false, false)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, false, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -90,8 +90,8 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, false, false)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, false, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -106,15 +106,18 @@ func TestOperations(t *testing.T) {
 			t.Errorf("got:%v want:%v", gotResponse, responseBody)
 		}
 	})
-	t.Run("POST Operation Failed", func(t *testing.T) {
+	t.Run("POST Operation Failed with query parameter trigger", func(t *testing.T) {
 		responseBody := ResponseBody{http.StatusCreated, ""}
 		successResponse := resource.Response{http.StatusCreated, responseBody}
 		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.Response{http.StatusFailedDependency, ResponseBody{http.StatusFailedDependency, ""}}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, false, false)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, false, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method.AddParameter(*resource.NewQueryParameter("error", reflect.String, func(r *http.Request) string {
+			return r.URL.Query().Get("error")
+		}))
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -136,8 +139,8 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		contentTypes.Negotiator = NegotiatorErrorStub{}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, nil, false, false)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, false, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -156,8 +159,8 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, false)
 		contentTypes.Negotiator = NegotiatorErrorStub{}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, nil, false, false)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, false, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -172,8 +175,8 @@ func TestOperations(t *testing.T) {
 		contentTypes := resource.NewHTTPContentTypeSelector(unsupportedMediaResponse)
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, nil, false, true)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(nil, operation, resource.Response{}, resource.Response{}, false, true)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString("{}"))
 		request.Header.Set("Content-Type", "unknown")
 		request.Header.Set("Accept", "application/json")
@@ -194,8 +197,8 @@ func TestOperations(t *testing.T) {
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 		wantedCar := Car{2, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: wantedCar}
-		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, nil, true, false)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(nil, operation, successResponse, failResponse, true, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -217,8 +220,8 @@ func TestOperations(t *testing.T) {
 		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 		wantedCar := Car{200, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: Car{}}
-		mo := resource.NewMethodOperation(Car{}, operation, successResponse, failResponse, nil, false, true)
-		method := resource.NewMethod(mo, contentTypes)
+		mo := resource.NewMethodOperation(Car{}, operation, successResponse, failResponse, false, true)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		buf := bytes.NewBufferString("")
 		_, encoder, _ := contentTypes.GetDefaultEncoderDecoder()
 		encoder.Encode(buf, wantedCar)
@@ -247,8 +250,8 @@ func TestDocumentation(t *testing.T) {
 	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}}
 	operation := &OperationStub{Car: car}
-	mo := resource.NewMethodOperation(car, operation, successResponse, failResponse, nil, false, true)
-	method := resource.NewMethod(mo, contentTypes)
+	mo := resource.NewMethodOperation(car, operation, successResponse, failResponse, false, true)
+	method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 	requestBody := method.Request.GetBody()
 	got := reflect.TypeOf(requestBody)
 	if requestBody == nil {
@@ -256,5 +259,15 @@ func TestDocumentation(t *testing.T) {
 	}
 	if got.Name() != "Car" {
 		t.Errorf("got:%s want:%s", got, "Car")
+	}
+}
+
+func TestAddParameter(t *testing.T) {
+	m := resource.Method{}
+	p := resource.Parameter{}
+	p.Name = "myParam"
+	m.AddParameter(p)
+	if !reflect.DeepEqual(m.Parameters[p.Name], p) {
+		t.Errorf("got: %v want: %v", m.Parameters[p.Name], p)
 	}
 }

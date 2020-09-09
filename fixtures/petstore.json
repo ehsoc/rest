@@ -195,8 +195,8 @@
 				"summary": "Deletes a pet",
 				"description": "",
 				"produces": [
-					"application/xml",
-					"application/json"
+					"application/json",
+					"application/xml"
 				],
 				"parameters": [{
 						"name": "api_key",
@@ -214,11 +214,11 @@
 					}
 				],
 				"responses": {
-					"400": {
-						"description": "Invalid ID supplied"
+					"200": {
+						"description": "OK"
 					},
 					"404": {
-						"description": "Pet not found"
+						"description": "Not Found"
 					}
 				}
 			}

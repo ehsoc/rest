@@ -16,7 +16,7 @@ type Resource struct {
 	//a unique operation as a combination of a path and an HTTP method is allowed
 	methods   map[string]Method
 	Resources []Resource
-	uRIParam  Parameter
+	uRIParam  *Parameter
 }
 
 func NewResource(pathStr string) (Resource, error) {
@@ -39,13 +39,13 @@ func NewResourceWithURIParam(pathStr string, getURIParamFunc GetParamFunc, param
 	}
 	r := Resource{}
 	r.Path = pathStr
-	r.methods = map[string]Method{}
-	r.uRIParam = Parameter{paramDescription, strings.Trim(params[0], "{}"), getURIParamFunc, URIParameter, paramType, nil}
+	r.methods = make(map[string]Method)
+	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType, getURIParamFunc).WithDescription(paramDescription)
 	return r, nil
 }
 
 func (r *Resource) GetURIParam() *Parameter {
-	return &r.uRIParam
+	return r.uRIParam
 }
 
 func getURLParamName(pathStr string) []string {
@@ -53,15 +53,16 @@ func getURLParamName(pathStr string) []string {
 	return re.FindAllString(pathStr, -1)
 }
 
-func (r *Resource) AddMethod(HttpMethod string, method Method) error {
+func (r *Resource) AddMethod(method Method) error {
 	if r.methods == nil {
 		r.methods = map[string]Method{}
 	}
-	_, ok := r.methods[strings.ToUpper(HttpMethod)]
+	HTTPMethod := strings.ToUpper(method.HTTPMethod)
+	_, ok := r.methods[HTTPMethod]
 	if ok {
 		return ErrorResourceMethodCollition
 	}
-	r.methods[strings.ToUpper(HttpMethod)] = method
+	r.methods[HTTPMethod] = method
 	return nil
 }
 
