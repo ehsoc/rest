@@ -1,13 +1,16 @@
 package resource
 
 import (
+	"io/ioutil"
+	"net/http"
 	"reflect"
+
+	"github.com/ehsoc/resource/encdec"
 )
 
 type ParameterType string
 
 const (
-	BodyParameter     ParameterType = "body"
 	FormDataParameter ParameterType = "formData"
 	FileParameter     ParameterType = "file"
 	HeaderParameter   ParameterType = "header"
@@ -18,36 +21,49 @@ const (
 type Parameter struct {
 	Description string
 	Name        string
-	GetFunc     GetParamFunc
+	Getter      Getter
 	HTTPType    ParameterType
 	Type        reflect.Kind
 	Body        interface{}
+	Decoder     encdec.Decoder
 	Required    bool
 }
 
 //NewURIParameter creates a URIParameter Parameter. Required is true by default
-func NewURIParameter(name string, tpe reflect.Kind, getFunc GetParamFunc) *Parameter {
-	return &Parameter{"", name, getFunc, URIParameter, tpe, nil, true}
+func NewURIParameter(name string, tpe reflect.Kind, getter Getter) *Parameter {
+	return &Parameter{"", name, getter, URIParameter, tpe, nil, nil, true}
 }
 
 //NewHeaderParameter creates a HeaderParameter Parameter. Required is true by default
-func NewHeaderParameter(name string, tpe reflect.Kind, getFunc GetParamFunc) *Parameter {
-	return &Parameter{"", name, getFunc, HeaderParameter, tpe, nil, true}
+func NewHeaderParameter(name string, tpe reflect.Kind, getter Getter) *Parameter {
+	return &Parameter{"", name, getter, HeaderParameter, tpe, nil, nil, true}
 }
 
 //NewQueryParameter creates a QueryParameter Parameter. Required is false by default
-func NewQueryParameter(name string, tpe reflect.Kind, getFunc GetParamFunc) *Parameter {
-	return &Parameter{"", name, getFunc, QueryParameter, tpe, nil, false}
+func NewQueryParameter(name string, tpe reflect.Kind, getter Getter) *Parameter {
+	return &Parameter{"", name, getter, QueryParameter, tpe, nil, nil, false}
 }
 
 //NewFormDataParameter creates a FormDataParameter Parameter. Required is false by default
-func NewFormDataParameter(name string, tpe reflect.Kind, getFunc GetParamFunc) *Parameter {
-	return &Parameter{"", name, getFunc, FormDataParameter, tpe, nil, false}
+func NewFormDataParameter(name string, tpe reflect.Kind, decoder encdec.Decoder) *Parameter {
+	return &Parameter{"", name, GetterFunc(func(r *http.Request) string {
+		return r.FormValue(name)
+	}), FormDataParameter, tpe, decoder, nil, false}
 }
 
 //NewFileParameter creates a FileParameter Parameter. Required is false by default
-func NewFileParameter(name string, getFunc GetParamFunc) *Parameter {
-	return &Parameter{"", name, getFunc, FileParameter, reflect.Slice, nil, false}
+func NewFileParameter(name string) *Parameter {
+	return &Parameter{"", name, GetterFunc(func(r *http.Request) string {
+		f, _, err := r.FormFile(name)
+		if err != nil {
+			return ""
+		}
+		fileString, err := ioutil.ReadAll(f)
+		if err != nil {
+			return ""
+		}
+		return string(fileString)
+	}), FileParameter, reflect.String, nil, nil, false}
 }
 
 //WithDescription set description property

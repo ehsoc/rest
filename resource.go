@@ -14,7 +14,7 @@ type Resource struct {
 	Summary     string
 	Description string
 	//a unique operation as a combination of a path and an HTTP method is allowed
-	methods   map[string]Method
+	Methods   map[string]Method
 	Resources []*Resource
 	uRIParam  *Parameter
 }
@@ -25,11 +25,11 @@ func NewResource(pathStr string) (Resource, error) {
 	}
 	r := Resource{}
 	r.Path = pathStr
-	r.methods = map[string]Method{}
+	r.Methods = map[string]Method{}
 	return r, nil
 }
 
-func NewResourceWithURIParam(pathStr string, getURIParamFunc GetParamFunc, paramDescription string, paramType reflect.Kind) (Resource, error) {
+func NewResourceWithURIParam(pathStr string, URIParamGetter Getter, paramDescription string, paramType reflect.Kind) (Resource, error) {
 	params := getURLParamName(pathStr)
 	if params == nil {
 		return Resource{}, ErrorResourceURIParamNoParamFound
@@ -39,8 +39,8 @@ func NewResourceWithURIParam(pathStr string, getURIParamFunc GetParamFunc, param
 	}
 	r := Resource{}
 	r.Path = pathStr
-	r.methods = make(map[string]Method)
-	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType, getURIParamFunc).WithDescription(paramDescription)
+	r.Methods = make(map[string]Method)
+	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType, URIParamGetter).WithDescription(paramDescription)
 	return r, nil
 }
 
@@ -54,15 +54,15 @@ func getURLParamName(pathStr string) []string {
 }
 
 func (r *Resource) AddMethod(method Method) error {
-	if r.methods == nil {
-		r.methods = map[string]Method{}
+	if r.Methods == nil {
+		r.Methods = map[string]Method{}
 	}
 	HTTPMethod := strings.ToUpper(method.HTTPMethod)
-	_, ok := r.methods[HTTPMethod]
+	_, ok := r.Methods[HTTPMethod]
 	if ok {
 		return ErrorResourceMethodCollition
 	}
-	r.methods[HTTPMethod] = method
+	r.Methods[HTTPMethod] = method
 	return nil
 }
 
@@ -73,6 +73,6 @@ func (r *Resource) AddMethod(method Method) error {
 // }
 
 func (r *Resource) GetMethod(HttpMethod string) (Method, bool) {
-	method, ok := r.methods[strings.ToUpper(HttpMethod)]
+	method, ok := r.Methods[strings.ToUpper(HttpMethod)]
 	return method, ok
 }

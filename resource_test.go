@@ -96,7 +96,7 @@ func TestResourceWithURIParam(t *testing.T) {
 		getIdParamFunc := func(r *http.Request) string {
 			return functionResult
 		}
-		r, err := resource.NewResourceWithURIParam(path, getIdParamFunc, "", reflect.String)
+		r, err := resource.NewResourceWithURIParam(path, resource.GetterFunc(getIdParamFunc), "", reflect.String)
 		assertNoErrorFatal(t, err)
 		if r.Path != path {
 			t.Errorf("got : %v want: %v", r.Path, path)
@@ -108,10 +108,7 @@ func TestResourceWithURIParam(t *testing.T) {
 		if URIParameter.HTTPType != resource.URIParameter {
 			t.Errorf("got: %v want: %v ", URIParameter.Type, resource.URIParameter)
 		}
-		if URIParameter.GetFunc == nil {
-			t.Fatalf("Expecting some function, got nil")
-		}
-		got := URIParameter.GetFunc(&http.Request{})
+		got := URIParameter.Getter.Get(&http.Request{})
 		if got != functionResult {
 			t.Errorf("got: %T want: %T ", got, getIdParamFunc)
 		}

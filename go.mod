@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/docgen v1.0.5
 	github.com/go-openapi/spec v0.19.9
 	github.com/go-test/deep v1.0.7
 	github.com/google/go-cmp v0.5.2

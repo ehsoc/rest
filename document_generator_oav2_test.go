@@ -10,12 +10,13 @@ import (
 	"testing"
 
 	"github.com/ehsoc/resource"
+	"github.com/ehsoc/resource/test/petstore"
 	"github.com/go-openapi/spec"
 	"github.com/nsf/jsondiff"
 )
 
 func TestGenerateAPISpec(t *testing.T) {
-	api := generatePetStore()
+	api := petstore.GeneratePetStore()
 	gen := resource.OpenAPIV2SpecGenerator{}
 	generatedSpec := new(bytes.Buffer)
 	decoder := json.NewDecoder(generatedSpec)
@@ -98,7 +99,7 @@ func assertOAv2OperationEqual(t *testing.T, got, want *spec.Operation) {
 }
 
 func getPetJson() []byte {
-	jsonFile, err := os.Open("fixtures/petstore.json")
+	jsonFile, err := os.Open("test/fixtures/petstore_oav2.json")
 	if err != nil {
 		fmt.Println(err)
 	}

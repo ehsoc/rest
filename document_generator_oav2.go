@@ -20,14 +20,14 @@ type OpenAPIV2SpecGenerator struct {
 
 func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *Resource) {
 	pathItem := spec.PathItem{}
-	for httpMethod, method := range apiResource.methods {
+	for httpMethod, method := range apiResource.Methods {
 		docMethod := spec.NewOperation("")
 		docMethod.Description = method.Description
 		docMethod.Summary = method.Summary
-		if method.methodOperation.entityOnRequestBody {
-			param := spec.BodyParam("body", o.toRef(method.Request.GetBody())).AsRequired()
+		if method.RequestBody.Body != nil {
+			param := spec.BodyParam("body", o.toRef(method.RequestBody.Body)).AsRequired()
 			param.SimpleSchema = spec.SimpleSchema{}
-			param.Description = method.Request.Description
+			param.Description = method.RequestBody.Description
 			docMethod.AddParam(param)
 		}
 		//Parameters
@@ -57,9 +57,6 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *R
 			parameter := method.Parameters[key]
 			specParam := &spec.Parameter{}
 			switch parameter.HTTPType {
-			case BodyParameter:
-				schema := o.toRef(parameter.Body)
-				specParam = spec.BodyParam(parameter.Name, schema)
 			case URIParameter:
 				specParam = spec.PathParam(parameter.Name)
 				typedParam(specParam, parameter.Type)

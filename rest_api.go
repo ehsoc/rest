@@ -2,6 +2,7 @@ package resource
 
 import (
 	"io"
+	"net/http"
 )
 
 //RestAPI is the root of a REST API abstraction.
@@ -16,4 +17,8 @@ type RestAPI struct {
 
 func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {
 	docGenerator.GenerateAPISpec(w, r)
+}
+
+func (r RestAPI) GenerateServer(d ServerGenerator) http.Handler {
+	return d.GenerateServer(r)
 }

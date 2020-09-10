@@ -14,8 +14,8 @@ type Method struct {
 	HTTPMethod                string
 	Summary                   string
 	Description               string
-	Request                   Request    `json:"request"`
-	Responses                 []Response `json:"responses"`
+	RequestBody               RequestBody
+	Responses                 []Response
 	bodyRequiredErrorResponse Response
 	methodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
@@ -32,9 +32,6 @@ func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSe
 	m.newResponse(m.methodOperation.successResponse)
 	m.newResponse(m.methodOperation.failResponse)
 	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
-	if m.methodOperation.entityOnRequestBody {
-		m.Request.body = m.methodOperation.entity
-	}
 	m.Parameters = make(map[string]Parameter)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
@@ -84,7 +81,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 
 	pValues := url.Values{}
 	for name, parameter := range m.Parameters {
-		value := parameter.GetFunc(r)
+		value := parameter.Getter.Get(r)
 		pValues.Add(name, value)
 	}
 
@@ -93,7 +90,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		writeResponse(w, r.Context(), m.methodOperation.failResponse)
 		return
 	}
-	if m.methodOperation.returnEntityOnBodySuccess {
+	if m.methodOperation.operationResultAsBody {
 		writeResponse(w, r.Context(), Response{Code: m.methodOperation.successResponse.Code, Body: entity})
 		return
 	}
@@ -136,9 +133,10 @@ func (m *Method) getDecoderMediaTypes() []string {
 	return mediaTypes
 }
 
-func (m *Method) AddParameter(parameter Parameter) {
+func (m *Method) AddParameter(parameter Parameter) error {
 	if m.Parameters == nil {
 		m.Parameters = make(map[string]Parameter)
 	}
 	m.Parameters[parameter.Name] = parameter
+	return nil
 }
