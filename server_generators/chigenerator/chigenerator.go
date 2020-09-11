@@ -1,7 +1,7 @@
 package chigenerator
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -22,7 +22,7 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 			}
 		})
 	}
-	fmt.Println("Generated routes:")
+	log.Println("Generated routes:")
 	docgen.PrintRoutes(router)
 	return router
 }

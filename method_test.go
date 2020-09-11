@@ -3,11 +3,11 @@ package resource_test
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
 	"net/url"
 	"reflect"
 	"testing"
@@ -22,17 +22,29 @@ type ResponseBody struct {
 }
 
 type OperationStub struct {
-	wasCall bool
-	entity  interface{}
-	Car     Car
+	wasCall     bool
+	entity      interface{}
+	Car         Car
+	JsonCarData Car
+	FileData    string
+	Metadata    string
 }
 
 func (o *OperationStub) Execute(body io.ReadCloser, params url.Values, decoder encdec.Decoder) (interface{}, error) {
 	o.wasCall = true
+	o.FileData = params.Get("file")
+	o.Metadata = params.Get("additionalMetadata")
 	car := Car{}
 	if body != nil && body != http.NoBody {
 		decoder.Decode(body, &car)
 		o.entity = car
+	}
+	if params.Get("jsonPetData") != "" {
+		buf := bytes.NewBufferString(params.Get("jsonPetData"))
+		car := Car{}
+		jsonDec := encdec.JSONDecoder{}
+		jsonDec.Decode(buf, &car)
+		o.JsonCarData = car
 	}
 	if params.Get("error") != "" {
 		return nil, errors.New("Failed")
@@ -252,14 +264,25 @@ func TestOperations(t *testing.T) {
 		contentTypes.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		method.AddParameter(*resource.NewURIParameter("petId", reflect.String, resource.GetterFunc(func(r *http.Request) string { return "" })))
-		method.AddParameter(*resource.NewFormDataParameter("additionalMetadata", reflect.String, encdec.JSONDecoder{}).WithDescription("Additional data to pass to server"))
+		method.AddParameter(*resource.NewFormDataParameter("additionalMetadata", reflect.String, nil).WithDescription("Additional data to pass to server"))
+		method.AddParameter(*resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data"))
 		method.AddParameter(*resource.NewFileParameter("file").WithDescription("file to upload"))
 		buf := new(bytes.Buffer)
 		w := multipart.NewWriter(buf)
 		fileW, _ := w.CreateFormFile("file", "MyFileName.jpg")
+		fileData := "filerandomstrings!"
+		additionalMetaData := "My Additional Metadata"
+		fileW.Write([]byte(fileData))
 		fieldW, _ := w.CreateFormField("additionalMetadata")
-		fileW.Write([]byte("randomstrings!"))
-		fieldW.Write([]byte("My Additional Metadata"))
+		fieldW.Write([]byte(additionalMetaData))
+		mediaHeader := textproto.MIMEHeader{}
+		mediaHeader.Set("Content-Type", "application/json; charset=UTF-8")
+		mediaHeader.Set("Content-Disposition", "form-data; name=\"jsonPetData\"")
+		jsonPetDataW, _ := w.CreatePart(mediaHeader)
+		encoder := encdec.JSONEncoder{}
+		wantCar := Car{1, "Subaru", []Color{{"red"}, {"blue"}, {"white"}}}
+		encoder.Encode(jsonPetDataW, wantCar)
+		w.Close()
 		request, _ := http.NewRequest(http.MethodPost, "/", buf)
 		request.Header.Set("Content-Type", w.FormDataContentType())
 		response := httptest.NewRecorder()
@@ -268,7 +291,16 @@ func TestOperations(t *testing.T) {
 			t.Errorf("Expecting operation execution.")
 		}
 		assertResponseCode(t, response, http.StatusOK)
-		fmt.Println(response)
+		if operation.FileData != fileData {
+			t.Errorf("got :%s want: %s", operation.FileData, fileData)
+		}
+		if operation.Metadata != additionalMetaData {
+			t.Errorf("got :%s want: %s", operation.Metadata, additionalMetaData)
+		}
+		if !reflect.DeepEqual(operation.JsonCarData, wantCar) {
+			t.Errorf("got :%v want: %v", operation.JsonCarData, wantCar)
+		}
+
 	})
 }
 

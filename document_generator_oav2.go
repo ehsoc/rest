@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"path"
 	"reflect"
@@ -15,7 +16,7 @@ import (
 )
 
 type OpenAPIV2SpecGenerator struct {
-	rest spec.Swagger
+	swagger spec.Swagger
 }
 
 func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *Resource) {
@@ -65,10 +66,13 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *R
 				typedParam(specParam, parameter.Type)
 			case FormDataParameter:
 				specParam = spec.FormDataParam(parameter.Name)
+				//In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
+				if parameter.Body != nil {
+					parameter.Type = reflect.String
+				}
 				typedParam(specParam, parameter.Type)
 			case FileParameter:
 				specParam = spec.FileParam(parameter.Name)
-				//typedParam(specParam, parameter.Type)
 			}
 			specParam.Description = parameter.Description
 			specParam.Required = parameter.Required
@@ -106,12 +110,12 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *R
 		}
 
 	}
-	if o.rest.Paths == nil {
-		o.rest.Paths = &spec.Paths{}
-		o.rest.Paths.Paths = make(map[string]spec.PathItem)
+	if o.swagger.Paths == nil {
+		o.swagger.Paths = &spec.Paths{}
+		o.swagger.Paths.Paths = make(map[string]spec.PathItem)
 	}
 	newBasePath := path.Join(basePath, apiResource.Path)
-	o.rest.Paths.Paths[path.Join(basePath, apiResource.Path)] = pathItem
+	o.swagger.Paths.Paths[path.Join(basePath, apiResource.Path)] = pathItem
 	for _, apiResource := range apiResource.Resources {
 		o.resolveResource(newBasePath, apiResource)
 	}
@@ -120,7 +124,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *R
 func typedParam(param *spec.Parameter, tpe reflect.Kind) {
 	schema, err := simpleTypesToSchema(tpe)
 	if err != nil {
-		fmt.Println("Warning on processing parameter", param.Name, ":", err)
+		log.Println("Warning on processing parameter", param.Name, ":", err)
 	}
 	if schema != nil && len(schema.Type[0]) > 0 {
 		param.Typed(schema.Type[0], schema.Format)
@@ -128,21 +132,21 @@ func typedParam(param *spec.Parameter, tpe reflect.Kind) {
 }
 
 func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi RestAPI) {
-	o.rest.BasePath = restApi.BasePath
-	o.rest.Host = restApi.Host
-	o.rest.ID = restApi.ID
+	o.swagger.Swagger = "2.0"
+	o.swagger.BasePath = restApi.BasePath
+	o.swagger.Host = restApi.Host
+	o.swagger.ID = restApi.ID
 	for _, apiResource := range restApi.Resources {
 		o.resolveResource("", apiResource)
 	}
-	json.NewEncoder(w).Encode(o.rest)
+	json.NewEncoder(w).Encode(o.swagger)
 }
 
 func (o *OpenAPIV2SpecGenerator) AddDefinition(name string, schema *spec.Schema) {
-	if o.rest.Definitions != nil {
-
+	if o.swagger.Definitions == nil {
+		o.swagger.Definitions = make(spec.Definitions)
 	}
-	o.rest.Definitions = make(spec.Definitions)
-	o.rest.Definitions[name] = *schema
+	o.swagger.Definitions[name] = *schema
 }
 
 func (o *OpenAPIV2SpecGenerator) toRef(v interface{}) *spec.Schema {

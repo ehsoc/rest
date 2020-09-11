@@ -26,7 +26,7 @@ func GeneratePetStore() resource.RestAPI {
 	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	contentTypes.Add("application/xml", encdec.JSONEncoderDecoder{}, false)
 	//POST
-	createMethodOperation := resource.NewMethodOperation(nil, resource.Response{201, nil, ""}, resource.Response{400, nil, ""}, true)
+	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.Response{201, nil, ""}, resource.Response{400, nil, ""}, true)
 	createPetMethod := resource.NewMethod(http.MethodPost, createMethodOperation, contentTypes)
 	createPetMethod.Summary = "Add a new pet to the store"
 	createPetMethod.RequestBody = resource.RequestBody{"Pet object that needs to be added to the store", Pet{}}
@@ -36,7 +36,7 @@ func GeneratePetStore() resource.RestAPI {
 	eContentTypes.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 	eContentTypes.AddEncoder("application/xml", encdec.JSONEncoderDecoder{}, false)
 	petIdResource, _ := resource.NewResourceWithURIParam("{petId}", resource.GetterFunc(getIdFunc), "", reflect.Int64)
-	getByIdMethodOperation := resource.NewMethodOperation(nil, resource.Response{200, Pet{}, ""}, resource.Response{404, nil, ""}, true)
+	getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.Response{200, Pet{}, ""}, resource.Response{404, nil, ""}, true)
 	getByIdPetMethod := resource.NewMethod(http.MethodGet, getByIdMethodOperation, eContentTypes)
 	getByIdPetMethod.Summary = "Find pet by ID"
 	getByIdPetMethod.Description = "Returns a single pet"
@@ -64,9 +64,9 @@ func GeneratePetStore() resource.RestAPI {
 	uploadImageMethod.AddParameter(*petIdResource.GetURIParam().WithDescription("ID of pet to update"))
 	uploadImageMethod.AddParameter(*resource.NewFormDataParameter("additionalMetadata", reflect.String, encdec.JSONDecoder{}).WithDescription("Additional data to pass to server"))
 	uploadImageMethod.AddParameter(*resource.NewFileParameter("file").WithDescription("file to upload"))
+	uploadImageMethod.AddParameter(*resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data").WithBody(Pet{}))
 	uploadImageResource.AddMethod(uploadImageMethod)
 	petIdResource.Resources = append(petIdResource.Resources, &uploadImageResource)
-
 	api.Resources = append(api.Resources, &pets)
 	return api
 }

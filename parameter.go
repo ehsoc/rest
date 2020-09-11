@@ -48,7 +48,7 @@ func NewQueryParameter(name string, tpe reflect.Kind, getter Getter) *Parameter 
 func NewFormDataParameter(name string, tpe reflect.Kind, decoder encdec.Decoder) *Parameter {
 	return &Parameter{"", name, GetterFunc(func(r *http.Request) string {
 		return r.FormValue(name)
-	}), FormDataParameter, tpe, decoder, nil, false}
+	}), FormDataParameter, tpe, nil, decoder, false}
 }
 
 //NewFileParameter creates a FileParameter Parameter. Required is false by default
@@ -58,7 +58,9 @@ func NewFileParameter(name string) *Parameter {
 		if err != nil {
 			return ""
 		}
+		defer f.Close()
 		fileString, err := ioutil.ReadAll(f)
+
 		if err != nil {
 			return ""
 		}
@@ -67,8 +69,14 @@ func NewFileParameter(name string) *Parameter {
 }
 
 //WithDescription set description property
-func (p *Parameter) WithDescription(d string) *Parameter {
-	p.Description = d
+func (p *Parameter) WithDescription(description string) *Parameter {
+	p.Description = description
+	return p
+}
+
+//WithDescription set body property
+func (p *Parameter) WithBody(body interface{}) *Parameter {
+	p.Body = body
 	return p
 }
 

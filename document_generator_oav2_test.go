@@ -3,8 +3,8 @@ package resource_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -27,6 +27,8 @@ func TestGenerateAPISpec(t *testing.T) {
 	petJson := getPetJson()
 	err := json.Unmarshal(petJson, &wantSwagger)
 	assertNoErrorFatal(t, err)
+
+	//TODO check definitions
 
 	if gotSwagger.BasePath != wantSwagger.BasePath {
 		t.Errorf("got: %v want: %v", gotSwagger.BasePath, wantSwagger.BasePath)
@@ -101,7 +103,7 @@ func assertOAv2OperationEqual(t *testing.T, got, want *spec.Operation) {
 func getPetJson() []byte {
 	jsonFile, err := os.Open("test/fixtures/petstore_oav2.json")
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)

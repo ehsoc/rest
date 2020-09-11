@@ -254,6 +254,13 @@
 						"description": "file to upload",
 						"required": false,
 						"type": "file"
+					},
+					{
+						"name": "jsonPetData",
+						"in": "formData",
+						"description": "json format data",
+						"required": false,
+						"type": "string"
 					}
 				],
 				"responses": {

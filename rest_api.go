@@ -9,10 +9,12 @@ import (
 //It is responsable document generation like output Open API v2 json generation and
 //Server handler generation
 type RestAPI struct {
-	ID        string
-	Host      string
-	BasePath  string
-	Resources []*Resource
+	ID          string
+	Description string
+	Version     string
+	Host        string
+	BasePath    string
+	Resources   []*Resource
 }
 
 func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {
@@ -21,4 +23,8 @@ func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {
 
 func (r RestAPI) GenerateServer(d ServerGenerator) http.Handler {
 	return d.GenerateServer(r)
+}
+
+func apiCheck() {
+
 }

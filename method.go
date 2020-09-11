@@ -78,7 +78,6 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
-
 	pValues := url.Values{}
 	for name, parameter := range m.Parameters {
 		value := parameter.Getter.Get(r)
