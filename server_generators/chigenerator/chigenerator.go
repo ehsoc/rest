@@ -1,6 +1,7 @@
 package chigenerator
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -27,10 +28,15 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 	return router
 }
 
-func processResource(r chi.Router, resource *resource.Resource) {
-	r.Route(resource.Path, func(r chi.Router) {
-		for httpMethod, method := range resource.Methods {
+func processResource(r chi.Router, res *resource.Resource) {
+	r.Route(res.Path, func(r chi.Router) {
+		fmt.Println("RESOURCE: ", res.Path)
+		for httpMethod, method := range res.Methods {
+			fmt.Println(" METHOD: ", httpMethod)
 			r.Method(httpMethod, "/", method)
+		}
+		for _, subRes := range res.Resources {
+			processResource(r, subRes)
 		}
 	})
 }

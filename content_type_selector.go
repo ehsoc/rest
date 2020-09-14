@@ -18,6 +18,8 @@ type HTTPContentTypeSelector struct {
 	unsupportedMediaTypeResponse Response
 }
 
+var DefaultUnsupportedMediaResponse = Response{http.StatusUnsupportedMediaType, nil, ""}
+
 //NewHTTPContentTypeSelector will return a HTTPContentTypeSelector with an empty content-type
 //map and the Default Negotiator.
 //The Negotiator is a content-type negotiator, that can be replaced by a custom Negotiator implementation.

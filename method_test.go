@@ -302,6 +302,30 @@ func TestOperations(t *testing.T) {
 		}
 
 	})
+
+	t.Run("GET id return entity on Body response only encoder", func(t *testing.T) {
+		successResponse := resource.Response{http.StatusOK, Car{}, ""}
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.DefaultUnsupportedMediaResponse)
+		contentTypes.AddEncoder("application/json", encdec.JSONEncoder{}, true)
+		failResponse := resource.Response{http.StatusInternalServerError, ResponseBody{http.StatusInternalServerError, ""}, ""}
+		wantedCar := Car{2, "Fiat", []Color{{"blue"}, {"red"}}}
+		operation := &OperationStub{Car: wantedCar}
+		mo := resource.NewMethodOperation(operation, successResponse, failResponse, true)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		request, _ := http.NewRequest(http.MethodGet, "/", nil)
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		if !operation.wasCall {
+			t.Errorf("Expecting operation execution.")
+		}
+		assertResponseCode(t, response, successResponse.Code)
+		enc := encdec.JSONEncoderDecoder{}
+		gotResponse := Car{}
+		enc.Decode(response.Body, &gotResponse)
+		if !reflect.DeepEqual(gotResponse, wantedCar) {
+			t.Errorf("got:%v want:%v", gotResponse, wantedCar)
+		}
+	})
 }
 
 func TestAddParameter(t *testing.T) {

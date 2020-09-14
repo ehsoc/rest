@@ -1,6 +1,7 @@
 package chigenerator_test
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net/http"
@@ -18,7 +19,6 @@ import (
 
 type OperationStub struct {
 	wasCall bool
-	entity  interface{}
 	Pet     petstore.Pet
 	PetId   string
 }
@@ -29,7 +29,7 @@ func (o *OperationStub) Execute(body io.ReadCloser, params url.Values, decoder e
 	pet := petstore.Pet{}
 	if body != nil && body != http.NoBody {
 		decoder.Decode(body, &pet)
-		o.entity = pet
+		o.Pet = pet
 	}
 	if params.Get("error") != "" {
 		return nil, errors.New("Failed")
@@ -69,5 +69,84 @@ func TestGenerateServer(t *testing.T) {
 			t.Errorf("got: %s want: %s", operation.PetId, myId)
 		}
 	})
+	t.Run("post method", func(t *testing.T) {
+		gen := chigenerator.ChiGenerator{}
+		api := resource.RestAPI{}
+		api.BasePath = "/v2"
+		api.Host = "localhost"
+		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{http.StatusUnsupportedMediaType, nil, ""})
+		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		operation := &OperationStub{}
+		postMethodOp := resource.NewMethodOperation(operation, resource.Response{http.StatusCreated, petstore.Pet{}, ""}, resource.Response{http.StatusBadRequest, nil, ""}, true)
+		postMethod := resource.NewMethod(http.MethodPost, postMethodOp, contentTypes)
+		petResource, _ := resource.NewResource("/pet")
+		postMethod.RequestBody = resource.RequestBody{"", petstore.Pet{}}
+		petResource.AddMethod(postMethod)
+
+		api.Resources = append(api.Resources, &petResource)
+		server := gen.GenerateServer(api)
+
+		pet := petstore.Pet{Name: "Cat"}
+		buf := new(bytes.Buffer)
+		encoder := encdec.JSONEncoderDecoder{}
+		encoder.Encode(buf, pet)
+
+		request, _ := http.NewRequest(http.MethodPost, "/v2/pet", buf)
+		request.Header.Set("Content-Type", "application/json")
+		response := httptest.NewRecorder()
+		server.ServeHTTP(response, request)
+		if response.Code != http.StatusCreated {
+			t.Errorf("got: %v want: %v", response.Code, http.StatusCreated)
+		}
+		if !operation.wasCall {
+			t.Errorf("operation was not called")
+		}
+		if !reflect.DeepEqual(pet, operation.Pet) {
+			t.Errorf("got: %v want: %v", pet, operation.Pet)
+		}
+	})
+}
+
+var testRoutes = []struct {
+	route    string
+	wantCode int
+}{
+	{"/v1/1", 404},
+	{"/v1/1/2", 404},
+	{"/v1/1/2/3", 200},
+	{"/v1/1/2/3/4/5/1", 200},
+}
+
+func TestNestedRoutes(t *testing.T) {
+	mo := resource.NewMethodOperation(&OperationStub{}, resource.Response{200, nil, ""}, resource.Response{500, nil, ""}, false)
+	ct := resource.NewHTTPContentTypeSelector(resource.Response{415, nil, ""})
+	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	method := resource.NewMethod(http.MethodGet, mo, ct)
+	rootResource, _ := resource.NewResource("/1/2")
+	r3, _ := resource.NewResource("/3")
+	r5, _ := resource.NewResourceWithURIParam("/4/5/{petId}", resource.GetterFunc(func(r *http.Request) string {
+		return chi.URLParam(r, "petId")
+	}), "", reflect.String)
+	r3.AddMethod(method)
+	r5.AddMethod(method)
+	r3.Resources = append(r3.Resources, &r5)
+	rootResource.Resources = append(rootResource.Resources, &r3)
+	api := resource.RestAPI{}
+	api.BasePath = "/v1"
+	api.Resources = append(api.Resources, &rootResource)
+	server := api.GenerateServer(chigenerator.ChiGenerator{})
+
+	for _, test := range testRoutes {
+		t.Run(test.route, func(t *testing.T) {
+			request, _ := http.NewRequest(http.MethodGet, test.route, nil)
+			request.Header.Set("Content-Type", "application/json")
+			response := httptest.NewRecorder()
+			server.ServeHTTP(response, request)
+			if response.Code != test.wantCode {
+				t.Errorf("got: %v want: %v", response.Code, test.wantCode)
+			}
+		})
+
+	}
 
 }

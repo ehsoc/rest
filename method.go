@@ -19,8 +19,8 @@ type Method struct {
 	bodyRequiredErrorResponse Response
 	methodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
-	http.Handler              `json:"-"`
-	Parameters                map[string]Parameter
+	http.Handler
+	Parameters map[string]Parameter
 }
 
 //NewMethod returns a Method instance
@@ -72,7 +72,6 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 }
 
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
-
 	decoder, ok := r.Context().Value(encoderDecoderContextKey("decoder")).(encdec.Decoder)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
