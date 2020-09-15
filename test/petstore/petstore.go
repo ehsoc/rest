@@ -58,7 +58,7 @@ func GeneratePetStore() resource.RestAPI {
 	petIdResource.AddMethod(deleteByIdMethod)
 	//Upload image resource under URIParameter Resource
 	uploadImageResource, _ := resource.NewResource("/uploadImage")
-	uploadImageMethodOperation := resource.NewMethodOperation(nil, resource.Response{200, ApiResponse{}, "successful operation"}, resource.Response{500, nil, ""}, false)
+	uploadImageMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.Response{200, ApiResponse{200, "OK", "image created"}, "successful operation"}, resource.Response{500, nil, ""}, false)
 	eContentType := resource.NewHTTPContentTypeSelector(unsupportedResponse)
 	eContentType.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 	eContentType.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)

@@ -8,7 +8,7 @@ import (
 	"github.com/ehsoc/resource/encdec"
 )
 
-var store = NewStore()
+var PetStore = NewStore()
 
 func operationCreate(body io.ReadCloser, parameters url.Values, decoder encdec.Decoder) (interface{}, error) {
 	pet := Pet{}
@@ -16,20 +16,26 @@ func operationCreate(body io.ReadCloser, parameters url.Values, decoder encdec.D
 	if err != nil {
 		return nil, err
 	}
-	return store.Create(pet)
+	return PetStore.Create(pet)
 }
 
 func operationGetPetById(body io.ReadCloser, parameters url.Values, decoder encdec.Decoder) (interface{}, error) {
 	log.Println("Searching pet id:", parameters.Get("petId"))
-	return store.Get(parameters.Get("petId"))
+	return PetStore.Get(parameters.Get("petId"))
 }
 
 func operationDeletePet(body io.ReadCloser, parameters url.Values, decoder encdec.Decoder) (interface{}, error) {
 	log.Println("Deleting pet id:", parameters.Get("petId"))
-	return nil, store.Delete(parameters.Get("petId"))
+	return nil, PetStore.Delete(parameters.Get("petId"))
 }
 
 func operationUploadImage(body io.ReadCloser, parameters url.Values, decoder encdec.Decoder) (interface{}, error) {
+	petId := parameters.Get("petId")
 	log.Println("Uploading image pet id:", parameters.Get("petId"))
+	fileString := parameters.Get("file")
+	err := PetStore.UploadPhoto(petId, fileString)
+	if err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
