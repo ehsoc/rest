@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//JSONDecoder implements Decoder to encode on json format
+//JSONDecoder implements Decoder to decode json format
 type JSONDecoder struct{}
 
 //Decode implements Decode method of interface Decoder

@@ -51,8 +51,8 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), encoderDecoderContextKey("encoder"), encoder)
 		_, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
-		if err != nil {
-			writeResponse(w, ctx, m.contentTypeSelector.unsupportedMediaTypeResponse)
+		if err != nil && r.Body != http.NoBody && r.Body != nil {
+			writeResponse(ctx, w, m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
 		ctx = context.WithValue(ctx, encoderDecoderContextKey("decoder"), decoder)
@@ -74,8 +74,8 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	decoder, ok := r.Context().Value(encoderDecoderContextKey("decoder")).(encdec.Decoder)
 	if !ok {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		//Fallback decoder is a simple string decoder, so we will avoid to pass a nil decoder
+		decoder = encdec.TextDecoder{}
 	}
 	pValues := url.Values{}
 	for name, parameter := range m.Parameters {
@@ -85,17 +85,17 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 
 	entity, err := m.methodOperation.Execute(r.Body, pValues, decoder)
 	if err != nil {
-		writeResponse(w, r.Context(), m.methodOperation.failResponse)
+		writeResponse(r.Context(), w, m.methodOperation.failResponse)
 		return
 	}
 	if m.methodOperation.operationResultAsBody {
-		writeResponse(w, r.Context(), Response{Code: m.methodOperation.successResponse.Code, Body: entity})
+		writeResponse(r.Context(), w, Response{Code: m.methodOperation.successResponse.Code, Body: entity})
 		return
 	}
-	writeResponse(w, r.Context(), m.methodOperation.successResponse)
+	writeResponse(r.Context(), w, m.methodOperation.successResponse)
 }
 
-func writeResponse(w http.ResponseWriter, ctx context.Context, resp Response) {
+func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {
 	encoder, ok := ctx.Value(encoderDecoderContextKey("encoder")).(encdec.Encoder)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

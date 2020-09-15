@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-//XMLDecoder implements restapigen.Decoder to encode on xml format
+//XMLDecoder implements restapigen.Decoder to decode xml format
 type XMLDecoder struct{}
 
 //Decode implements Decode method of interface Decoder
