@@ -8,7 +8,7 @@ import (
 	"github.com/ehsoc/resource/server_generators/chigenerator"
 	"github.com/ehsoc/resource/test/petstore"
 	"github.com/go-chi/chi"
-	"github.com/swaggo/http-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func main() {
@@ -20,12 +20,12 @@ func main() {
 
 	r := chi.NewRouter()
 
-	r.Get("/doc/doc.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/doc.json", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		api.GenerateSpec(w, &resource.OpenAPIV2SpecGenerator{})
 	}))
 	r.Get("/swagger/*", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:1323/doc"), //The url pointing to API definition"
+		httpSwagger.URL("http://localhost:1323/doc.json"), //The url pointing to API definition"
 
 	))
 

@@ -19,12 +19,20 @@ func NewStore() Store {
 	return store
 }
 
+func getInt64Id(stringId string) (int64, error) {
+	id, err := strconv.Atoi(stringId)
+	if err != nil {
+		return 0, err
+	}
+	return int64(id), nil
+}
+
 func (s *Store) Get(petId string) (Pet, error) {
-	id, err := strconv.Atoi(petId)
+	id, err := getInt64Id(petId)
 	if err != nil {
 		return Pet{}, err
 	}
-	if pet, ok := s.store[int64(id)]; ok {
+	if pet, ok := s.store[id]; ok {
 		return pet, nil
 	}
 	return Pet{}, errors.New("Pet not found.")
@@ -32,11 +40,25 @@ func (s *Store) Get(petId string) (Pet, error) {
 
 func (s *Store) Create(pet Pet) (Pet, error) {
 	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.idCount++
 	pet.ID = s.idCount
 	s.store[pet.ID] = pet
-	s.mutex.Unlock()
 	return pet, nil
+}
+
+func (s *Store) Delete(petId string) error {
+	id, err := getInt64Id(petId)
+	if err != nil {
+		return err
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	if _, ok := s.store[id]; !ok {
+		return errors.New("pet not found")
+	}
+	delete(s.store, id)
+	return nil
 }
 
 func (s *Store) List() ([]Pet, error) {

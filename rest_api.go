@@ -32,6 +32,7 @@ func resourcesCheck(res []*Resource) {
 		for httpMethod, m := range resource.Methods {
 			for _, resp := range m.Responses {
 				httpResponseCodeCheck(resp.Code, httpMethod, resource.Path)
+				parameterOperationCheck(m, resource.Path)
 			}
 		}
 		resourcesCheck(resource.Resources)
@@ -44,5 +45,16 @@ func resourcesCheck(res []*Resource) {
 func httpResponseCodeCheck(code int, httpMethod string, path string) {
 	if code < 100 || code > 999 {
 		panic(fmt.Sprintf("GenerateServer check error: invalid response code %v on method: %v of resource: %v", code, httpMethod, path))
+	}
+}
+
+func parameterOperationCheck(m Method, path string) {
+	if m.methodOperation.Operation == nil {
+		panic(fmt.Sprintf("GenerateServer check error: resource %s method %s doesn't have an operation.", path, m.HTTPMethod))
+	}
+	for name, parameter := range m.Parameters {
+		if parameter.Getter == nil {
+			panic(fmt.Sprintf("GenerateServer check error: resource %s method %s: parameter %s doesn't have a getter function.", path, m.HTTPMethod, name))
+		}
 	}
 }

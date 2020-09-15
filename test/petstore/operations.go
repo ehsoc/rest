@@ -23,3 +23,13 @@ func operationGetPetById(body io.ReadCloser, parameters url.Values, decoder encd
 	log.Println("Searching pet id:", parameters.Get("petId"))
 	return store.Get(parameters.Get("petId"))
 }
+
+func operationDeletePet(body io.ReadCloser, parameters url.Values, decoder encdec.Decoder) (interface{}, error) {
+	log.Println("Deleting pet id:", parameters.Get("petId"))
+	return nil, store.Delete(parameters.Get("petId"))
+}
+
+func operationUploadImage(body io.ReadCloser, parameters url.Values, decoder encdec.Decoder) (interface{}, error) {
+	log.Println("Uploading image pet id:", parameters.Get("petId"))
+	return nil, nil
+}

@@ -6,6 +6,7 @@ import (
 
 	"github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/encdec"
+	"github.com/go-chi/chi"
 )
 
 type ApiResponse struct {
@@ -18,7 +19,7 @@ var unsupportedResponse = resource.Response{415, nil, ""}
 
 func GeneratePetStore() resource.RestAPI {
 	getIdFunc := func(r *http.Request) string {
-		return "id"
+		return chi.URLParam(r, "petId")
 	}
 	api := resource.RestAPI{}
 	api.BasePath = "/v2"
@@ -48,11 +49,11 @@ func GeneratePetStore() resource.RestAPI {
 
 	pets.Resources = append(pets.Resources, &petIdResource)
 	//Delete
-	deleteByIdMethodOperation := resource.NewMethodOperation(nil, resource.Response{200, nil, ""}, resource.Response{404, nil, ""}, false)
+	deleteByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.Response{200, nil, ""}, resource.Response{404, nil, ""}, false)
 	deleteByIdMethod := resource.NewMethod(http.MethodDelete, deleteByIdMethodOperation, eContentTypes)
 	deleteByIdMethod.Summary = "Deletes a pet"
 	deleteByIdMethod.AddParameter(*petIdResource.GetURIParam().WithDescription("Pet id to delete"))
-	apiKeyParam := resource.NewHeaderParameter("api_key", reflect.String, nil).AsOptional()
+	apiKeyParam := resource.NewHeaderParameter("api_key", reflect.String, resource.GetterFunc(getIdFunc)).AsOptional()
 	deleteByIdMethod.AddParameter(*apiKeyParam)
 	petIdResource.AddMethod(deleteByIdMethod)
 	//Upload image resource under URIParameter Resource

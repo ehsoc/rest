@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -79,10 +80,15 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	pValues := url.Values{}
 	for name, parameter := range m.Parameters {
+		if parameter.Getter == nil {
+			log.Panicf("resource: resource %s method %s: parameter %s doesn't have a getter function.", r.URL.Path, m.HTTPMethod, name)
+		}
 		value := parameter.Getter.Get(r)
 		pValues.Add(name, value)
 	}
-
+	if m.methodOperation.Operation == nil {
+		log.Panicf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod)
+	}
 	entity, err := m.methodOperation.Execute(r.Body, pValues, decoder)
 	if err != nil {
 		writeResponse(r.Context(), w, m.methodOperation.failResponse)
