@@ -6,7 +6,6 @@ import (
 
 	"github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/encdec"
-	"github.com/go-chi/chi"
 )
 
 type ApiResponse struct {
@@ -18,16 +17,14 @@ type ApiResponse struct {
 var unsupportedResponse = resource.Response{415, nil, ""}
 
 func GeneratePetStore() resource.RestAPI {
-	getIdFunc := func(r *http.Request) string {
-		return chi.URLParam(r, "petId")
-	}
 	api := resource.RestAPI{}
 	api.BasePath = "/v2"
 	api.Host = "localhost"
+	//Resource /pet
 	pets, _ := resource.NewResource("/pet")
 	contentTypes := resource.NewHTTPContentTypeSelector(unsupportedResponse)
 	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-	contentTypes.Add("application/xml", encdec.JSONEncoderDecoder{}, false)
+	contentTypes.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	//POST
 	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.Response{201, nil, ""}, resource.Response{400, nil, ""}, true)
 	createPetMethod := resource.NewMethod(http.MethodPost, createMethodOperation, contentTypes)
@@ -38,7 +35,7 @@ func GeneratePetStore() resource.RestAPI {
 	eContentTypes := resource.NewHTTPContentTypeSelector(unsupportedResponse)
 	eContentTypes.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 	eContentTypes.AddEncoder("application/xml", encdec.JSONEncoderDecoder{}, false)
-	petIdResource, _ := resource.NewResourceWithURIParam("/{petId}", resource.GetterFunc(getIdFunc), "", reflect.Int64)
+	petIdResource, _ := resource.NewResourceWithURIParam("/{petId}", "", reflect.Int64)
 	getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.Response{200, Pet{}, ""}, resource.Response{404, nil, ""}, true)
 	getByIdPetMethod := resource.NewMethod(http.MethodGet, getByIdMethodOperation, eContentTypes)
 	getByIdPetMethod.Summary = "Find pet by ID"
@@ -53,7 +50,7 @@ func GeneratePetStore() resource.RestAPI {
 	deleteByIdMethod := resource.NewMethod(http.MethodDelete, deleteByIdMethodOperation, eContentTypes)
 	deleteByIdMethod.Summary = "Deletes a pet"
 	deleteByIdMethod.AddParameter(*petIdResource.GetURIParam().WithDescription("Pet id to delete"))
-	apiKeyParam := resource.NewHeaderParameter("api_key", reflect.String, resource.GetterFunc(getIdFunc)).AsOptional()
+	apiKeyParam := resource.NewHeaderParameter("api_key", reflect.String).AsOptional()
 	deleteByIdMethod.AddParameter(*apiKeyParam)
 	petIdResource.AddMethod(deleteByIdMethod)
 	//Upload image resource under URIParameter Resource
@@ -70,6 +67,21 @@ func GeneratePetStore() resource.RestAPI {
 	uploadImageMethod.AddParameter(*resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data").WithBody(Pet{}))
 	uploadImageResource.AddMethod(uploadImageMethod)
 	petIdResource.Resources = append(petIdResource.Resources, &uploadImageResource)
+	//Resource /pet/findByStatus
+	petsFindRes, _ := resource.NewResource("/pet/findByStatus")
+	contentTypesF := resource.NewHTTPContentTypeSelector(unsupportedResponse)
+	contentTypesF.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
+	contentTypesF.AddEncoder("application/xml", encdec.XMLEncoderDecoder{}, false)
+	//GET
+	findByStatusMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.Response{200, []Pet{}, "successful operation"}, resource.Response{400, nil, "Invalid status value"}, true)
+	findByStatusPetMethod := resource.NewMethod(http.MethodGet, findByStatusMethodOperation, contentTypesF)
+	findByStatusPetMethod.Summary = "Finds Pets by status"
+	findByStatusPetMethod.Description = "Multiple status values can be provided with comma separated strings"
+	statusParam := resource.NewQueryArrayParameter("status", []interface{}{"available", "pending", "sold"}).AsRequired().WithDescription("Status values that need to be considered for filter")
+	statusParam.CollectionFormat = "multi"
+	findByStatusPetMethod.AddParameter(*statusParam)
+	petsFindRes.AddMethod(findByStatusPetMethod)
+	api.Resources = append(api.Resources, &petsFindRes)
 	api.Resources = append(api.Resources, &pets)
 	return api
 }

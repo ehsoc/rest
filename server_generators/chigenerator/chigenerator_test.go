@@ -3,10 +3,8 @@ package chigenerator_test
 import (
 	"bytes"
 	"errors"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"reflect"
 	"testing"
 
@@ -23,15 +21,15 @@ type OperationStub struct {
 	PetId   string
 }
 
-func (o *OperationStub) Execute(body io.ReadCloser, params url.Values, decoder encdec.Decoder) (interface{}, error) {
+func (o *OperationStub) Execute(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
 	o.wasCall = true
-	o.PetId = params.Get("petId")
+	o.PetId = chi.URLParam(r, "petId")
 	pet := petstore.Pet{}
-	if body != nil && body != http.NoBody {
-		decoder.Decode(body, &pet)
+	if r.Body != nil && r.Body != http.NoBody {
+		decoder.Decode(r.Body, &pet)
 		o.Pet = pet
 	}
-	if params.Get("error") != "" {
+	if r.URL.Query().Get("error") != "" {
 		return nil, errors.New("Failed")
 	}
 	return o.Pet, nil
@@ -48,9 +46,7 @@ func TestGenerateServer(t *testing.T) {
 		operation := &OperationStub{}
 		getMethodOp := resource.NewMethodOperation(operation, resource.Response{http.StatusOK, nil, ""}, resource.Response{http.StatusNotFound, nil, ""}, true)
 		getMethod := resource.NewMethod(http.MethodGet, getMethodOp, contentTypes)
-		petResource, _ := resource.NewResourceWithURIParam("/pet/{petId}", resource.GetterFunc(func(r *http.Request) string {
-			return chi.URLParam(r, "petId")
-		}), "", reflect.String)
+		petResource, _ := resource.NewResourceWithURIParam("/pet/{petId}", "", reflect.String)
 		getMethod.AddParameter(*petResource.GetURIParam())
 		petResource.AddMethod(getMethod)
 		myId := "101"
@@ -124,9 +120,7 @@ func TestNestedRoutes(t *testing.T) {
 	method := resource.NewMethod(http.MethodGet, mo, ct)
 	rootResource, _ := resource.NewResource("/1/2")
 	r3, _ := resource.NewResource("/3")
-	r5, _ := resource.NewResourceWithURIParam("/4/5/{petId}", resource.GetterFunc(func(r *http.Request) string {
-		return chi.URLParam(r, "petId")
-	}), "", reflect.String)
+	r5, _ := resource.NewResourceWithURIParam("/4/5/{petId}", "", reflect.String)
 	r3.AddMethod(method)
 	r5.AddMethod(method)
 	r3.Resources = append(r3.Resources, &r5)

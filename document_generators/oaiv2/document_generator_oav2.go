@@ -61,7 +61,20 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *r
 			switch parameter.HTTPType {
 			case resource.QueryParameter:
 				specParam = spec.QueryParam(parameter.Name)
-				typedParam(specParam, parameter.Type)
+				if parameter.Type == reflect.Array {
+					specParam.Type = "array"
+					specParam.Items = spec.NewItems()
+					if parameter.EnumValues != nil && len(parameter.EnumValues) > 0 {
+						specParam.Items.WithEnum(parameter.EnumValues...).WithDefault(parameter.EnumValues[0])
+						specParam.CollectionFormat = parameter.CollectionFormat
+						ssch := o.toSchema(parameter.EnumValues[0])
+						if len(ssch.SchemaProps.Type) > 0 {
+							specParam.Items.Type = ssch.SchemaProps.Type[0]
+						}
+					}
+				} else {
+					typedParam(specParam, parameter.Type)
+				}
 			case resource.URIParameter:
 				specParam = spec.PathParam(parameter.Name)
 				typedParam(specParam, parameter.Type)

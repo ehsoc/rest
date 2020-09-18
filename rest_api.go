@@ -52,9 +52,4 @@ func parameterOperationCheck(m Method, path string) {
 	if m.methodOperation.Operation == nil {
 		panic(fmt.Sprintf("GenerateServer check error: resource %s method %s doesn't have an operation.", path, m.HTTPMethod))
 	}
-	for name, parameter := range m.Parameters {
-		if parameter.Getter == nil {
-			panic(fmt.Sprintf("GenerateServer check error: resource %s method %s: parameter %s doesn't have a getter function.", path, m.HTTPMethod, name))
-		}
-	}
 }

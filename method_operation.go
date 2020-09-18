@@ -17,5 +17,4 @@ type MethodOperation struct {
 //NewMethodOperation returns a new MethodOperation instance
 func NewMethodOperation(operation Operation, successResponse, failedResponse Response, operationResultAsBody bool) MethodOperation {
 	return MethodOperation{operation, successResponse, failedResponse, operationResultAsBody}
-
 }

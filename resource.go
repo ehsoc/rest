@@ -29,7 +29,7 @@ func NewResource(pathStr string) (Resource, error) {
 	return r, nil
 }
 
-func NewResourceWithURIParam(pathStr string, URIParamGetter Getter, paramDescription string, paramType reflect.Kind) (Resource, error) {
+func NewResourceWithURIParam(pathStr string, paramDescription string, paramType reflect.Kind) (Resource, error) {
 	params := getURLParamName(pathStr)
 	if params == nil {
 		return Resource{}, ErrorResourceURIParamNoParamFound
@@ -40,7 +40,7 @@ func NewResourceWithURIParam(pathStr string, URIParamGetter Getter, paramDescrip
 	r := Resource{}
 	r.Path = pathStr
 	r.Methods = make(map[string]Method)
-	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType, URIParamGetter).WithDescription(paramDescription)
+	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType).WithDescription(paramDescription)
 	return r, nil
 }
 

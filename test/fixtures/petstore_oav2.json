@@ -91,8 +91,8 @@
 				"summary": "Finds Pets by status",
 				"description": "Multiple status values can be provided with comma separated strings",
 				"produces": [
-					"application/xml",
-					"application/json"
+					"application/json",
+					"application/xml"
 				],
 				"parameters": [{
 					"name": "status",
@@ -123,6 +123,9 @@
 					},
 					"400": {
 						"description": "Invalid status value"
+					},
+					"415": {
+						"description": "Unsupported Media Type"
 					}
 				}
 			}

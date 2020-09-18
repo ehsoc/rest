@@ -75,7 +75,7 @@ func (s *Store) List() ([]Pet, error) {
 	return list, nil
 }
 
-func (s *Store) UploadPhoto(petId string, fileString string) error {
+func (s *Store) UploadPhoto(petId string, fileContent []byte) error {
 	id, err := getInt64Id(petId)
 	if err != nil {
 		return err
@@ -84,7 +84,7 @@ func (s *Store) UploadPhoto(petId string, fileString string) error {
 	defer s.mutex.Unlock()
 	if pet, ok := s.store[id]; ok {
 		url := fmt.Sprintf("files/%s%d", petId, time.Now().UnixNano())
-		err := afero.WriteFile(s.InMemoryFs, url, []byte(fileString), 0655)
+		err := afero.WriteFile(s.InMemoryFs, url, fileContent, 0655)
 		if err != nil {
 			return err
 		}

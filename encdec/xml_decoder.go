@@ -5,8 +5,9 @@ import (
 	"io"
 )
 
-//XMLDecoder implements restapigen.Decoder to decode xml format
-type XMLDecoder struct{}
+//XMLDecoder implements Decoder to decode xml format
+type XMLDecoder struct {
+}
 
 //Decode implements Decode method of interface Decoder
 func (x XMLDecoder) Decode(r io.Reader, v interface{}) error {

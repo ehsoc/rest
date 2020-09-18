@@ -1,8 +1,6 @@
 package resource
 
 import (
-	"io/ioutil"
-	"net/http"
 	"reflect"
 
 	"github.com/ehsoc/resource/encdec"
@@ -21,51 +19,42 @@ const (
 type Parameter struct {
 	Description string
 	Name        string
-	Getter      Getter
 	HTTPType    ParameterType
 	Type        reflect.Kind
 	Body        interface{}
 	Decoder     encdec.Decoder
 	Required    bool
+	CollectionParam
 }
 
 //NewURIParameter creates a URIParameter Parameter. Required is true by default
-func NewURIParameter(name string, tpe reflect.Kind, getter Getter) *Parameter {
-	return &Parameter{"", name, getter, URIParameter, tpe, nil, nil, true}
+func NewURIParameter(name string, tpe reflect.Kind) *Parameter {
+	return &Parameter{"", name, URIParameter, tpe, nil, nil, true, CollectionParam{}}
 }
 
 //NewHeaderParameter creates a HeaderParameter Parameter. Required is true by default
-func NewHeaderParameter(name string, tpe reflect.Kind, getter Getter) *Parameter {
-	return &Parameter{"", name, getter, HeaderParameter, tpe, nil, nil, true}
+func NewHeaderParameter(name string, tpe reflect.Kind) *Parameter {
+	return &Parameter{"", name, HeaderParameter, tpe, nil, nil, true, CollectionParam{}}
 }
 
 //NewQueryParameter creates a QueryParameter Parameter. Required is false by default
-func NewQueryParameter(name string, tpe reflect.Kind, getter Getter) *Parameter {
-	return &Parameter{"", name, getter, QueryParameter, tpe, nil, nil, false}
+func NewQueryParameter(name string) *Parameter {
+	return &Parameter{"", name, QueryParameter, reflect.String, nil, nil, false, CollectionParam{}}
+}
+
+//NewQueryArrayParameter creates a QueryParameter Parameter. Required is false by default
+func NewQueryArrayParameter(name string, enumValues []interface{}) *Parameter {
+	return &Parameter{"", name, QueryParameter, reflect.Array, nil, nil, false, CollectionParam{"", enumValues}}
 }
 
 //NewFormDataParameter creates a FormDataParameter Parameter. Required is false by default
 func NewFormDataParameter(name string, tpe reflect.Kind, decoder encdec.Decoder) *Parameter {
-	return &Parameter{"", name, GetterFunc(func(r *http.Request) string {
-		return r.FormValue(name)
-	}), FormDataParameter, tpe, nil, decoder, false}
+	return &Parameter{"", name, FormDataParameter, tpe, nil, decoder, false, CollectionParam{}}
 }
 
 //NewFileParameter creates a FileParameter Parameter. Required is false by default
 func NewFileParameter(name string) *Parameter {
-	return &Parameter{"", name, GetterFunc(func(r *http.Request) string {
-		f, _, err := r.FormFile(name)
-		if err != nil {
-			return ""
-		}
-		defer f.Close()
-		fileString, err := ioutil.ReadAll(f)
-
-		if err != nil {
-			return ""
-		}
-		return string(fileString)
-	}), FileParameter, reflect.String, nil, nil, false}
+	return &Parameter{"", name, FileParameter, reflect.String, nil, nil, false, CollectionParam{}}
 }
 
 //WithDescription set description property
@@ -74,7 +63,7 @@ func (p *Parameter) WithDescription(description string) *Parameter {
 	return p
 }
 
-//WithDescription set body property
+//WithBody set body property
 func (p *Parameter) WithBody(body interface{}) *Parameter {
 	p.Body = body
 	return p

@@ -2,9 +2,8 @@ package resource
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"net/http"
-	"net/url"
 	"sort"
 
 	"github.com/ehsoc/resource/encdec"
@@ -50,13 +49,15 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 			m.writeResponseFallBack(w, m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
-		ctx := context.WithValue(r.Context(), encoderDecoderContextKey("encoder"), encoder)
-		_, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
+		ctx := context.WithValue(r.Context(), EncoderDecoderContextKey("encoder"), encoder)
+		ctx = context.WithValue(ctx, ContentTypeContextKey("encoder"), responseContentType)
+		decoderContentType, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
+		ctx = context.WithValue(ctx, ContentTypeContextKey("decoder"), decoderContentType)
 		if err != nil && r.Body != http.NoBody && r.Body != nil {
 			writeResponse(ctx, w, m.contentTypeSelector.unsupportedMediaTypeResponse)
 			return
 		}
-		ctx = context.WithValue(ctx, encoderDecoderContextKey("decoder"), decoder)
+		ctx = context.WithValue(ctx, EncoderDecoderContextKey("decoder"), decoder)
 		w.Header().Add("Content-Type", responseContentType)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -73,23 +74,15 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 }
 
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
-	decoder, ok := r.Context().Value(encoderDecoderContextKey("decoder")).(encdec.Decoder)
+	decoder, ok := r.Context().Value(EncoderDecoderContextKey("decoder")).(encdec.Decoder)
 	if !ok {
 		//Fallback decoder is a simple string decoder, so we will avoid to pass a nil decoder
 		decoder = encdec.TextDecoder{}
 	}
-	pValues := url.Values{}
-	for name, parameter := range m.Parameters {
-		if parameter.Getter == nil {
-			log.Panicf("resource: resource %s method %s: parameter %s doesn't have a getter function.", r.URL.Path, m.HTTPMethod, name)
-		}
-		value := parameter.Getter.Get(r)
-		pValues.Add(name, value)
-	}
 	if m.methodOperation.Operation == nil {
-		log.Panicf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod)
+		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
-	entity, err := m.methodOperation.Execute(r.Body, pValues, decoder)
+	entity, err := m.methodOperation.Execute(r, decoder)
 	if err != nil {
 		writeResponse(r.Context(), w, m.methodOperation.failResponse)
 		return
@@ -102,7 +95,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {
-	encoder, ok := ctx.Value(encoderDecoderContextKey("encoder")).(encdec.Encoder)
+	encoder, ok := ctx.Value(EncoderDecoderContextKey("encoder")).(encdec.Encoder)
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
@@ -117,7 +110,7 @@ func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
 	}
 }
 
-func (m *Method) getEncoderMediaTypes() []string {
+func (m *Method) GetEncoderMediaTypes() []string {
 	mediaTypes := []string{}
 	for m := range m.contentTypeSelector.encoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
@@ -127,12 +120,12 @@ func (m *Method) getEncoderMediaTypes() []string {
 	return mediaTypes
 }
 
-func (m *Method) getDecoderMediaTypes() []string {
+func (m *Method) GetDecoderMediaTypes() []string {
 	mediaTypes := []string{}
 	for m := range m.contentTypeSelector.decoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
-	//Sorting map keys for order consistency
+	//Sorting map keys for consistency
 	sort.Strings(mediaTypes)
 	return mediaTypes
 }

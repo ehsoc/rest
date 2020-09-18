@@ -3,17 +3,16 @@ package resource_test
 import (
 	"bytes"
 	"errors"
-	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/textproto"
-	"net/url"
 	"reflect"
 	"testing"
 
 	"github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/resource/httputil"
 )
 
 type ResponseBody struct {
@@ -30,23 +29,26 @@ type OperationStub struct {
 	Metadata    string
 }
 
-func (o *OperationStub) Execute(body io.ReadCloser, params url.Values, decoder encdec.Decoder) (interface{}, error) {
+func (o *OperationStub) Execute(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
 	o.wasCall = true
-	o.FileData = params.Get("file")
-	o.Metadata = params.Get("additionalMetadata")
+	fbytes, _, _ := httputil.GetFormFile(r, "file")
+	o.FileData = string(fbytes)
+	o.Metadata = r.FormValue("additionalMetadata")
 	car := Car{}
-	if body != nil && body != http.NoBody {
-		decoder.Decode(body, &car)
+
+	if r.Body != nil && r.Body != http.NoBody {
+		decoder.Decode(r.Body, &car)
 		o.entity = car
 	}
-	if params.Get("jsonPetData") != "" {
-		buf := bytes.NewBufferString(params.Get("jsonPetData"))
+	jsonPetData := r.FormValue("jsonPetData")
+	if jsonPetData != "" {
+		buf := bytes.NewBufferString(jsonPetData)
 		car := Car{}
 		jsonDec := encdec.JSONDecoder{}
 		jsonDec.Decode(buf, &car)
 		o.JsonCarData = car
 	}
-	if params.Get("error") != "" {
+	if r.URL.Query().Get("error") != "" {
 		return nil, errors.New("Failed")
 	}
 	return o.Car, nil
@@ -129,9 +131,7 @@ func TestOperations(t *testing.T) {
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
-		method.AddParameter(*resource.NewQueryParameter("error", reflect.String, resource.GetterFunc(func(r *http.Request) string {
-			return r.URL.Query().Get("error")
-		})))
+		method.AddParameter(*resource.NewQueryParameter("error"))
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -263,7 +263,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 		contentTypes.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
-		method.AddParameter(*resource.NewURIParameter("petId", reflect.String, resource.GetterFunc(func(r *http.Request) string { return "" })))
+		method.AddParameter(*resource.NewURIParameter("petId", reflect.String))
 		method.AddParameter(*resource.NewFormDataParameter("additionalMetadata", reflect.String, nil).WithDescription("Additional data to pass to server"))
 		method.AddParameter(*resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data"))
 		method.AddParameter(*resource.NewFileParameter("file").WithDescription("file to upload"))
@@ -336,4 +336,15 @@ func TestAddParameter(t *testing.T) {
 	if !reflect.DeepEqual(m.Parameters[p.Name], p) {
 		t.Errorf("got: %v want: %v", m.Parameters[p.Name], p)
 	}
+}
+
+func TestNilOperation(t *testing.T) {
+	ct := resource.NewHTTPContentTypeSelector(resource.Response{})
+	ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
+	m := resource.NewMethod("POST", resource.NewMethodOperation(nil, resource.Response{}, resource.Response{}, false), ct)
+	request, _ := http.NewRequest("POST", "/", nil)
+	response := httptest.NewRecorder()
+	defer func() { recover() }()
+	m.ServeHTTP(response, request)
+	t.Errorf("The code did not panic")
 }
