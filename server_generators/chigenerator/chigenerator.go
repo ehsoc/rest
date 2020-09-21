@@ -29,8 +29,8 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 
 func processResource(r chi.Router, res *resource.Resource) {
 	r.Route(res.Path, func(r chi.Router) {
-		for httpMethod, method := range res.Methods {
-			r.Method(httpMethod, "/", method)
+		for _, method := range res.Methods {
+			r.Method(method.HTTPMethod, "/", method)
 		}
 		for _, subRes := range res.Resources {
 			processResource(r, subRes)

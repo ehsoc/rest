@@ -22,10 +22,10 @@ func TestAddMethod(t *testing.T) {
 		r.AddMethod(resource.Method{})
 	})
 	t.Run("error on existing key", func(t *testing.T) {
+
 		r := resource.Resource{}
 		r.AddMethod(resource.Method{})
-		err := r.AddMethod(resource.Method{})
-		assertEqualError(t, err, resource.ErrorResourceMethodCollition)
+		r.AddMethod(resource.Method{})
 	})
 	t.Run("adding methods", func(t *testing.T) {
 		r := resource.Resource{}
@@ -114,4 +114,24 @@ func TestResourceWithURIParam(t *testing.T) {
 			t.Errorf("got : %v want: %v", r.Path, path)
 		}
 	})
+}
+
+func TestResource(t *testing.T) {
+	r, _ := resource.NewResource("/api")
+	r.Resource("/pet", func(r *resource.Resource) {
+		r.Resource("/1", nil)
+	})
+
+	if len(r.Resources) < 1 {
+		t.Fatalf("not expecting empty resource slice")
+	}
+	if r.Resources[0].Path != "/pet" {
+		t.Errorf("got: %v want: %v", r.Resources[0].Path, "/pet")
+	}
+	if len(r.Resources[0].Resources) < 1 {
+		t.Fatalf("not expecting empty resource slice on %v", r.Resources[0].Path)
+	}
+	if r.Resources[0].Resources[0].Path != "/1" {
+		t.Errorf("got: %v want: %v", r.Resources[0].Path, "/1")
+	}
 }

@@ -16,6 +16,21 @@ type ApiResponse struct {
 
 var unsupportedResponse = resource.Response{415, nil, ""}
 
+func NewPetStoreResource() resource.Resource {
+	r, _ := resource.NewResource("/api/v2")
+	r.Resource("/pet", func(r *resource.Resource) {
+		contentTypes := resource.NewHTTPContentTypeSelector(unsupportedResponse)
+		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		contentTypes.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
+		createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.Response{201, nil, ""}, resource.Response{400, nil, ""}, true)
+		createPetMethod := resource.NewMethod(http.MethodPost, createMethodOperation, contentTypes)
+		createPetMethod.Summary = "Add a new pet to the store"
+		createPetMethod.RequestBody = resource.RequestBody{"Pet object that needs to be added to the store", Pet{}}
+		r.AddMethod(createPetMethod)
+	})
+	return r
+}
+
 func GeneratePetStore() resource.RestAPI {
 	api := resource.RestAPI{}
 	api.BasePath = "/v2"
@@ -34,7 +49,7 @@ func GeneratePetStore() resource.RestAPI {
 	//New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
 	eContentTypes := resource.NewHTTPContentTypeSelector(unsupportedResponse)
 	eContentTypes.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
-	eContentTypes.AddEncoder("application/xml", encdec.JSONEncoderDecoder{}, false)
+	eContentTypes.AddEncoder("application/xml", encdec.XMLEncoderDecoder{}, false)
 	petIdResource, _ := resource.NewResourceWithURIParam("/{petId}", "", reflect.Int64)
 	getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.Response{200, Pet{}, ""}, resource.Response{404, nil, ""}, true)
 	getByIdPetMethod := resource.NewMethod(http.MethodGet, getByIdMethodOperation, eContentTypes)

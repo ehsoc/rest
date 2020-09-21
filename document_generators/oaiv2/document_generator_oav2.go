@@ -22,7 +22,7 @@ type OpenAPIV2SpecGenerator struct {
 
 func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *resource.Resource) {
 	pathItem := spec.PathItem{}
-	for httpMethod, method := range apiResource.Methods {
+	for _, method := range apiResource.Methods {
 		docMethod := spec.NewOperation("")
 		docMethod.Description = method.Description
 		docMethod.Summary = method.Summary
@@ -117,7 +117,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *r
 		}
 		docMethod.Responses.Default = nil
 
-		switch httpMethod {
+		switch method.HTTPMethod {
 		case http.MethodPost:
 			pathItem.Post = docMethod
 		case http.MethodGet:
