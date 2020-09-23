@@ -51,7 +51,22 @@ func assertError(t *testing.T, err error) {
 }
 
 func assertEqualError(t *testing.T, err, want error) {
+	t.Helper()
 	if err != want {
 		t.Errorf("got:%v want:%v", err, want)
+	}
+}
+
+func assertPanicError(t *testing.T, want error) {
+	t.Helper()
+	if err := recover(); err != want {
+		t.Fatalf("got: %v want: %v", err, want)
+	}
+}
+
+func assertNoPanic(t *testing.T) {
+	t.Helper()
+	if err := recover(); err != nil {
+		t.Fatalf("Not expecting panic: %v", err)
 	}
 }

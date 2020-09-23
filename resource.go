@@ -7,28 +7,31 @@ import (
 	"strings"
 )
 
-type GetParamFunc func(r *http.Request) string
-
+//Resource represents a node in a url path
 type Resource struct {
-	Path        string
+	path        string
 	Summary     string
 	Description string
 	//a unique operation as a combination of a path and an HTTP method is allowed
-	Methods   []Method
-	Resources []*Resource
+	methods   map[string]*Method
+	resources map[string]Resource
 	uRIParam  *Parameter
 }
 
-func NewResource(pathStr string) (Resource, error) {
-	if strings.ContainsAny(pathStr, "{}") {
-		return Resource{}, ErrorResourceBracketsNotAllowed
+//NewResource creates a new resource node.
+//name parameter should not contain a slash, because resource represents a unique node and name is the name of the node path
+func NewResource(name string) Resource {
+	if strings.ContainsAny(name, "/") {
+		panic(ErrorTypeResourceSlashesNotAllowed{Errorf{FormatErrorResourceSlashesNotAllowed, name}})
 	}
 	r := Resource{}
-	r.Path = pathStr
-	return r, nil
+	r.methods = make(map[string]*Method)
+	r.resources = make(map[string]Resource)
+	r.path = name
+	return r
 }
 
-func NewResourceWithURIParam(pathStr string, paramDescription string, paramType reflect.Kind) (Resource, error) {
+func newResourceWithURIParam(pathStr string, paramDescription string, paramType reflect.Kind) (Resource, error) {
 	params := getURLParamName(pathStr)
 	if params == nil {
 		return Resource{}, ErrorResourceURIParamNoParamFound
@@ -37,13 +40,9 @@ func NewResourceWithURIParam(pathStr string, paramDescription string, paramType 
 		return Resource{}, ErrorResourceURIParamMoreThanOne
 	}
 	r := Resource{}
-	r.Path = pathStr
+	r.path = pathStr
 	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType).WithDescription(paramDescription)
 	return r, nil
-}
-
-func (rs *Resource) GetURIParam() *Parameter {
-	return rs.uRIParam
 }
 
 func getURLParamName(pathStr string) []string {
@@ -51,38 +50,64 @@ func getURLParamName(pathStr string) []string {
 	return re.FindAllString(pathStr, -1)
 }
 
-func (rs *Resource) AddMethod(method Method) error {
-	if _, ok := rs.GetMethod(method.HTTPMethod); ok {
-		return ErrorResourceMethodCollition
-	}
-	rs.Methods = append(rs.Methods, method)
-	return nil
+func (rs *Resource) Get(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodGet, methodOperation, contentTypeSelector)
+	return rs.addMethod(method)
 }
 
-func (rs *Resource) GetMethod(HttpMethod string) (Method, bool) {
-	for _, m := range rs.Methods {
-		if strings.ToUpper(m.HTTPMethod) == strings.ToUpper(HttpMethod) {
-			return m, true
-		}
-	}
-	return Method{}, false
+func (rs *Resource) Post(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodPost, methodOperation, contentTypeSelector)
+	return rs.addMethod(method)
 }
 
-//Resource creates a new Resource and append resources defined in fn function
-func (rs *Resource) Resource(resourcePath string, fn func(r *Resource)) {
-	newResource, _ := NewResource(resourcePath)
+func (rs *Resource) Delete(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodDelete, methodOperation, contentTypeSelector)
+	return rs.addMethod(method)
+}
+
+func (rs *Resource) Options(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodOptions, methodOperation, contentTypeSelector)
+	return rs.addMethod(method)
+}
+
+//Methods returns the collection of methods.
+//This is a copy of the internal collection, so methods cannot be changed from this slice
+func (rs *Resource) Methods() []Method {
+	ms := []Method{}
+	for _, m := range rs.methods {
+		ms = append(ms, *m)
+	}
+	return ms
+}
+
+//Resources returns the collection of the resources.
+//This is a copy of the internal collection, so resources cannot be changed from this slice.
+func (rs *Resource) Resources() []Resource {
+	res := []Resource{}
+	for _, r := range rs.resources {
+		res = append(res, r)
+	}
+	return res
+}
+
+//Path returns the name and path property.
+func (rs *Resource) Path() string {
+	return rs.path
+}
+
+func (rs *Resource) addMethod(method Method) *Method {
+	if _, ok := rs.methods[method.HTTPMethod]; ok {
+		panic(ErrorResourceMethodCollition)
+	}
+	rs.methods[method.HTTPMethod] = &method
+	return rs.methods[method.HTTPMethod]
+}
+
+//Resource creates a new Resource and append resources defined in fn function to the collection of resources to the new resource.
+func (rs *Resource) Resource(name string, fn func(r *Resource)) {
+	newResource := NewResource(name)
 	if fn != nil {
 		fn(&newResource)
 	}
-	rs.Resources = append(rs.Resources, &newResource)
+	rs.resources[name] = newResource
 }
-
-// //Method creates a new method and append it to the Methods property of Resource
-// func (rs *Resource) Method(HTTPMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-// 	newMethod := NewMethod(HTTPMethod, methodOperation, contentTypeSelector)
-// 	err := rs.AddMethod(newMethod)
-// 	if err != nil {
-// 		log.Panicf("resource: %v", err)
-// 	}
-// 	return &newMethod
-// }

@@ -17,22 +17,21 @@ type Method struct {
 	RequestBody               RequestBody
 	Responses                 []Response
 	bodyRequiredErrorResponse Response
-	methodOperation           MethodOperation
+	MethodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
 	http.Handler
-	Parameters map[string]Parameter
+	Parameters []Parameter
 }
 
 //NewMethod returns a Method instance
 func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
 	m := Method{}
 	m.HTTPMethod = HTTPMethod
-	m.methodOperation = methodOperation
+	m.MethodOperation = methodOperation
 	m.contentTypeSelector = contentTypeSelector
-	m.newResponse(m.methodOperation.successResponse)
-	m.newResponse(m.methodOperation.failResponse)
+	m.newResponse(m.MethodOperation.successResponse)
+	m.newResponse(m.MethodOperation.failResponse)
 	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
-	m.Parameters = make(map[string]Parameter)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
 }
@@ -79,19 +78,19 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		//Fallback decoder is a simple string decoder, so we will avoid to pass a nil decoder
 		decoder = encdec.TextDecoder{}
 	}
-	if m.methodOperation.Operation == nil {
+	if m.MethodOperation.Operation == nil {
 		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
-	entity, err := m.methodOperation.Execute(r, decoder)
+	entity, err := m.MethodOperation.Execute(r, decoder)
 	if err != nil {
-		writeResponse(r.Context(), w, m.methodOperation.failResponse)
+		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
 		return
 	}
-	if m.methodOperation.operationResultAsBody {
-		writeResponse(r.Context(), w, Response{Code: m.methodOperation.successResponse.Code, Body: entity})
+	if m.MethodOperation.operationResultAsBody {
+		writeResponse(r.Context(), w, Response{Code: m.MethodOperation.successResponse.Code, Body: entity})
 		return
 	}
-	writeResponse(r.Context(), w, m.methodOperation.successResponse)
+	writeResponse(r.Context(), w, m.MethodOperation.successResponse)
 }
 
 func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {
@@ -130,10 +129,29 @@ func (m *Method) GetDecoderMediaTypes() []string {
 	return mediaTypes
 }
 
-func (m *Method) AddParameter(parameter Parameter) error {
-	if m.Parameters == nil {
-		m.Parameters = make(map[string]Parameter)
-	}
-	m.Parameters[parameter.Name] = parameter
-	return nil
+func (m *Method) AddParameter(parameter Parameter) {
+	m.Parameters = append(m.Parameters, parameter)
+}
+
+func (m *Method) WithParameter(parameter Parameter) *Method {
+	m.AddParameter(parameter)
+	return m
+}
+
+//WithDescription sets description property
+func (m *Method) WithDescription(description string) *Method {
+	m.Description = description
+	return m
+}
+
+//WithSummary sets summary property
+func (m *Method) WithSummary(summary string) *Method {
+	m.Summary = summary
+	return m
+}
+
+//WithRequestBody sets RequestBody property
+func (m *Method) WithRequestBody(description string, body interface{}) *Method {
+	m.RequestBody = RequestBody{description, body}
+	return m
 }

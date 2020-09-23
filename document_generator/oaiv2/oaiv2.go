@@ -20,9 +20,9 @@ type OpenAPIV2SpecGenerator struct {
 	swagger spec.Swagger
 }
 
-func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *resource.Resource) {
+func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource resource.Resource) {
 	pathItem := spec.PathItem{}
-	for _, method := range apiResource.Methods {
+	for _, method := range apiResource.Methods() {
 		docMethod := spec.NewOperation("")
 		docMethod.Description = method.Description
 		docMethod.Summary = method.Summary
@@ -34,29 +34,34 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *r
 		}
 		//Parameters
 		//Sorting parameters map for a consistent order in Marshaling
-		pKeys := make([]string, 0)
+		pKeys := make([]resource.Parameter, 0)
 		//URI params will go first
-		pURIKeys := make([]string, 0)
-		pHeaderKeys := make([]string, 0)
-		for key, p := range method.Parameters {
+		pURIKeys := make([]resource.Parameter, 0)
+		pHeaderKeys := make([]resource.Parameter, 0)
+		for _, p := range method.Parameters {
 			if p.HTTPType == resource.URIParameter {
-				pURIKeys = append(pURIKeys, key)
+				pURIKeys = append(pURIKeys, p)
 				continue
 			}
 			if p.HTTPType == resource.HeaderParameter {
-				pHeaderKeys = append(pHeaderKeys, key)
+				pHeaderKeys = append(pHeaderKeys, p)
 				continue
 			}
-			pKeys = append(pKeys, key)
+			pKeys = append(pKeys, p)
 		}
-		sort.Strings(pHeaderKeys)
-		sort.Strings(pURIKeys)
-		sort.Strings(pKeys)
+		sort.Slice(pHeaderKeys, func(i, j int) bool {
+			return pHeaderKeys[i].Name < pHeaderKeys[j].Name
+		})
+		sort.Slice(pURIKeys, func(i, j int) bool {
+			return pURIKeys[i].Name < pURIKeys[j].Name
+		})
+		sort.Slice(pKeys, func(i, j int) bool {
+			return pKeys[i].Name < pKeys[j].Name
+		})
 		//Append two slices, uri params and the rest
 		pHeaderKeys = append(pHeaderKeys, pURIKeys...)
 		pKeys = append(pHeaderKeys, pKeys...)
-		for _, key := range pKeys {
-			parameter := method.Parameters[key]
+		for _, parameter := range pKeys {
 			specParam := &spec.Parameter{}
 			switch parameter.HTTPType {
 			case resource.QueryParameter:
@@ -132,9 +137,9 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource *r
 		o.swagger.Paths.Paths = make(map[string]spec.PathItem)
 	}
 
-	newBasePath := path.Join(basePath, apiResource.Path)
-	o.swagger.Paths.Paths[path.Join(basePath, apiResource.Path)] = pathItem
-	for _, apiResource := range apiResource.Resources {
+	newBasePath := path.Join(basePath, apiResource.Path())
+	o.swagger.Paths.Paths[newBasePath] = pathItem
+	for _, apiResource := range apiResource.Resources() {
 		o.resolveResource(newBasePath, apiResource)
 	}
 }
@@ -154,8 +159,8 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.R
 	o.swagger.BasePath = restApi.BasePath
 	o.swagger.Host = restApi.Host
 	o.swagger.ID = restApi.ID
-	for _, apiResource := range restApi.Resources {
-		o.resolveResource("", apiResource)
+	for _, apiResource := range restApi.Resources() {
+		o.resolveResource("/", apiResource)
 	}
 	json.NewEncoder(w).Encode(o.swagger)
 }

@@ -1,9 +1,9 @@
 package resource_test
 
 import (
-	"fmt"
 	"net/http"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/ehsoc/resource"
@@ -11,127 +11,87 @@ import (
 
 const summary string = "this is my method"
 
-func TestAddMethod(t *testing.T) {
+//TODO: test every method
+func TestGet(t *testing.T) {
+	ct := resource.NewHTTPContentTypeSelector(resource.DefaultUnsupportedMediaResponse)
+	t.Run("get method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Get(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodGet {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodGet)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
 	t.Run("methods map nil", func(t *testing.T) {
-		defer func() {
-			if err := recover(); err != nil {
-				t.Errorf("Not expecting panic: %v", err)
-			}
-		}()
-		r := resource.Resource{}
-		r.AddMethod(resource.Method{})
+		defer assertNoPanic(t)
+		r := resource.NewResource("pet")
+		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
 	})
-	t.Run("error on existing key", func(t *testing.T) {
-
-		r := resource.Resource{}
-		r.AddMethod(resource.Method{})
-		r.AddMethod(resource.Method{})
-	})
-	t.Run("adding methods", func(t *testing.T) {
-		r := resource.Resource{}
-		err := r.AddMethod(resource.Method{HTTPMethod: http.MethodPost, Summary: summary})
-		assertNoErrorFatal(t, err)
-		method, ok := r.GetMethod("post")
-		if !ok {
-			t.Errorf("Method was not found. got: %v", ok)
-		}
-		if method.Summary != summary {
-			t.Errorf("got: %v want: %v", method.Summary, summary)
-		}
+	t.Run("error on existing method", func(t *testing.T) {
+		defer assertPanicError(t, resource.ErrorResourceMethodCollition)
+		r := resource.NewResource("")
+		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		r.Post(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
 	})
 }
-
-func TestGetMethod(t *testing.T) {
-	t.Run("method found", func(t *testing.T) {
-		r := resource.Resource{}
-		err := r.AddMethod(resource.Method{HTTPMethod: http.MethodPost, Summary: summary})
-		assertNoErrorFatal(t, err)
-		method, ok := r.GetMethod("post")
-		if !ok {
-			t.Errorf("Method was not found. got: %v", ok)
-		}
-		if method.Summary != summary {
-			t.Errorf("got: %v want: %v", method.Summary, summary)
-		}
-	})
-	t.Run("method not found", func(t *testing.T) {
-		r := resource.Resource{}
-		_, ok := r.GetMethod("post")
-		if ok {
-			t.Errorf("Not expecting method found: %v", ok)
-		}
-	})
-}
-
-// func TestAddURIParamResource(t *testing.T) {
-// 	r := resource.Resource{}
-// 	paramResource, err := r.AddURIParamResource("{myParamID}", func(r *http.Request) string { return "" })
-// 	assertNoErrorFatal(t, err)
-// 	if !reflect.DeepEqual(paramResource, r.Resources[0]) {
-// 		t.Errorf("got: %v want: %v", paramResource, r.Resources[0])
-// 	}
-// }
 
 func TestNewResource(t *testing.T) {
 	t.Run("new resource", func(t *testing.T) {
-		path := "/pet"
-		r, err := resource.NewResource(path)
-		assertNoErrorFatal(t, err)
-		if r.Path != path {
-			t.Errorf("got : %v want: %v", r.Path, path)
-		}
+		name := "pet"
+		resource.NewResource(name)
+		defer assertNoPanic(t)
 	})
-	t.Run("new resource with brackets", func(t *testing.T) {
-		path := "/{pet}"
-		_, err := resource.NewResource(path)
-		assertEqualError(t, err, resource.ErrorResourceBracketsNotAllowed)
-	})
-}
-
-func TestResourceWithURIParam(t *testing.T) {
-	t.Run("new resource with uri parameter", func(t *testing.T) {
-		paramName := "petId"
-		path := fmt.Sprintf("/pet/{%s}", paramName)
-		r, err := resource.NewResourceWithURIParam(path, "", reflect.String)
-		assertNoErrorFatal(t, err)
-		if r.Path != path {
-			t.Errorf("got : %v want: %v", r.Path, path)
-		}
-		URIParameter := r.GetURIParam()
-		if URIParameter.Name != paramName {
-			t.Errorf("got: %v want: %v ", URIParameter.Name, paramName)
-		}
-		if URIParameter.HTTPType != resource.URIParameter {
-			t.Errorf("got: %v want: %v ", URIParameter.Type, resource.URIParameter)
-		}
-	})
-	t.Run("new resource with uri parameter", func(t *testing.T) {
-		paramName := "petId"
-		path := fmt.Sprintf("/pet/{%s}", paramName)
-		r, err := resource.NewResourceWithURIParam(path, "", reflect.String)
-		assertNoErrorFatal(t, err)
-		if r.Path != path {
-			t.Errorf("got : %v want: %v", r.Path, path)
-		}
+	t.Run("new resource with slash", func(t *testing.T) {
+		defer func() {
+			if err := recover(); err != nil {
+				if _, ok := err.(resource.ErrorTypeResourceSlashesNotAllowed); !ok {
+					t.Fatalf("got: %T want: %T", err, resource.ErrorTypeResourceSlashesNotAllowed{})
+				}
+			}
+		}()
+		name := "/pet"
+		resource.NewResource(name)
 	})
 }
 
 func TestResource(t *testing.T) {
-	r, _ := resource.NewResource("/api")
-	r.Resource("/pet", func(r *resource.Resource) {
-		r.Resource("/1", nil)
+	r := resource.NewResource("car")
+	r.Resource("find", func(r *resource.Resource) {
+		r.Resource("left", func(r *resource.Resource) {
+		})
+		r.Resource("right", func(r *resource.Resource) {
+		})
 	})
-
-	if len(r.Resources) < 1 {
-		t.Fatalf("not expecting empty resource slice")
+	if r.Path() != "car" {
+		t.Errorf("got : %v want: %v", r.Path(), "car")
 	}
-	if r.Resources[0].Path != "/pet" {
-		t.Errorf("got: %v want: %v", r.Resources[0].Path, "/pet")
+	findNode := r.Resources()[0]
+	if findNode.Path() != "find" {
+		t.Errorf("got : %v want: %v", findNode.Path(), "find")
 	}
-	if len(r.Resources[0].Resources) < 1 {
-		t.Fatalf("not expecting empty resource slice on %v", r.Resources[0].Path)
+	if len(findNode.Resources()) != 2 {
+		t.Fatalf("expecting 2 sub nodes got: %v", len(findNode.Resources()))
 	}
-	if r.Resources[0].Resources[0].Path != "/1" {
-		t.Errorf("got: %v want: %v", r.Resources[0].Path, "/1")
+	directionResources := findNode.Resources()
+	sort.Slice(directionResources, func(i, j int) bool {
+		return directionResources[i].Path() < directionResources[j].Path()
+	})
+	if directionResources[0].Path() != "left" {
+		t.Errorf("got : %v want: %v", findNode.Resources()[0].Path(), "left")
+	}
+	if directionResources[1].Path() != "right" {
+		t.Errorf("got : %v want: %v", findNode.Resources()[1].Path(), "right")
 	}
 }

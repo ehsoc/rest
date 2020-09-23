@@ -333,8 +333,22 @@ func TestAddParameter(t *testing.T) {
 	p := resource.Parameter{}
 	p.Name = "myParam"
 	m.AddParameter(p)
-	if !reflect.DeepEqual(m.Parameters[p.Name], p) {
-		t.Errorf("got: %v want: %v", m.Parameters[p.Name], p)
+	if !reflect.DeepEqual(m.Parameters[0], p) {
+		t.Errorf("got: %v want: %v", m.Parameters[0], p)
+	}
+}
+
+func TestWithParameter(t *testing.T) {
+	m := resource.Method{}
+	p := resource.Parameter{}
+	p2 := resource.Parameter{}
+	p.Name = "myParam"
+	m.WithParameter(p).WithParameter(p2)
+	if !reflect.DeepEqual(m.Parameters[0], p) {
+		t.Errorf("got: %v want: %v", m.Parameters[0], p)
+	}
+	if !reflect.DeepEqual(m.Parameters[1], p2) {
+		t.Errorf("got: %v want: %v", m.Parameters[1], p2)
 	}
 }
 

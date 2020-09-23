@@ -10,7 +10,7 @@ import (
 
 	"github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/encdec"
-	"github.com/ehsoc/resource/server_generators/chigenerator"
+	"github.com/ehsoc/resource/server_generator/chigenerator"
 	"github.com/ehsoc/resource/test/petstore"
 	"github.com/go-chi/chi"
 )

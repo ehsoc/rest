@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource/document_generators/oaiv2"
+	"github.com/ehsoc/resource/document_generator/oaiv2"
 	"github.com/ehsoc/resource/test/petstore"
 	"github.com/go-openapi/spec"
 	"github.com/nsf/jsondiff"
@@ -33,7 +33,6 @@ func TestGenerateAPISpec(t *testing.T) {
 	if gotSwagger.BasePath != wantSwagger.BasePath {
 		t.Errorf("got: %v want: %v", gotSwagger.BasePath, wantSwagger.BasePath)
 	}
-
 	gotPetPath, ok := gotSwagger.Paths.Paths["/pet"]
 	if !ok {
 		t.Fatalf("Path not found")

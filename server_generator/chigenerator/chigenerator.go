@@ -17,7 +17,7 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 	router := chi.NewMux()
 	if strings.TrimSpace(api.BasePath) != "" {
 		router.Route(api.BasePath, func(r chi.Router) {
-			for _, resource := range api.Resources {
+			for _, resource := range api.Resources() {
 				processResource(r, resource)
 			}
 		})
@@ -28,11 +28,11 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 }
 
 func processResource(r chi.Router, res *resource.Resource) {
-	r.Route(res.Path, func(r chi.Router) {
-		for _, method := range res.Methods {
+	r.Route(res.Path(), func(r chi.Router) {
+		for _, method := range res.Methods() {
 			r.Method(method.HTTPMethod, "/", method)
 		}
-		for _, subRes := range res.Resources {
+		for _, subRes := range res.Resources() {
 			processResource(r, subRes)
 		}
 	})
