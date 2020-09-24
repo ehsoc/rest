@@ -45,12 +45,13 @@ func TestGenerateServer(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		getMethodOp := resource.NewMethodOperation(operation, resource.Response{http.StatusOK, nil, ""}, resource.Response{http.StatusNotFound, nil, ""}, true)
-		getMethod := resource.NewMethod(http.MethodGet, getMethodOp, contentTypes)
-		petResource, _ := resource.NewResourceWithURIParam("/pet/{petId}", "", reflect.String)
-		getMethod.AddParameter(*petResource.GetURIParam())
-		petResource.AddMethod(getMethod)
+		petResource := resource.NewResource("pet")
+		petResource.Resource("{petId}", func(r *resource.Resource) {
+			uriParam := resource.NewURIParameter("petId", reflect.String)
+			r.Get(getMethodOp, contentTypes).WithParameter(*uriParam)
+		})
 		myId := "101"
-		api.Resources = append(api.Resources, &petResource)
+		api.AddResource(petResource)
 		server := gen.GenerateServer(api)
 		request, _ := http.NewRequest(http.MethodGet, "/v2/pet/"+myId, nil)
 		response := httptest.NewRecorder()
@@ -75,11 +76,11 @@ func TestGenerateServer(t *testing.T) {
 		operation := &OperationStub{}
 		postMethodOp := resource.NewMethodOperation(operation, resource.Response{http.StatusCreated, petstore.Pet{}, ""}, resource.Response{http.StatusBadRequest, nil, ""}, true)
 		postMethod := resource.NewMethod(http.MethodPost, postMethodOp, contentTypes)
-		petResource, _ := resource.NewResource("/pet")
+		petResource := resource.NewResource("pet")
 		postMethod.RequestBody = resource.RequestBody{"", petstore.Pet{}}
 		petResource.AddMethod(postMethod)
 
-		api.Resources = append(api.Resources, &petResource)
+		api.AddResource(petResource)
 		server := gen.GenerateServer(api)
 
 		pet := petstore.Pet{Name: "Cat"}
@@ -117,19 +118,24 @@ func TestNestedRoutes(t *testing.T) {
 	mo := resource.NewMethodOperation(&OperationStub{}, resource.Response{200, nil, ""}, resource.Response{500, nil, ""}, false)
 	ct := resource.NewHTTPContentTypeSelector(resource.Response{415, nil, ""})
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-	method := resource.NewMethod(http.MethodGet, mo, ct)
-	rootResource, _ := resource.NewResource("/1/2")
-	r3, _ := resource.NewResource("/3")
-	r5, _ := resource.NewResourceWithURIParam("/4/5/{petId}", "", reflect.String)
-	r3.AddMethod(method)
-	r5.AddMethod(method)
-	r3.Resources = append(r3.Resources, &r5)
-	rootResource.Resources = append(rootResource.Resources, &r3)
+	rootResource := resource.NewResource("1")
+	rootResource.Resource("2", func(r *resource.Resource) {
+		r.Resource("3", func(r *resource.Resource) {
+			r.Get(mo, ct)
+			r.Resource("4", func(r *resource.Resource) {
+				r.Resource("5", func(r *resource.Resource) {
+					r.Resource("1", func(r *resource.Resource) {
+						r.Get(mo, ct)
+					})
+				})
+			})
+		})
+
+	})
 	api := resource.RestAPI{}
 	api.BasePath = "/v1"
-	api.Resources = append(api.Resources, &rootResource)
+	api.AddResource(rootResource)
 	server := api.GenerateServer(chigenerator.ChiGenerator{})
-
 	for _, test := range testRoutes {
 		t.Run(test.route, func(t *testing.T) {
 			request, _ := http.NewRequest(http.MethodGet, test.route, nil)

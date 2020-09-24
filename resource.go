@@ -52,22 +52,22 @@ func getURLParamName(pathStr string) []string {
 
 func (rs *Resource) Get(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodGet, methodOperation, contentTypeSelector)
-	return rs.addMethod(method)
+	return rs.AddMethod(method)
 }
 
 func (rs *Resource) Post(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodPost, methodOperation, contentTypeSelector)
-	return rs.addMethod(method)
+	return rs.AddMethod(method)
 }
 
 func (rs *Resource) Delete(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodDelete, methodOperation, contentTypeSelector)
-	return rs.addMethod(method)
+	return rs.AddMethod(method)
 }
 
 func (rs *Resource) Options(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodOptions, methodOperation, contentTypeSelector)
-	return rs.addMethod(method)
+	return rs.AddMethod(method)
 }
 
 //Methods returns the collection of methods.
@@ -95,7 +95,7 @@ func (rs *Resource) Path() string {
 	return rs.path
 }
 
-func (rs *Resource) addMethod(method Method) *Method {
+func (rs *Resource) AddMethod(method Method) *Method {
 	if _, ok := rs.methods[method.HTTPMethod]; ok {
 		panic(ErrorResourceMethodCollition)
 	}
