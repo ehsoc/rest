@@ -22,7 +22,7 @@ type Resource struct {
 //name parameter should not contain a slash, because resource represents a unique node and name is the name of the node path
 func NewResource(name string) Resource {
 	if strings.ContainsAny(name, "/") {
-		panic(ErrorTypeResourceSlashesNotAllowed{Errorf{FormatErrorResourceSlashesNotAllowed, name}})
+		panic(&ErrorTypeResourceSlashesNotAllowed{Errorf{FormatErrorResourceSlashesNotAllowed, name}})
 	}
 	r := Resource{}
 	r.methods = make(map[string]*Method)
@@ -67,6 +67,31 @@ func (rs *Resource) Delete(methodOperation MethodOperation, contentTypeSelector 
 
 func (rs *Resource) Options(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodOptions, methodOperation, contentTypeSelector)
+	return rs.AddMethod(method)
+}
+
+func (rs *Resource) Put(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodPut, methodOperation, contentTypeSelector)
+	return rs.AddMethod(method)
+}
+
+func (rs *Resource) Patch(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodPatch, methodOperation, contentTypeSelector)
+	return rs.AddMethod(method)
+}
+
+func (rs *Resource) Connect(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodConnect, methodOperation, contentTypeSelector)
+	return rs.AddMethod(method)
+}
+
+func (rs *Resource) Head(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodHead, methodOperation, contentTypeSelector)
+	return rs.AddMethod(method)
+}
+
+func (rs *Resource) Trace(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+	method := NewMethod(http.MethodTrace, methodOperation, contentTypeSelector)
 	return rs.AddMethod(method)
 }
 

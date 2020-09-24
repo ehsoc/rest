@@ -11,8 +11,7 @@ import (
 
 const summary string = "this is my method"
 
-//TODO: test every method
-func TestGet(t *testing.T) {
+func TestAddMethod(t *testing.T) {
 	ct := resource.NewHTTPContentTypeSelector(resource.DefaultUnsupportedMediaResponse)
 	t.Run("get method", func(t *testing.T) {
 		r := resource.NewResource("pet")
@@ -21,7 +20,8 @@ func TestGet(t *testing.T) {
 			resource.Response{200, nil, ""},
 			resource.Response{404, nil, ""},
 			true)
-		r.Get(mo, ct)
+		m := resource.NewMethod("GET", mo, ct)
+		r.AddMethod(m)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -47,6 +47,182 @@ func TestGet(t *testing.T) {
 	})
 }
 
+//TODO: test every method
+func TestGet(t *testing.T) {
+	ct := resource.NewHTTPContentTypeSelector(resource.DefaultUnsupportedMediaResponse)
+	t.Run("get method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Get(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodGet {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodGet)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("post method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Post(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodPost {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodPost)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("options put", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Put(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodPut {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodPut)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("options patch", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Patch(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodPatch {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodPatch)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("delete method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Delete(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodDelete {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodDelete)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("options method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Options(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodOptions {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodOptions)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("connect method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Connect(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodConnect {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodConnect)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("head method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Head(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodHead {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodHead)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+	t.Run("trace method", func(t *testing.T) {
+		r := resource.NewResource("pet")
+		mo := resource.NewMethodOperation(
+			&OperationStub{},
+			resource.Response{200, nil, ""},
+			resource.Response{404, nil, ""},
+			true)
+		r.Trace(mo, ct)
+		if len(r.Methods()) != 1 {
+			t.Errorf("expecting on method")
+		}
+		getMethod := r.Methods()[0]
+		if getMethod.HTTPMethod != http.MethodTrace {
+			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodTrace)
+		}
+		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		}
+	})
+}
+
 func TestNewResource(t *testing.T) {
 	t.Run("new resource", func(t *testing.T) {
 		name := "pet"
@@ -56,7 +232,7 @@ func TestNewResource(t *testing.T) {
 	t.Run("new resource with slash", func(t *testing.T) {
 		defer func() {
 			if err := recover(); err != nil {
-				if _, ok := err.(resource.ErrorTypeResourceSlashesNotAllowed); !ok {
+				if _, ok := err.(*resource.ErrorTypeResourceSlashesNotAllowed); !ok {
 					t.Fatalf("got: %T want: %T", err, resource.ErrorTypeResourceSlashesNotAllowed{})
 				}
 			}
@@ -94,4 +270,24 @@ func TestResource(t *testing.T) {
 	if directionResources[1].Path() != "right" {
 		t.Errorf("got : %v want: %v", findNode.Resources()[1].Path(), "right")
 	}
+}
+
+func TestResources(t *testing.T) {
+	r := resource.NewResource("root")
+	r.Resource("car", func(r *resource.Resource) {
+		r.Resource("fiat", nil)
+		r.Resource("citroen", nil)
+		r.Resource("ford", nil)
+	})
+	rootRs := r.Resources()
+	rs := rootRs[0].Resources()
+	sort.Slice(rs, func(i, j int) bool {
+		return rs[i].Path() < rs[j].Path()
+	})
+	if len(rs) != 3 {
+		t.Errorf("got: %v want: %v", len(rs), 3)
+	}
+	asserStringEqual(t, rs[0].Path(), "citroen")
+	asserStringEqual(t, rs[1].Path(), "fiat")
+	asserStringEqual(t, rs[2].Path(), "ford")
 }
