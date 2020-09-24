@@ -139,7 +139,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 
 	newBasePath := path.Join(basePath, apiResource.Path())
 	o.swagger.Paths.Paths[newBasePath] = pathItem
-	for _, apiResource := range apiResource.Resources() {
+	for _, apiResource := range apiResource.GetResources() {
 		o.resolveResource(newBasePath, apiResource)
 	}
 }
@@ -159,7 +159,7 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.R
 	o.swagger.BasePath = restApi.BasePath
 	o.swagger.Host = restApi.Host
 	o.swagger.ID = restApi.ID
-	for _, apiResource := range restApi.Resources() {
+	for _, apiResource := range restApi.GetResources() {
 		o.resolveResource("/", apiResource)
 	}
 	json.NewEncoder(w).Encode(o.swagger)

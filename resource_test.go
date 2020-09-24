@@ -47,7 +47,6 @@ func TestAddMethod(t *testing.T) {
 	})
 }
 
-//TODO: test every method
 func TestGet(t *testing.T) {
 	ct := resource.NewHTTPContentTypeSelector(resource.DefaultUnsupportedMediaResponse)
 	t.Run("get method", func(t *testing.T) {
@@ -242,7 +241,7 @@ func TestNewResource(t *testing.T) {
 	})
 }
 
-func TestResource(t *testing.T) {
+func TestResourceIntegration(t *testing.T) {
 	r := resource.NewResource("car")
 	r.Resource("find", func(r *resource.Resource) {
 		r.Resource("left", func(r *resource.Resource) {
@@ -253,41 +252,21 @@ func TestResource(t *testing.T) {
 	if r.Path() != "car" {
 		t.Errorf("got : %v want: %v", r.Path(), "car")
 	}
-	findNode := r.Resources()[0]
+	findNode := r.GetResources()[0]
 	if findNode.Path() != "find" {
 		t.Errorf("got : %v want: %v", findNode.Path(), "find")
 	}
-	if len(findNode.Resources()) != 2 {
-		t.Fatalf("expecting 2 sub nodes got: %v", len(findNode.Resources()))
+	if len(findNode.GetResources()) != 2 {
+		t.Fatalf("expecting 2 sub nodes got: %v", len(findNode.GetResources()))
 	}
-	directionResources := findNode.Resources()
+	directionResources := findNode.GetResources()
 	sort.Slice(directionResources, func(i, j int) bool {
 		return directionResources[i].Path() < directionResources[j].Path()
 	})
 	if directionResources[0].Path() != "left" {
-		t.Errorf("got : %v want: %v", findNode.Resources()[0].Path(), "left")
+		t.Errorf("got : %v want: %v", findNode.GetResources()[0].Path(), "left")
 	}
 	if directionResources[1].Path() != "right" {
-		t.Errorf("got : %v want: %v", findNode.Resources()[1].Path(), "right")
+		t.Errorf("got : %v want: %v", findNode.GetResources()[1].Path(), "right")
 	}
-}
-
-func TestResources(t *testing.T) {
-	r := resource.NewResource("root")
-	r.Resource("car", func(r *resource.Resource) {
-		r.Resource("fiat", nil)
-		r.Resource("citroen", nil)
-		r.Resource("ford", nil)
-	})
-	rootRs := r.Resources()
-	rs := rootRs[0].Resources()
-	sort.Slice(rs, func(i, j int) bool {
-		return rs[i].Path() < rs[j].Path()
-	})
-	if len(rs) != 3 {
-		t.Errorf("got: %v want: %v", len(rs), 3)
-	}
-	asserStringEqual(t, rs[0].Path(), "citroen")
-	asserStringEqual(t, rs[1].Path(), "fiat")
-	asserStringEqual(t, rs[2].Path(), "ford")
 }

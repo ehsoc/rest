@@ -10,28 +10,11 @@ import (
 //It is responsable document generation like output Open API v2 json generation and
 //Server handler generation
 type RestAPI struct {
-	ID        string
-	Version   string
-	Host      string
-	BasePath  string
-	resources map[string]Resource
-}
-
-//Resources returns the collection of the resources.
-//This is a copy of the internal collection, so resources cannot be changed from this slice.
-func (r *RestAPI) Resources() []Resource {
-	res := []Resource{}
-	for _, r := range r.resources {
-		res = append(res, r)
-	}
-	return res
-}
-
-func (r *RestAPI) AddResource(resource Resource) {
-	if r.resources == nil {
-		r.resources = make(map[string]Resource)
-	}
-	r.resources[resource.path] = resource
+	ID       string
+	Version  string
+	Host     string
+	BasePath string
+	Resources
 }
 
 func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {

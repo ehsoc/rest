@@ -13,9 +13,9 @@ type Resource struct {
 	Summary     string
 	Description string
 	//a unique operation as a combination of a path and an HTTP method is allowed
-	methods   map[string]*Method
-	resources map[string]Resource
-	uRIParam  *Parameter
+	methods map[string]*Method
+	Resources
+	uRIParam *Parameter
 }
 
 //NewResource creates a new resource node.
@@ -105,15 +105,15 @@ func (rs *Resource) Methods() []Method {
 	return ms
 }
 
-//Resources returns the collection of the resources.
-//This is a copy of the internal collection, so resources cannot be changed from this slice.
-func (rs *Resource) Resources() []Resource {
-	res := []Resource{}
-	for _, r := range rs.resources {
-		res = append(res, r)
-	}
-	return res
-}
+// //Resources returns the collection of the resources.
+// //This is a copy of the internal collection, so resources cannot be changed from this slice.
+// func (rs *Resource) Resources() []Resource {
+// 	res := []Resource{}
+// 	for _, r := range rs.resources {
+// 		res = append(res, r)
+// 	}
+// 	return res
+// }
 
 //Path returns the name and path property.
 func (rs *Resource) Path() string {
@@ -128,11 +128,11 @@ func (rs *Resource) AddMethod(method Method) *Method {
 	return rs.methods[method.HTTPMethod]
 }
 
-//Resource creates a new Resource and append resources defined in fn function to the collection of resources to the new resource.
-func (rs *Resource) Resource(name string, fn func(r *Resource)) {
-	newResource := NewResource(name)
-	if fn != nil {
-		fn(&newResource)
-	}
-	rs.resources[name] = newResource
-}
+// //Resource creates a new Resource and append resources defined in fn function to the collection of resources to the new resource.
+// func (rs *Resource) Resource(name string, fn func(r *Resource)) {
+// 	newResource := NewResource(name)
+// 	if fn != nil {
+// 		fn(&newResource)
+// 	}
+// 	rs.resources[name] = newResource
+// }
