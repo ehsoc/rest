@@ -2,7 +2,6 @@ package resource
 
 import (
 	"net/http"
-	"reflect"
 	"regexp"
 	"strings"
 )
@@ -15,7 +14,7 @@ type Resource struct {
 	//a unique operation as a combination of a path and an HTTP method is allowed
 	methods map[string]*Method
 	Resources
-	uRIParam *Parameter
+	uRIParam Parameter
 }
 
 //NewResource creates a new resource node.
@@ -31,19 +30,19 @@ func NewResource(name string) Resource {
 	return r
 }
 
-func newResourceWithURIParam(pathStr string, paramDescription string, paramType reflect.Kind) (Resource, error) {
-	params := getURLParamName(pathStr)
-	if params == nil {
-		return Resource{}, ErrorResourceURIParamNoParamFound
-	}
-	if len(params) > 1 {
-		return Resource{}, ErrorResourceURIParamMoreThanOne
-	}
-	r := Resource{}
-	r.path = pathStr
-	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType).WithDescription(paramDescription)
-	return r, nil
-}
+// func newResourceWithURIParam(pathStr string, paramDescription string, paramType reflect.Kind) (Resource, error) {
+// 	params := getURLParamName(pathStr)
+// 	if params == nil {
+// 		return Resource{}, ErrorResourceURIParamNoParamFound
+// 	}
+// 	if len(params) > 1 {
+// 		return Resource{}, ErrorResourceURIParamMoreThanOne
+// 	}
+// 	r := Resource{}
+// 	r.path = pathStr
+// 	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType).WithDescription(paramDescription)
+// 	return r, nil
+// }
 
 func getURLParamName(pathStr string) []string {
 	re := regexp.MustCompile(`\{(.*?)\}`)

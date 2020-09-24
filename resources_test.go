@@ -54,7 +54,6 @@ func TestResource(t *testing.T) {
 		t.Errorf("got : %v want: %v", findNode.GetResources()[1].Path(), "right")
 	}
 }
-
 func TestAddResource(t *testing.T) {
 	collection := resource.Resources{}
 	findNode := resource.NewResource("find")
