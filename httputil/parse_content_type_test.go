@@ -11,7 +11,7 @@ var negotiatorTests = []struct {
 	accept       string
 	contentTypes []httputil.MediaType
 }{
-	{"", []httputil.MediaType{httputil.MediaType{}}},
+	{"", []httputil.MediaType{{}}},
 	{"application/json, application/xml", []httputil.MediaType{
 		{"application/json", map[string]string{}},
 		{"application/xml", map[string]string{}},

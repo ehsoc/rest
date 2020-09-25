@@ -6,11 +6,14 @@ go:
   - 1.12.x
   - 1.13.x
   - 1.14.x
+  - tip
+
+  os:
+  - linux
+  - osx
 
 script:
   - export GO111MODULE=on
-  - go mod download
-  - go mod verify
   - go get -d -t ./...
   - go vet ./...
   - go test ./...
