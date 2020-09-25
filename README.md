@@ -18,8 +18,8 @@ Resource is an experimental Web Resource abstraction for composing a REST API in
 2. RestAPI (Like a Resource, but it is the root) 
 
 ## RestAPI main functions :
-1. GenerateServer()
-2. GenerateSpec()
+1. GenerateServer(restAPI RestAPI) http.Handler
+2. GenerateAPISpec(w io.Writer, restAPI RestAPI)
 
 
 **Resource components:**
@@ -47,7 +47,9 @@ Example:
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 	root := res.RestAPI{}
-	root.BasePath = "/v2"
+	root.BasePath = "/v1"
+	root.Version = "v1"
+	root.Title = "My simple car API"
 	root.Resource("car", func(r *res.Resource) {
 		carIdParam := res.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *res.Resource) {

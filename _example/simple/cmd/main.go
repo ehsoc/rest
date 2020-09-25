@@ -30,7 +30,9 @@ func main() {
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 	root := res.RestAPI{}
-	root.BasePath = "/v2"
+	root.BasePath = "/v1"
+	root.Version = "v1"
+	root.Title = "My simple car API"
 	root.Resource("car", func(r *res.Resource) {
 		carIdParam := res.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *res.Resource) {
@@ -40,5 +42,4 @@ func main() {
 	server := root.GenerateServer(chigenerator.ChiGenerator{})
 	root.GenerateSpec(os.Stdout, &oaiv2.OpenAPIV2SpecGenerator{})
 	http.ListenAndServe(":8080", server)
-
 }

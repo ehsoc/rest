@@ -159,6 +159,11 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.R
 	o.swagger.BasePath = restApi.BasePath
 	o.swagger.Host = restApi.Host
 	o.swagger.ID = restApi.ID
+	info := &spec.Info{}
+	info.Description = restApi.Description
+	info.Title = restApi.Title
+	info.Version = restApi.Version
+	o.swagger.Info = info
 	for _, apiResource := range restApi.GetResources() {
 		o.resolveResource("/", apiResource)
 	}
