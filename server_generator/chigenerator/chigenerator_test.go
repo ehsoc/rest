@@ -41,10 +41,10 @@ func TestGenerateServer(t *testing.T) {
 		api := resource.RestAPI{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{})
+		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		getMethodOp := resource.NewMethodOperation(operation, resource.Response{http.StatusOK, nil, ""}, resource.Response{http.StatusNotFound, nil, ""}, true)
+		getMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(200), resource.NewResponse(http.StatusNotFound), true)
 		petResource := resource.NewResource("pet")
 		petResource.Resource("{petId}", func(r *resource.Resource) {
 			uriParam := resource.NewURIParameter("petId", reflect.String)
@@ -71,13 +71,13 @@ func TestGenerateServer(t *testing.T) {
 		api := resource.RestAPI{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		contentTypes := resource.NewHTTPContentTypeSelector(resource.Response{http.StatusUnsupportedMediaType, nil, ""})
+		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		postMethodOp := resource.NewMethodOperation(operation, resource.Response{http.StatusCreated, petstore.Pet{}, ""}, resource.Response{http.StatusBadRequest, nil, ""}, true)
+		postMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(http.StatusCreated).WithBody(petstore.Pet{}), resource.NewResponse(http.StatusBadRequest), true)
 		postMethod := resource.NewMethod(http.MethodPost, postMethodOp, contentTypes)
 		petResource := resource.NewResource("pet")
-		postMethod.RequestBody = resource.RequestBody{"", petstore.Pet{}}
+		postMethod.RequestBody = resource.RequestBody{Description: "", Body: petstore.Pet{}}
 		petResource.AddMethod(postMethod)
 
 		api.AddResource(petResource)
@@ -115,8 +115,8 @@ var testRoutes = []struct {
 }
 
 func TestNestedRoutes(t *testing.T) {
-	mo := resource.NewMethodOperation(&OperationStub{}, resource.Response{200, nil, ""}, resource.Response{500, nil, ""}, false)
-	ct := resource.NewHTTPContentTypeSelector(resource.Response{415, nil, ""})
+	mo := resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(http.StatusOK), resource.NewResponse(500), false)
+	ct := resource.NewHTTPContentTypeSelector()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	rootResource := resource.NewResource("1")
 	rootResource.Resource("2", func(r *resource.Resource) {

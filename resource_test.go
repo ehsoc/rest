@@ -12,13 +12,13 @@ import (
 const summary string = "this is my method"
 
 func TestAddMethod(t *testing.T) {
-	ct := resource.NewHTTPContentTypeSelector(resource.DefaultUnsupportedMediaResponse)
+	ct := resource.NewHTTPContentTypeSelector()
 	t.Run("get method", func(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		m := resource.NewMethod("GET", mo, ct)
 		r.AddMethod(m)
@@ -35,6 +35,11 @@ func TestAddMethod(t *testing.T) {
 	})
 	t.Run("methods map nil", func(t *testing.T) {
 		defer assertNoPanic(t)
+		r := resource.Resource{}
+		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+	})
+	t.Run("methods map nil with constructor", func(t *testing.T) {
+		defer assertNoPanic(t)
 		r := resource.NewResource("pet")
 		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
 	})
@@ -48,13 +53,13 @@ func TestAddMethod(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	ct := resource.NewHTTPContentTypeSelector(resource.DefaultUnsupportedMediaResponse)
+	ct := resource.NewHTTPContentTypeSelector()
 	t.Run("get method", func(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Get(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -72,8 +77,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Post(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -91,8 +96,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Put(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -110,8 +115,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Patch(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -129,8 +134,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Delete(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -148,8 +153,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Options(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -167,8 +172,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Connect(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -186,8 +191,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Head(mo, ct)
 		if len(r.Methods()) != 1 {
@@ -205,8 +210,8 @@ func TestGet(t *testing.T) {
 		r := resource.NewResource("pet")
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
-			resource.Response{200, nil, ""},
-			resource.Response{404, nil, ""},
+			resource.NewResponse(200),
+			resource.NewResponse(404),
 			true)
 		r.Trace(mo, ct)
 		if len(r.Methods()) != 1 {

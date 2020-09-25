@@ -15,32 +15,29 @@ type HTTPContentTypeSelector struct {
 	defaultEncoder      string
 	defaultDecoder      string
 	Negotiator
-	unsupportedMediaTypeResponse Response
+	UnsupportedMediaTypeResponse Response
 }
 
-var DefaultUnsupportedMediaResponse = Response{http.StatusUnsupportedMediaType, nil, ""}
+var DefaultUnsupportedMediaResponse = NewResponse(415)
 
 //NewHTTPContentTypeSelector will return a HTTPContentTypeSelector with an empty content-type
 //map and the Default Negotiator.
 //The Negotiator is a content-type negotiator, that can be replaced by a custom Negotiator implementation.
-func NewHTTPContentTypeSelector(unsupportedMediaTypeResponse Response) HTTPContentTypeSelector {
+func NewHTTPContentTypeSelector() HTTPContentTypeSelector {
 	var encoderContentTypes = make(map[string]encdec.Encoder)
 	var decoderContentTypes = make(map[string]encdec.Decoder)
-	return HTTPContentTypeSelector{encoderContentTypes, decoderContentTypes, "", "", DefaultNegotiator{}, unsupportedMediaTypeResponse}
+	return HTTPContentTypeSelector{encoderContentTypes, decoderContentTypes, "", "", DefaultNegotiator{}, DefaultUnsupportedMediaResponse}
 }
 
 //Add will add a new content-type encoder and decoder. defaultencdec encoder and decoder parameter will set the default for decoder and decoder.
 func (h *HTTPContentTypeSelector) Add(contentType string, ed encdec.EncoderDecoder, defaultencdec bool) {
-	h.encoderContentTypes[contentType] = ed
-	h.decoderContentTypes[contentType] = ed
-	if defaultencdec {
-		h.defaultEncoder = contentType
-		h.defaultDecoder = contentType
-	}
+	h.AddEncoder(contentType, ed, defaultencdec)
+	h.AddDecoder(contentType, ed, defaultencdec)
 }
 
 //AddEncoder will add a new content-type decoder. isDefault parameter will set this decoder as the default one.
 func (h *HTTPContentTypeSelector) AddEncoder(contentType string, encoder encdec.Encoder, isDefault bool) {
+	h.checkNilEncoderMap()
 	h.encoderContentTypes[contentType] = encoder
 	if isDefault {
 		h.defaultEncoder = contentType
@@ -49,6 +46,7 @@ func (h *HTTPContentTypeSelector) AddEncoder(contentType string, encoder encdec.
 
 //AddDecoder will add a new content-type decoder. isDefault parameter will set this decoder as the default one.
 func (h *HTTPContentTypeSelector) AddDecoder(contentType string, decoder encdec.Decoder, isDefault bool) {
+	h.checkNilDecoderMap()
 	h.decoderContentTypes[contentType] = decoder
 	if isDefault {
 		h.defaultDecoder = contentType
@@ -89,4 +87,16 @@ func (h *HTTPContentTypeSelector) NegotiateEncoder(r *http.Request) (string, enc
 
 func (h *HTTPContentTypeSelector) NegotiateDecoder(r *http.Request) (string, encdec.Decoder, error) {
 	return h.Negotiator.NegotiateDecoder(r, h)
+}
+
+//checkDecoderMap initialize the internal map if is nil
+func (h *HTTPContentTypeSelector) checkNilDecoderMap() {
+	if h.decoderContentTypes == nil {
+		h.decoderContentTypes = make(map[string]encdec.Decoder)
+	}
+}
+func (h *HTTPContentTypeSelector) checkNilEncoderMap() {
+	if h.encoderContentTypes == nil {
+		h.encoderContentTypes = make(map[string]encdec.Encoder)
+	}
 }

@@ -106,22 +106,21 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		//Responses
 		for _, response := range method.Responses {
 			res := spec.NewResponse()
-			if response.Body != nil {
+			//Body()  returns an interfaces so can be nil
+			if response.Body() != nil {
 				//res.Schema = o.toRef(response.Body)
-				res.Schema = o.toSchema(response.Body)
+				res.Schema = o.toSchema(response.Body())
 			}
-
 			//If response.Description is empty we will set a default response base on the status code
-			if response.Description != "" {
-				res.Description = response.Description
+			if response.Description() != "" {
+				res.Description = response.Description()
 			} else {
-				res.Description = http.StatusText(response.Code)
+				res.Description = http.StatusText(response.Code())
 			}
 
-			docMethod.RespondsWith(response.Code, res)
+			docMethod.RespondsWith(response.Code(), res)
+			docMethod.Responses.Default = nil
 		}
-		docMethod.Responses.Default = nil
-
 		switch method.HTTPMethod {
 		case http.MethodPost:
 			pathItem.Post = docMethod

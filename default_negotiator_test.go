@@ -49,7 +49,7 @@ func TestNegotiateEncoder(t *testing.T) {
 	t.Run("no content-type registered", func(t *testing.T) {
 		n := resource.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		void := resource.NewHTTPContentTypeSelector(resource.Response{})
+		void := resource.NewHTTPContentTypeSelector()
 		_, _, err := n.NegotiateEncoder(request, &void)
 		if err == nil {
 			t.Errorf("Was expecting an error")
@@ -58,7 +58,7 @@ func TestNegotiateEncoder(t *testing.T) {
 }
 
 func mustGetCTS() resource.HTTPContentTypeSelector {
-	cts := resource.NewHTTPContentTypeSelector(resource.Response{})
+	cts := resource.NewHTTPContentTypeSelector()
 	cts.Add(octetMimeType, &EncodeDecoderSpy{}, false)
 	cts.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	cts.Add("application/xml", &EncodeDecoderSpy{}, false)
@@ -66,7 +66,7 @@ func mustGetCTS() resource.HTTPContentTypeSelector {
 }
 
 func mustGetCTSNoDefault() resource.HTTPContentTypeSelector {
-	cts := resource.NewHTTPContentTypeSelector(resource.Response{})
+	cts := resource.NewHTTPContentTypeSelector()
 	cts.Add(octetMimeType, &EncodeDecoderSpy{}, false)
 	cts.Add("application/json", encdec.JSONEncoderDecoder{}, false)
 	cts.Add("application/xml", &EncodeDecoderSpy{}, false)

@@ -18,11 +18,11 @@ type Store struct {
 	InMemoryFs afero.Fs
 }
 
-func NewStore() Store {
+func NewStore() *Store {
 	store := Store{}
 	store.store = make(map[int64]Pet)
 	store.InMemoryFs = afero.NewMemMapFs()
-	return store
+	return &store
 }
 
 func getInt64Id(stringId string) (int64, error) {

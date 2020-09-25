@@ -31,7 +31,7 @@ func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSe
 	m.contentTypeSelector = contentTypeSelector
 	m.newResponse(m.MethodOperation.successResponse)
 	m.newResponse(m.MethodOperation.failResponse)
-	m.newResponse(m.contentTypeSelector.unsupportedMediaTypeResponse)
+	m.newResponse(m.contentTypeSelector.UnsupportedMediaTypeResponse)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
 }
@@ -45,7 +45,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		responseContentType, encoder, err := m.contentTypeSelector.NegotiateEncoder(r)
 		if err != nil {
-			m.writeResponseFallBack(w, m.contentTypeSelector.unsupportedMediaTypeResponse)
+			m.writeResponseFallBack(w, m.contentTypeSelector.UnsupportedMediaTypeResponse)
 			return
 		}
 		ctx := context.WithValue(r.Context(), EncoderDecoderContextKey("encoder"), encoder)
@@ -53,7 +53,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 		decoderContentType, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
 		ctx = context.WithValue(ctx, ContentTypeContextKey("decoder"), decoderContentType)
 		if err != nil && r.Body != http.NoBody && r.Body != nil {
-			writeResponse(ctx, w, m.contentTypeSelector.unsupportedMediaTypeResponse)
+			writeResponse(ctx, w, m.contentTypeSelector.UnsupportedMediaTypeResponse)
 			return
 		}
 		ctx = context.WithValue(ctx, EncoderDecoderContextKey("decoder"), decoder)
@@ -66,7 +66,7 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 	_, encoder, err := m.contentTypeSelector.GetDefaultEncoder()
 	//if no default encdec is set will only return the header code
 	if err != nil {
-		w.WriteHeader(response.Code)
+		w.WriteHeader(response.Code())
 		return
 	}
 	write(w, encoder, response)
@@ -87,7 +87,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if m.MethodOperation.operationResultAsBody {
-		writeResponse(r.Context(), w, Response{Code: m.MethodOperation.successResponse.Code, Body: entity})
+		writeResponse(r.Context(), w, NewResponse(m.MethodOperation.successResponse.Code()).WithBody(entity))
 		return
 	}
 	writeResponse(r.Context(), w, m.MethodOperation.successResponse)
@@ -103,9 +103,9 @@ func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {
 }
 
 func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
-	w.WriteHeader(resp.Code)
-	if resp.Body != nil {
-		encoder.Encode(w, resp.Body)
+	w.WriteHeader(resp.Code())
+	if resp.Body() != nil {
+		encoder.Encode(w, resp.Body())
 	}
 }
 
