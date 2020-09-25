@@ -5,15 +5,52 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"reflect"
 	"testing"
 
+	"github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/document_generator/oaiv2"
+	"github.com/ehsoc/resource/encdec"
 	"github.com/ehsoc/resource/test/petstore"
 	"github.com/go-openapi/spec"
 	"github.com/nsf/jsondiff"
 )
+
+func operationStub(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
+	return nil, nil
+}
+
+func TestNoEmptyResources(t *testing.T) {
+	api := resource.RestAPI{}
+	api.BasePath = "/v1"
+	api.Version = "v1"
+	api.Title = "My simple car API"
+	api.Resource("car", func(r *resource.Resource) {
+		carIdParam := resource.NewURIParameter("carId", reflect.String)
+		r.Resource("{carId}", func(r *resource.Resource) {
+			r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{}).WithParameter(*carIdParam)
+		})
+	})
+	gen := oaiv2.OpenAPIV2SpecGenerator{}
+	generatedSpec := new(bytes.Buffer)
+	decoder := json.NewDecoder(generatedSpec)
+	gen.GenerateAPISpec(generatedSpec, api)
+	gotSwagger := spec.Swagger{}
+	decoder.Decode(&gotSwagger)
+	if gotSwagger.Paths == nil {
+		t.Fatal("not expecting nil Paths")
+	}
+	if len(gotSwagger.Paths.Paths) != 1 {
+		t.Errorf("expecting just one resource, got: %v", len(gotSwagger.Paths.Paths))
+	}
+	wantPath := "/car/{carId}"
+	_, ok := gotSwagger.Paths.Paths[wantPath]
+	if !ok {
+		t.Errorf("want: %v", wantPath)
+	}
+}
 
 func TestGenerateAPISpec(t *testing.T) {
 	api := petstore.GeneratePetStore()

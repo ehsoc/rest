@@ -138,7 +138,11 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 	}
 
 	newBasePath := path.Join(basePath, apiResource.Path())
-	o.swagger.Paths.Paths[newBasePath] = pathItem
+	//Only Paths with methods should be in the Paths map
+	if len(apiResource.Methods()) > 0 {
+		o.swagger.Paths.Paths[newBasePath] = pathItem
+	}
+
 	for _, apiResource := range apiResource.GetResources() {
 		o.resolveResource(newBasePath, apiResource)
 	}
@@ -170,7 +174,7 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.R
 	json.NewEncoder(w).Encode(o.swagger)
 }
 
-func (o *OpenAPIV2SpecGenerator) AddDefinition(name string, schema *spec.Schema) {
+func (o *OpenAPIV2SpecGenerator) addDefinition(name string, schema *spec.Schema) {
 	if o.swagger.Definitions == nil {
 		o.swagger.Definitions = make(spec.Definitions)
 	}
@@ -194,7 +198,7 @@ func (o *OpenAPIV2SpecGenerator) toSchema(v interface{}) *spec.Schema {
 			field := val.Type().Field(i)
 			refSchema.SetProperty(getFieldName(field), *o.toSchema(val.Field(i).Interface()))
 		}
-		o.AddDefinition(structName, refSchema)
+		o.addDefinition(structName, refSchema)
 		schema = spec.RefSchema("#/definitions/" + structName)
 	default:
 		schema, _ = simpleTypesToSchema(val.Kind())
