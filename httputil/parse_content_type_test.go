@@ -13,15 +13,15 @@ var negotiatorTests = []struct {
 }{
 	{"", []httputil.MediaType{{}}},
 	{"application/json, application/xml", []httputil.MediaType{
-		{"application/json", map[string]string{}},
-		{"application/xml", map[string]string{}},
+		{Name: "application/json", Params: map[string]string{}},
+		{Name: "application/xml", Params: map[string]string{}},
 	}},
 	{"application/json; indent=4, application/json, application/yaml, text/html, */*", []httputil.MediaType{
-		{"application/json", map[string]string{"indent": "4"}},
-		{"application/json", map[string]string{}},
-		{"application/yaml", map[string]string{}},
-		{"text/html", map[string]string{}},
-		{"*/*", map[string]string{}},
+		{Name: "application/json", Params: map[string]string{"indent": "4"}},
+		{Name: "application/json", Params: map[string]string{}},
+		{Name: "application/yaml", Params: map[string]string{}},
+		{Name: "text/html", Params: map[string]string{}},
+		{Name: "*/*", Params: map[string]string{}},
 	}},
 }
 
