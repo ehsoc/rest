@@ -42,13 +42,13 @@ func GeneratePetStore() resource.RestAPI {
 		r.Get(getByIdMethodOperation, ct).
 			WithSummary("Find pet by ID").
 			WithDescription("Returns a single pet").
-			WithParameter(*petIdURIParam)
+			WithParameter(petIdURIParam)
 		//Delete
 		deleteByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200), notFoundResponse, false)
 		r.Delete(deleteByIdMethodOperation, ct).
 			WithSummary("Deletes a pet").
-			WithParameter(*petIdURIParam.WithDescription("Pet id to delete")).
-			WithParameter(*resource.NewHeaderParameter("api_key", reflect.String).AsOptional())
+			WithParameter(petIdURIParam.WithDescription("Pet id to delete")).
+			WithParameter(resource.NewHeaderParameter("api_key", reflect.String).AsOptional())
 
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource
@@ -58,10 +58,10 @@ func GeneratePetStore() resource.RestAPI {
 			ct.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 			r.Post(uploadImageMethodOperation, ct).
 				WithSummary("uploads an image").
-				WithParameter(*petIdURIParam.WithDescription("ID of pet to update")).
-				WithParameter(*resource.NewFormDataParameter("additionalMetadata", reflect.String, encdec.JSONDecoder{}).WithDescription("Additional data to pass to server")).
-				WithParameter(*resource.NewFileParameter("file").WithDescription("file to upload")).
-				WithParameter(*resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data").WithBody(Pet{}))
+				WithParameter(petIdURIParam.WithDescription("ID of pet to update")).
+				WithParameter(resource.NewFormDataParameter("additionalMetadata", reflect.String, encdec.JSONDecoder{}).WithDescription("Additional data to pass to server")).
+				WithParameter(resource.NewFileParameter("file").WithDescription("file to upload")).
+				WithParameter(resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data").WithBody(Pet{}))
 		})
 	})
 	//Resource /pet/findByStatus
@@ -76,7 +76,7 @@ func GeneratePetStore() resource.RestAPI {
 		r.Get(findByStatusMethodOperation, ct).
 			WithSummary("Finds Pets by status").
 			WithDescription("Multiple status values can be provided with comma separated strings").
-			WithParameter(*statusParam)
+			WithParameter(statusParam)
 	})
 
 	api := resource.RestAPI{}

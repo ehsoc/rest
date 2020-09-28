@@ -20,7 +20,7 @@ type Method struct {
 	MethodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
 	http.Handler
-	Parameters []Parameter
+	parameters map[ParameterType]map[string]Parameter
 }
 
 //NewMethod returns a Method instance
@@ -32,6 +32,7 @@ func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSe
 	m.newResponse(m.MethodOperation.successResponse)
 	m.newResponse(m.MethodOperation.failResponse)
 	m.newResponse(m.contentTypeSelector.UnsupportedMediaTypeResponse)
+	m.parameters = make(map[ParameterType]map[string]Parameter)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return m
 }
@@ -129,8 +130,14 @@ func (m *Method) GetDecoderMediaTypes() []string {
 	return mediaTypes
 }
 
+//AddParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
+//It will silently override a parameter if the same key was already set.
 func (m *Method) AddParameter(parameter Parameter) {
-	m.Parameters = append(m.Parameters, parameter)
+	m.checkNilParameters()
+	if _, ok := m.parameters[parameter.HTTPType]; !ok {
+		m.parameters[parameter.HTTPType] = make(map[string]Parameter)
+	}
+	m.parameters[parameter.HTTPType][parameter.Name] = parameter
 }
 
 func (m *Method) WithParameter(parameter Parameter) *Method {
@@ -154,4 +161,24 @@ func (m *Method) WithSummary(summary string) *Method {
 func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 	m.RequestBody = RequestBody{description, body}
 	return m
+}
+
+func (m *Method) checkNilParameters() {
+	if m.parameters == nil {
+		m.parameters = make(map[ParameterType]map[string]Parameter)
+	}
+}
+
+//GetParameters returns the collection of parameters.
+//This is a copy of the internal collection, so parameters cannot be changed from this slice.
+//The order of the slice elements will not be consistent.
+func (m *Method) GetParameters() []Parameter {
+	m.checkNilParameters()
+	p := make([]Parameter, 0)
+	for _, paramType := range m.parameters {
+		for _, param := range paramType {
+			p = append(p, param)
+		}
+	}
+	return p
 }

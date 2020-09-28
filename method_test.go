@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/textproto"
 	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/ehsoc/resource"
@@ -133,7 +134,7 @@ func TestOperations(t *testing.T) {
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
-		method.AddParameter(*resource.NewQueryParameter("error"))
+		method.AddParameter(resource.NewQueryParameter("error"))
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -268,10 +269,10 @@ func TestOperations(t *testing.T) {
 		contentTypes.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 		contentTypes.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
-		method.AddParameter(*resource.NewURIParameter("petId", reflect.String))
-		method.AddParameter(*resource.NewFormDataParameter("additionalMetadata", reflect.String, nil).WithDescription("Additional data to pass to server"))
-		method.AddParameter(*resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data"))
-		method.AddParameter(*resource.NewFileParameter("file").WithDescription("file to upload"))
+		method.AddParameter(resource.NewURIParameter("petId", reflect.String))
+		method.AddParameter(resource.NewFormDataParameter("additionalMetadata", reflect.String, nil).WithDescription("Additional data to pass to server"))
+		method.AddParameter(resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data"))
+		method.AddParameter(resource.NewFileParameter("file").WithDescription("file to upload"))
 		buf := new(bytes.Buffer)
 		w := multipart.NewWriter(buf)
 		fileW, _ := w.CreateFormFile("file", "MyFileName.jpg")
@@ -334,12 +335,16 @@ func TestOperations(t *testing.T) {
 }
 
 func TestAddParameter(t *testing.T) {
+	t.Run("nil parameters", func(t *testing.T) {
+		defer assertNoPanic(t)
+		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		m.AddParameter(resource.NewQueryParameter("myparam"))
+	})
 	m := resource.Method{}
-	p := resource.Parameter{}
-	p.Name = "myParam"
+	p := resource.Parameter{HTTPType: resource.URIParameter, Name: "id"}
 	m.AddParameter(p)
-	if !reflect.DeepEqual(m.Parameters[0], p) {
-		t.Errorf("got: %v want: %v", m.Parameters[0], p)
+	if !reflect.DeepEqual(m.GetParameters()[0], p) {
+		t.Errorf("got: %v want: %v", m.GetParameters()[0], p)
 	}
 }
 
@@ -348,12 +353,17 @@ func TestWithParameter(t *testing.T) {
 	p := resource.Parameter{}
 	p2 := resource.Parameter{}
 	p.Name = "myParam"
+	p2.Name = "myParam2"
 	m.WithParameter(p).WithParameter(p2)
-	if !reflect.DeepEqual(m.Parameters[0], p) {
-		t.Errorf("got: %v want: %v", m.Parameters[0], p)
+	parameters := m.GetParameters()
+	sort.Slice(parameters, func(i, j int) bool {
+		return parameters[i].Name < parameters[j].Name
+	})
+	if !reflect.DeepEqual(m.GetParameters()[0], p) {
+		t.Errorf("got: %v want: %v", m.GetParameters()[0], p)
 	}
-	if !reflect.DeepEqual(m.Parameters[1], p2) {
-		t.Errorf("got: %v want: %v", m.Parameters[1], p2)
+	if !reflect.DeepEqual(m.GetParameters()[1], p2) {
+		t.Errorf("got: %v want: %v", m.GetParameters()[1], p2)
 	}
 }
 
@@ -366,4 +376,15 @@ func TestNilOperation(t *testing.T) {
 	defer func() { recover() }()
 	m.ServeHTTP(response, request)
 	t.Errorf("The code did not panic")
+}
+
+func TestGetParameters(t *testing.T) {
+	t.Run("nil parameters", func(t *testing.T) {
+		defer assertNoPanic(t)
+		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		params := m.GetParameters()
+		if len(params) != 0 {
+			t.Errorf("got: %v want: %v", len(params), 0)
+		}
+	})
 }

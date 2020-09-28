@@ -38,7 +38,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		//URI params will go first
 		pURIKeys := make([]resource.Parameter, 0)
 		pHeaderKeys := make([]resource.Parameter, 0)
-		for _, p := range method.Parameters {
+		for _, p := range method.GetParameters() {
 			if p.HTTPType == resource.URIParameter {
 				pURIKeys = append(pURIKeys, p)
 				continue

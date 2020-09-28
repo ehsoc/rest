@@ -1,14 +1,13 @@
 package resource
 
 //Response represents a HTTP response.
-//This type is meant to be immutable.
 type Response struct {
 	code        int
 	body        interface{}
 	description string
 }
 
-//NewResponse resturns a Response
+//NewResponse returns a Response
 func NewResponse(code int) Response {
 	r := Response{}
 	r.code = code
@@ -16,14 +15,12 @@ func NewResponse(code int) Response {
 }
 
 //WithBody chain method will set body property.
-//This will not work outside a chain.
 func (r Response) WithBody(body interface{}) Response {
 	r.body = body
 	return r
 }
 
 //WithDescription chain method will set description property.
-//This will not work outside a chain.
 func (r Response) WithDescription(description string) Response {
 	r.description = description
 	return r

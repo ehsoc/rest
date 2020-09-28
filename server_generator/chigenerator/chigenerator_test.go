@@ -48,7 +48,7 @@ func TestGenerateServer(t *testing.T) {
 		petResource := resource.NewResource("pet")
 		petResource.Resource("{petId}", func(r *resource.Resource) {
 			uriParam := resource.NewURIParameter("petId", reflect.String)
-			r.Get(getMethodOp, contentTypes).WithParameter(*uriParam)
+			r.Get(getMethodOp, contentTypes).WithParameter(uriParam)
 		})
 		myId := "101"
 		api.AddResource(petResource)
