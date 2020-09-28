@@ -349,21 +349,53 @@ func TestAddParameter(t *testing.T) {
 }
 
 func TestWithParameter(t *testing.T) {
-	m := resource.Method{}
+	m := &resource.Method{}
 	p := resource.Parameter{}
 	p2 := resource.Parameter{}
 	p.Name = "myParam"
 	p2.Name = "myParam2"
+	p.HTTPType = resource.FileParameter
+	p2.HTTPType = resource.URIParameter
 	m.WithParameter(p).WithParameter(p2)
 	parameters := m.GetParameters()
 	sort.Slice(parameters, func(i, j int) bool {
 		return parameters[i].Name < parameters[j].Name
 	})
-	if !reflect.DeepEqual(m.GetParameters()[0], p) {
-		t.Errorf("got: %v want: %v", m.GetParameters()[0], p)
+	if parameters[0].Name != p.Name {
+		t.Errorf("got: %#v want: %#v", m.GetParameters()[0].Name, p.Name)
 	}
-	if !reflect.DeepEqual(m.GetParameters()[1], p2) {
-		t.Errorf("got: %v want: %v", m.GetParameters()[1], p2)
+	if parameters[1].Name != p2.Name {
+		t.Errorf("got: %#v want: %#v", m.GetParameters()[1].Name, p2.Name)
+	}
+}
+
+func TestChainMethods(t *testing.T) {
+	m := &resource.Method{}
+	p := resource.Parameter{}
+	p2 := resource.Parameter{}
+	p.Name = "myParam"
+	p2.Name = "myParam2"
+	p.HTTPType = resource.FileParameter
+	p2.HTTPType = resource.URIParameter
+	m.WithParameter(p).WithParameter(p2)
+	parameters := m.GetParameters()
+	sort.Slice(parameters, func(i, j int) bool {
+		return parameters[i].Name < parameters[j].Name
+	})
+	wantDescription := "my description"
+	wantSummary := "my summary"
+	if parameters[0].Name != p.Name {
+		t.Errorf("got: %v want: %v", parameters[0].Name, p.Name)
+	}
+	if parameters[1].Name != p2.Name {
+		t.Errorf("got: %v want: %v", parameters[1].Name, p2.Name)
+	}
+	m.WithDescription(wantDescription).WithSummary(wantSummary)
+	if m.Description != wantDescription {
+		t.Errorf("got: %v want: %v", m.Description, wantDescription)
+	}
+	if m.Summary != wantSummary {
+		t.Errorf("got: %v want: %v", m.Summary, wantSummary)
 	}
 }
 

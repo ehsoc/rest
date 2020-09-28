@@ -24,7 +24,7 @@ type Method struct {
 }
 
 //NewMethod returns a Method instance
-func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) Method {
+func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	m := Method{}
 	m.HTTPMethod = HTTPMethod
 	m.MethodOperation = methodOperation
@@ -34,7 +34,7 @@ func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSe
 	m.newResponse(m.contentTypeSelector.UnsupportedMediaTypeResponse)
 	m.parameters = make(map[ParameterType]map[string]Parameter)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
-	return m
+	return &m
 }
 
 func (m *Method) newResponse(response Response) Response {
@@ -140,6 +140,8 @@ func (m *Method) AddParameter(parameter Parameter) {
 	m.parameters[parameter.HTTPType][parameter.Name] = parameter
 }
 
+//WithParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
+//It will silently override a parameter if the same key was already set.
 func (m *Method) WithParameter(parameter Parameter) *Method {
 	m.AddParameter(parameter)
 	return m

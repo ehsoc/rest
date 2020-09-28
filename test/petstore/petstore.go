@@ -49,7 +49,6 @@ func GeneratePetStore() resource.RestAPI {
 			WithSummary("Deletes a pet").
 			WithParameter(petIdURIParam.WithDescription("Pet id to delete")).
 			WithParameter(resource.NewHeaderParameter("api_key", reflect.String).AsOptional())
-
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource
 			uploadImageMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"), resource.NewResponse(500), false)
@@ -57,11 +56,11 @@ func GeneratePetStore() resource.RestAPI {
 			ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 			ct.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 			r.Post(uploadImageMethodOperation, ct).
-				WithSummary("uploads an image").
 				WithParameter(petIdURIParam.WithDescription("ID of pet to update")).
 				WithParameter(resource.NewFormDataParameter("additionalMetadata", reflect.String, encdec.JSONDecoder{}).WithDescription("Additional data to pass to server")).
 				WithParameter(resource.NewFileParameter("file").WithDescription("file to upload")).
-				WithParameter(resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data").WithBody(Pet{}))
+				WithParameter(resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data").WithBody(Pet{})).
+				WithSummary("uploads an image")
 		})
 	})
 	//Resource /pet/findByStatus
