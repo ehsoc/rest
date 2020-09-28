@@ -9,7 +9,6 @@ go:
 
 os:
   - linux
-  - osx
 
 script:
   - export GO111MODULE=on
