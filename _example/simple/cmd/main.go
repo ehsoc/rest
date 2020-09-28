@@ -22,11 +22,11 @@ func main() {
 	}
 	getCar := res.NewMethodOperation(
 		res.OperationFunc(getCarOperation),
-		res.Response{200, nil, ""},
-		res.Response{404, nil, ""},
+		res.NewResponse(200),
+		res.NewResponse(404),
 		true,
 	)
-	ct := res.NewHTTPContentTypeSelector(res.DefaultUnsupportedMediaResponse)
+	ct := res.NewHTTPContentTypeSelector()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 	root := res.RestAPI{}
@@ -36,7 +36,7 @@ func main() {
 	root.Resource("car", func(r *res.Resource) {
 		carIdParam := res.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *res.Resource) {
-			r.Get(getCar, ct).WithParameter(*carIdParam)
+			r.Get(getCar, ct).WithParameter(carIdParam)
 		})
 	})
 	server := root.GenerateServer(chigenerator.ChiGenerator{})
