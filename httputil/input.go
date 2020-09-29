@@ -2,7 +2,6 @@ package httputil
 
 import (
 	"errors"
-	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -21,10 +20,6 @@ var multipartByReader = &multipart.Form{
 }
 
 var ErrMissingFile = errors.New("httputil: no such file")
-
-func GetBody(r *http.Request) io.ReadCloser {
-	return r.Body
-}
 
 //GetFormFile returns the first file content and header for the provided form key.
 //GetFormfile uses FormFile function underneth so calls ParseMultipartForm and ParseForm if necessary

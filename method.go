@@ -20,7 +20,7 @@ type Method struct {
 	MethodOperation           MethodOperation
 	contentTypeSelector       HTTPContentTypeSelector
 	http.Handler
-	parameters map[ParameterType]map[string]Parameter
+	Parameters
 }
 
 //NewMethod returns a Method instance
@@ -82,7 +82,8 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if m.MethodOperation.Operation == nil {
 		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
-	entity, err := m.MethodOperation.Execute(r, decoder)
+	input := Input{r, m.Parameters, m.RequestBody}
+	entity, err := m.MethodOperation.Execute(input, decoder)
 	if err != nil {
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
 		return
@@ -130,16 +131,6 @@ func (m *Method) GetDecoderMediaTypes() []string {
 	return mediaTypes
 }
 
-//AddParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
-//It will silently override a parameter if the same key was already set.
-func (m *Method) AddParameter(parameter Parameter) {
-	m.checkNilParameters()
-	if _, ok := m.parameters[parameter.HTTPType]; !ok {
-		m.parameters[parameter.HTTPType] = make(map[string]Parameter)
-	}
-	m.parameters[parameter.HTTPType][parameter.Name] = parameter
-}
-
 //WithParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
 //It will silently override a parameter if the same key was already set.
 func (m *Method) WithParameter(parameter Parameter) *Method {
@@ -163,24 +154,4 @@ func (m *Method) WithSummary(summary string) *Method {
 func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 	m.RequestBody = RequestBody{description, body}
 	return m
-}
-
-func (m *Method) checkNilParameters() {
-	if m.parameters == nil {
-		m.parameters = make(map[ParameterType]map[string]Parameter)
-	}
-}
-
-//GetParameters returns the collection of parameters.
-//This is a copy of the internal collection, so parameters cannot be changed from this slice.
-//The order of the slice elements will not be consistent.
-func (m *Method) GetParameters() []Parameter {
-	m.checkNilParameters()
-	p := make([]Parameter, 0)
-	for _, paramType := range m.parameters {
-		for _, param := range paramType {
-			p = append(p, param)
-		}
-	}
-	return p
 }

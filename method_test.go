@@ -13,7 +13,6 @@ import (
 
 	"github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/encdec"
-	"github.com/ehsoc/resource/httputil"
 )
 
 type ResponseBody struct {
@@ -30,18 +29,18 @@ type OperationStub struct {
 	Metadata    string
 }
 
-func (o *OperationStub) Execute(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
+func (o *OperationStub) Execute(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
 	o.wasCall = true
-	fbytes, _, _ := httputil.GetFormFile(r, "file")
+	fbytes, _, _ := i.GetFormFile("file")
 	o.FileData = string(fbytes)
-	o.Metadata = r.FormValue("additionalMetadata")
+	o.Metadata = i.GetFormValue("additionalMetadata")
 	car := Car{}
-
-	if r.Body != nil && r.Body != http.NoBody {
-		decoder.Decode(r.Body, &car)
+	body := i.GetBody()
+	if body != nil && body != http.NoBody {
+		decoder.Decode(body, &car)
 		o.entity = car
 	}
-	jsonPetData := r.FormValue("jsonPetData")
+	jsonPetData := i.GetFormValue("jsonPetData")
 	if jsonPetData != "" {
 		buf := bytes.NewBufferString(jsonPetData)
 		car := Car{}
@@ -49,7 +48,7 @@ func (o *OperationStub) Execute(r *http.Request, decoder encdec.Decoder) (interf
 		jsonDec.Decode(buf, &car)
 		o.JsonCarData = car
 	}
-	if r.URL.Query().Get("error") != "" {
+	if i.GetQueryString("error") != "" {
 		return nil, errors.New("Failed")
 	}
 	return o.Car, nil

@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,7 +26,15 @@ func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {
 
 func (r RestAPI) GenerateServer(d ServerGenerator) http.Handler {
 	resourcesCheck(r.resources)
-	return d.GenerateServer(r)
+	server := d.GenerateServer(r)
+	return inputGetFunctionsMiddleware(d.GetURIParam(), server)
+}
+
+func inputGetFunctionsMiddleware(getURIParamFunc GetURIParamFunc, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), InputContextKey("uriparamfunc"), getURIParamFunc)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func resourcesCheck(res map[string]Resource) {

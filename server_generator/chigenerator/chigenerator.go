@@ -27,6 +27,10 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 	return router
 }
 
+func (c ChiGenerator) GetURIParam() resource.GetURIParamFunc {
+	return chi.URLParam
+}
+
 func processResource(r chi.Router, res resource.Resource) {
 	r.Route("/"+res.Path(), func(r chi.Router) {
 		for _, method := range res.Methods() {

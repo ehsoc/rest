@@ -2,12 +2,10 @@ package httputil_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/textproto"
-	"reflect"
 	"testing"
 
 	"github.com/ehsoc/resource/encdec"
@@ -17,19 +15,6 @@ import (
 type Body struct {
 	Name string
 	Year int
-}
-
-func TestGetBody(t *testing.T) {
-	wantBody := Body{"MyName", 1970}
-	b := new(bytes.Buffer)
-	json.NewEncoder(b).Encode(wantBody)
-	request, _ := http.NewRequest("POST", "/", b)
-	reqBody := httputil.GetBody(request)
-	gotBody := Body{}
-	json.NewDecoder(reqBody).Decode(&gotBody)
-	if !reflect.DeepEqual(gotBody, wantBody) {
-		t.Errorf("got: %#v want: %#v", gotBody, wantBody)
-	}
 }
 
 func TestGetFile(t *testing.T) {
