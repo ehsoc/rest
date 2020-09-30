@@ -37,6 +37,17 @@ func (i Input) GetURIParam(key string) (string, error) {
 	return getURIParamFunc(i.Request, key), nil
 }
 
+// GetHeader gets the request query slice associated to the given key.
+// If the parameter is not defined will return error.
+func (i Input) GetHeader(key string) (string, error) {
+	//Check param is defined
+	_, err := i.Parameters.GetParameter(HeaderParameter, key)
+	if err != nil {
+		return "", err
+	}
+	return i.Request.Header.Get(key), nil
+}
+
 // GetQuery gets the request query slice associated to the given key.
 // If the parameter is not defined, will return error.
 func (i Input) GetQuery(key string) ([]string, error) {
@@ -45,7 +56,6 @@ func (i Input) GetQuery(key string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return i.Request.URL.Query()[key], nil
 }
 
@@ -59,7 +69,6 @@ func (i Input) GetQueryString(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return i.Request.URL.Query().Get(key), nil
 }
 
@@ -72,8 +81,19 @@ func (i Input) GetFormValue(key string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	return i.Request.FormValue(key), nil
+}
+
+// GetFormFiles gets all the files of a multipart form with the provided key, in a slice of *multipart.FileHeader
+// If the parameter is not defined will return error, as well any other error will returned if a problem
+// is find getting the files.
+func (i Input) GetFormFiles(key string) ([]*multipart.FileHeader, error) {
+	//Check param is defined
+	_, err := i.Parameters.GetParameter(FileParameter, key)
+	if err != nil {
+		return nil, err
+	}
+	return httputil.GetFiles(i.Request, key)
 }
 
 //GetFormFile gets the first file content and header for the provided form key.
@@ -84,7 +104,6 @@ func (i Input) GetFormFile(key string) ([]byte, *multipart.FileHeader, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-
 	return httputil.GetFormFile(i.Request, key)
 }
 
@@ -98,11 +117,6 @@ func (i Input) GetBody() (io.ReadCloser, error) {
 }
 
 // func (i Input) GetCookie() ([]string, error) {
-// 	//Check param is defined
-//
-// }
-
-// func (i Input) GetHeader() (string, error) {
 // 	//Check param is defined
 //
 // }
