@@ -33,14 +33,15 @@ func (o *OperationStub) Execute(i resource.Input, decoder encdec.Decoder) (inter
 	o.wasCall = true
 	fbytes, _, _ := i.GetFormFile("file")
 	o.FileData = string(fbytes)
-	o.Metadata = i.GetFormValue("additionalMetadata")
+	metadata, _ := i.GetFormValue("additionalMetadata")
+	o.Metadata = metadata
 	car := Car{}
-	body := i.GetBody()
+	body, _ := i.GetBody()
 	if body != nil && body != http.NoBody {
 		decoder.Decode(body, &car)
 		o.entity = car
 	}
-	jsonPetData := i.GetFormValue("jsonPetData")
+	jsonPetData, _ := i.GetFormValue("jsonPetData")
 	if jsonPetData != "" {
 		buf := bytes.NewBufferString(jsonPetData)
 		car := Car{}
@@ -48,7 +49,8 @@ func (o *OperationStub) Execute(i resource.Input, decoder encdec.Decoder) (inter
 		jsonDec.Decode(buf, &car)
 		o.JsonCarData = car
 	}
-	if i.GetQueryString("error") != "" {
+	error, _ := i.GetQueryString("error")
+	if error != "" {
 		return nil, errors.New("Failed")
 	}
 	return o.Car, nil

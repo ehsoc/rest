@@ -236,8 +236,8 @@ func TestNewResource(t *testing.T) {
 	t.Run("new resource with slash", func(t *testing.T) {
 		defer func() {
 			if err := recover(); err != nil {
-				if _, ok := err.(*resource.ErrorTypeResourceSlashesNotAllowed); !ok {
-					t.Fatalf("got: %T want: %T", err, resource.ErrorTypeResourceSlashesNotAllowed{})
+				if _, ok := err.(*resource.TypeErrorResourceSlashesNotAllowed); !ok {
+					t.Fatalf("got: %T want: %T", err, resource.TypeErrorResourceSlashesNotAllowed{})
 				}
 			}
 		}()

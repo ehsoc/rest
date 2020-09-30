@@ -21,7 +21,7 @@ type Resource struct {
 //name parameter should not contain a slash, because resource represents a unique node and name is the name of the node path
 func NewResource(name string) Resource {
 	if strings.ContainsAny(name, "/") {
-		panic(&ErrorTypeResourceSlashesNotAllowed{Errorf{FormatErrorResourceSlashesNotAllowed, name}})
+		panic(&TypeErrorResourceSlashesNotAllowed{Errorf{MessageErrResourceSlashesNotAllowed, name}})
 	}
 	r := Resource{}
 	r.methods = make(map[string]*Method)

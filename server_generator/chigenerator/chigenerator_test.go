@@ -2,6 +2,7 @@ package chigenerator_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +13,6 @@ import (
 	"github.com/ehsoc/resource/encdec"
 	"github.com/ehsoc/resource/server_generator/chigenerator"
 	"github.com/ehsoc/resource/test/petstore"
-	"github.com/go-chi/chi"
 )
 
 type OperationStub struct {
@@ -21,18 +21,25 @@ type OperationStub struct {
 	PetId   string
 }
 
-func (o *OperationStub) Execute(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
+func (o *OperationStub) Execute(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
 	o.wasCall = true
-	o.PetId = chi.URLParam(r, "petId")
+	petId, _ := i.GetURIParam("petId")
+	o.PetId = petId
 	pet := petstore.Pet{}
-	if r.Body != nil && r.Body != http.NoBody {
-		decoder.Decode(r.Body, &pet)
+	body, _ := i.GetBody()
+	if body != nil && body != http.NoBody {
+		decoder.Decode(body, &pet)
 		o.Pet = pet
 	}
-	if r.URL.Query().Get("error") != "" {
+	error, _ := i.GetQueryString("error")
+	if error != "" {
 		return nil, errors.New("Failed")
 	}
 	return o.Pet, nil
+}
+
+func GetURIFuncStub() {
+	return
 }
 
 func TestGenerateServer(t *testing.T) {
@@ -53,7 +60,8 @@ func TestGenerateServer(t *testing.T) {
 		myId := "101"
 		api.AddResource(petResource)
 		server := gen.GenerateServer(api)
-		request, _ := http.NewRequest(http.MethodGet, "/v2/pet/"+myId, nil)
+		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), gen.GetURIParam())
+		request, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/v2/pet/"+myId, nil)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 		if response.Code != http.StatusOK {

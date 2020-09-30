@@ -30,7 +30,7 @@ func (r RestAPI) GenerateServer(d ServerGenerator) http.Handler {
 	return inputGetFunctionsMiddleware(d.GetURIParam(), server)
 }
 
-func inputGetFunctionsMiddleware(getURIParamFunc GetURIParamFunc, next http.Handler) http.Handler {
+func inputGetFunctionsMiddleware(getURIParamFunc func(r *http.Request, key string) string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.WithValue(r.Context(), InputContextKey("uriparamfunc"), getURIParamFunc)
 		next.ServeHTTP(w, r.WithContext(ctx))

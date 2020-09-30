@@ -1,10 +1,5 @@
 package resource
 
-import (
-	"errors"
-	"fmt"
-)
-
 type Parameters struct {
 	parameters map[ParameterType]map[string]Parameter
 }
@@ -39,17 +34,18 @@ func (p *Parameters) GetParameters() []Parameter {
 	return ps
 }
 
+//GetParameter returns the specified parameter, error if is not found.
 func (p *Parameters) GetParameter(paramType ParameterType, name string) (Parameter, error) {
 	p.checkNilMap()
-	params, ok := p.parameters[URIParameter]
+	params, ok := p.parameters[paramType]
 	if !ok {
-		return Parameter{}, errors.New(fmt.Sprintf("parameter '%v' not defined", name))
+		return Parameter{}, &TypeErrorParameterNotDefined{Errorf{MessageErrParameterNotDefined, name}}
 	}
 	if params == nil {
-		return Parameter{}, errors.New(fmt.Sprintf("parameter '%v' not defined", name))
+		return Parameter{}, &TypeErrorParameterNotDefined{Errorf{MessageErrParameterNotDefined, name}}
 	}
 	if parameter, ok := params[name]; ok {
 		return parameter, nil
 	}
-	return Parameter{}, errors.New(fmt.Sprintf("parameter '%v' not defined", name))
+	return Parameter{}, &TypeErrorParameterNotDefined{Errorf{MessageErrParameterNotDefined, name}}
 }

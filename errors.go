@@ -9,9 +9,20 @@ var ErrorNoDefaultContentTypeIsSet = errors.New("no default content-type is set"
 var ErrorResourceMethodCollition = errors.New("method is already define for this resource")
 var ErrorResourceURIParamNoParamFound = errors.New("path must include a parameter name in brackets, like {myParamId}")
 var ErrorResourceURIParamMoreThanOne = errors.New("path just must include one parameter name in brackets")
-var FormatErrorResourceSlashesNotAllowed = "resource: slash found on resource name '%s', slashes are not allowed"
+var ErrorRequestBodyNotDefined = errors.New("resource: a request body was not defined.")
+var MessageErrResourceSlashesNotAllowed = "resource: slash found on resource name '%s', slashes are not allowed"
+var MessageErrParameterNotDefined = "resource: parameter '%s' not defined"
+var MessageErrGetURIParamFunctionNotDefined = "resource: no get uri parameter function is defined in context value InputContextKey(\"uriparamfunc\") for '%v' parameter"
 
-type ErrorTypeResourceSlashesNotAllowed struct {
+type TypeErrorResourceSlashesNotAllowed struct {
+	Errorf
+}
+
+type TypeErrorParameterNotDefined struct {
+	Errorf
+}
+
+type TypeErrorGetURIParamFunctionNotDefined struct {
 	Errorf
 }
 

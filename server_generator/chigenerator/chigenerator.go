@@ -1,13 +1,11 @@
 package chigenerator
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/ehsoc/resource"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/docgen"
 )
 
 type ChiGenerator struct {
@@ -22,12 +20,10 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 			}
 		})
 	}
-	log.Println("Generated routes:")
-	docgen.PrintRoutes(router)
 	return router
 }
 
-func (c ChiGenerator) GetURIParam() resource.GetURIParamFunc {
+func (c ChiGenerator) GetURIParam() func(*http.Request, string) string {
 	return chi.URLParam
 }
 
