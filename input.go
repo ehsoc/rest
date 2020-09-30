@@ -84,6 +84,18 @@ func (i Input) GetFormValue(key string) (string, error) {
 	return i.Request.FormValue(key), nil
 }
 
+// GetFormValues gets the values associated with the provided key.
+// If the parameter is not defined will return error.
+// Will also return an error if any error is found getting the values.
+func (i Input) GetFormValues(key string) ([]string, error) {
+	//Check param is defined
+	_, err := i.Parameters.GetParameter(FormDataParameter, key)
+	if err != nil {
+		return nil, err
+	}
+	return httputil.GetFormValues(i.Request, key)
+}
+
 // GetFormFiles gets all the files of a multipart form with the provided key, in a slice of *multipart.FileHeader
 // If the parameter is not defined will return error, as well any other error will returned if a problem
 // is find getting the files.
@@ -115,8 +127,3 @@ func (i Input) GetBody() (io.ReadCloser, error) {
 	}
 	return i.Request.Body, nil
 }
-
-// func (i Input) GetCookie() ([]string, error) {
-// 	//Check param is defined
-//
-// }

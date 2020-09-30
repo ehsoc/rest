@@ -53,3 +53,14 @@ func GetFiles(r *http.Request, key string) ([]*multipart.FileHeader, error) {
 	}
 	return nil, ErrMissingFile
 }
+
+//GetFormValues returns all the form values for the provided form key.
+func GetFormValues(r *http.Request, key string) ([]string, error) {
+	if r.Form == nil {
+		r.ParseMultipartForm(defaultMaxMemory)
+	}
+	if vs := r.Form[key]; len(vs) > 0 {
+		return vs, nil
+	}
+	return nil, nil
+}

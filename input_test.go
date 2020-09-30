@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/ehsoc/resource"
+	"github.com/ehsoc/resource/encdec"
 )
 
 func TestGetQuery(t *testing.T) {
@@ -134,7 +135,7 @@ func TestGetBody(t *testing.T) {
 	})
 }
 
-func TestGetFormFileS(t *testing.T) {
+func TestGetFormFiles(t *testing.T) {
 	t.Run("get form file", func(t *testing.T) {
 		buf := new(bytes.Buffer)
 		w := multipart.NewWriter(buf)
@@ -211,4 +212,49 @@ func TestGetFormFile(t *testing.T) {
 	})
 }
 
-//TODO: test other getters
+func TestGetFormValues(t *testing.T) {
+	t.Run("get form file", func(t *testing.T) {
+		b := new(bytes.Buffer)
+		w := multipart.NewWriter(b)
+		key := "additionalMetadata"
+		additionalMetaData := "My Additional Metadata"
+		fieldW, _ := w.CreateFormField(key)
+		fieldW.Write([]byte(additionalMetaData))
+		additionalMetaData2 := "My Additional Metadata2"
+		field2W, _ := w.CreateFormField(key)
+		field2W.Write([]byte(additionalMetaData2))
+		w.Close()
+		r, _ := http.NewRequest(http.MethodPost, "/", b)
+		r.Header.Set("Content-Type", w.FormDataContentType())
+
+		p := resource.NewFormDataParameter(key, reflect.String, encdec.TextDecoder{})
+		parameters := resource.Parameters{}
+		parameters.AddParameter(p)
+		input := resource.Input{r, parameters, b}
+		values, err := input.GetFormValues(key)
+		if err != nil {
+			t.Fatalf("was not expecting an error")
+		}
+		if len(values) != 2 {
+			t.Errorf("expecting 2 elements")
+		}
+		if values[0] != additionalMetaData {
+			t.Errorf("got: %v want: %v", values[0], additionalMetaData)
+		}
+		if values[1] != additionalMetaData2 {
+			t.Errorf("got: %v want: %v", values[1], additionalMetaData2)
+		}
+
+	})
+	t.Run("parameter not found", func(t *testing.T) {
+		r, _ := http.NewRequest("POST", "/", nil)
+		p := resource.NewFileParameter("file")
+		parameters := resource.Parameters{}
+		parameters.AddParameter(p)
+		input := resource.Input{r, parameters, nil}
+		_, _, err := input.GetFormFile("foo")
+		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &resource.TypeErrorParameterNotDefined{})
+		}
+	})
+}

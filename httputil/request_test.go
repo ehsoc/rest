@@ -111,3 +111,31 @@ func newMultiformRequest() *http.Request {
 	request.Header.Set("Content-Type", w.FormDataContentType())
 	return request
 }
+
+func TestGetFormValues(t *testing.T) {
+	b := new(bytes.Buffer)
+	w := multipart.NewWriter(b)
+	key := "additionalMetadata"
+	additionalMetaData := "My Additional Metadata"
+	fieldW, _ := w.CreateFormField(key)
+	fieldW.Write([]byte(additionalMetaData))
+	additionalMetaData2 := "My Additional Metadata2"
+	field2W, _ := w.CreateFormField(key)
+	field2W.Write([]byte(additionalMetaData2))
+	w.Close()
+	request, _ := http.NewRequest(http.MethodPost, "/", b)
+	request.Header.Set("Content-Type", w.FormDataContentType())
+	values, err := httputil.GetFormValues(request, key)
+	if err != nil {
+		t.Fatalf("was not expecting an error")
+	}
+	if len(values) != 2 {
+		t.Errorf("expecting 2 elements")
+	}
+	if values[0] != additionalMetaData {
+		t.Errorf("got: %v want: %v", values[0], additionalMetaData)
+	}
+	if values[1] != additionalMetaData2 {
+		t.Errorf("got: %v want: %v", values[1], additionalMetaData2)
+	}
+}
