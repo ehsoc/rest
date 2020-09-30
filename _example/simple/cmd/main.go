@@ -5,6 +5,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/ehsoc/resource"
 	res "github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/document_generator/oaiv2"
 	"github.com/ehsoc/resource/encdec"
@@ -17,8 +18,12 @@ type Car struct {
 }
 
 func main() {
-	getCarOperation := func(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
-		return Car{"1", "Mazda"}, nil
+	getCarOperation := func(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+		carId, err := i.GetURIParam("carId")
+		if err != nil {
+			return nil, err
+		}
+		return Car{carId, "Mazda"}, nil
 	}
 	getCar := res.NewMethodOperation(
 		res.OperationFunc(getCarOperation),
