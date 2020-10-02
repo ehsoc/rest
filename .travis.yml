@@ -11,11 +11,15 @@ os:
 script:
   - export GO111MODULE=on
   - go get -d -t ./...
+  - go mod download
   - go vet ./...
   - go test ./...
   - >
-    go_version=$(go version);
-    if [ ${go_version:13:4} = "1.12" ]; then
-      go get -u golang.org/x/tools/cmd/goimports;
-      goimports -d -e ./ | grep '.*' && { echo; echo "Aborting due to non-empty goimports output."; exit 1; } || :;
+    if [[ "$TRAVIS_GO_VERSION" =~ ^1\.14\. ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]];then
+     go get -u golang.org/x/tools/cmd/goimports;
+     if [ -n "$(goimports -d -l .)" ]; then
+      echo "goimports:"
+      goimports -d -e .
+      exit 1
+     fi
     fi
