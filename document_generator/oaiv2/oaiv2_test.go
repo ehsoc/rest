@@ -79,6 +79,7 @@ func TestGenerateAPISpec(t *testing.T) {
 		t.Fatalf("Path not found")
 	}
 	assertOAv2OperationEqual(t, gotPetPath.Post, wantPetPath.Post)
+	assertOAv2OperationEqual(t, gotPetPath.Put, wantPetPath.Put)
 
 	gotGetPetIDPath, ok := gotSwagger.Paths.Paths["/pet/{petId}"]
 	if !ok {

@@ -26,8 +26,13 @@ Resource is an experimental Web Resource abstraction for composing a REST API in
 
 Example:
 ```
-	getCarOperation := func(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
-		return Car{"1", "Mazda"}, nil
+	getCarOperation := func(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+		carId, err := i.GetURIParam("carId")
+		if err != nil {
+			log.Println("error getting parameter: ", err)
+			return Car{}, err
+		}
+		return Car{carId, "Mazda"}, nil
 	}
 	getCar := res.NewMethodOperation(
 		res.OperationFunc(getCarOperation),

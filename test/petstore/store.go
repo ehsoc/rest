@@ -53,6 +53,17 @@ func (s *Store) Create(pet Pet) (Pet, error) {
 	return pet, nil
 }
 
+func (s *Store) Update(petId string, pet Pet) (Pet, error) {
+	id, err := getInt64Id(petId)
+	if err != nil {
+		return Pet{}, err
+	}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	s.store[id] = pet
+	return pet, nil
+}
+
 func (s *Store) Delete(petId string) error {
 	id, err := getInt64Id(petId)
 	if err != nil {

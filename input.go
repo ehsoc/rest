@@ -8,7 +8,7 @@ import (
 	"github.com/ehsoc/resource/httputil"
 )
 
-// Input is a set of components that are intendend to help you to check specification-implementation consistency control.
+// Input is intendend to help you to check specification-implementation consistency control.
 // Input Get methods can help to do this. They will return an error if the parameter or body is not defined.
 // Request is the http.Request of the handler, you can use it, but you need to check if the parameter is defined,
 // if you want specification-implementation consistency control.

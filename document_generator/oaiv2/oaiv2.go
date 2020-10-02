@@ -124,6 +124,8 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		switch method.HTTPMethod {
 		case http.MethodPost:
 			pathItem.Post = docMethod
+		case http.MethodPut:
+			pathItem.Put = docMethod
 		case http.MethodGet:
 			pathItem.Get = docMethod
 		case http.MethodDelete:

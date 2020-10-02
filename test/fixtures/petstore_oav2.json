@@ -61,8 +61,8 @@
 					"application/xml"
 				],
 				"produces": [
-					"application/xml",
-					"application/json"
+					"application/json",
+					"application/xml"
 				],
 				"parameters": [{
 					"in": "body",
@@ -74,14 +74,14 @@
 					}
 				}],
 				"responses": {
-					"400": {
-						"description": "Invalid ID supplied"
+					"200": {
+						"description": "OK"
 					},
 					"404": {
 						"description": "Pet not found"
 					},
-					"405": {
-						"description": "Validation exception"
+					"415": {
+						"description": "Unsupported Media Type"
 					}
 				}
 			}

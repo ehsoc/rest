@@ -3,6 +3,7 @@ package petstore
 import (
 	"encoding/xml"
 	"log"
+	"strconv"
 
 	"github.com/ehsoc/resource"
 	"github.com/ehsoc/resource/encdec"
@@ -16,6 +17,20 @@ func operationCreate(i resource.Input, decoder encdec.Decoder) (interface{}, err
 	err := decoder.Decode(body, &pet)
 	if err != nil {
 		return nil, err
+	}
+	return PetStore.Create(pet)
+}
+
+func operationUpdate(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+	pet := Pet{}
+	body, _ := i.GetBody()
+	err := decoder.Decode(body, &pet)
+	if err != nil {
+		return nil, err
+	}
+	pet, err = PetStore.Update(strconv.FormatInt(pet.ID, 10), pet)
+	if err != nil {
+		return pet, err
 	}
 	return PetStore.Create(pet)
 }

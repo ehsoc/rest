@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"reflect"
@@ -21,7 +22,8 @@ func main() {
 	getCarOperation := func(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
 		carId, err := i.GetURIParam("carId")
 		if err != nil {
-			return nil, err
+			log.Println("error getting parameter: ", err)
+			return Car{}, err
 		}
 		return Car{carId, "Mazda"}, nil
 	}

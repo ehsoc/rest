@@ -29,6 +29,11 @@ func GeneratePetStore() resource.RestAPI {
 	pets.Post(createMethodOperation, contentTypes).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Add a new pet to the store")
+	//PUT
+	updateMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200), resource.NewResponse(404).WithDescription("Pet not found"), true)
+	pets.Put(updateMethodOperation, contentTypes).
+		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
+		WithSummary("Update an existing pet")
 
 	//Uri Parameters declaration, so it is available to all anonymous resources functions
 	petIdURIParam := resource.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return")
