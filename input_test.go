@@ -50,7 +50,7 @@ func TestGetHeader(t *testing.T) {
 		input := resource.Input{r, parameters, nil}
 		got, err := input.GetHeader(p.Name)
 		assertNoErrorFatal(t, err)
-		asserStringEqual(t, got, want)
+		assertStringEqual(t, got, want)
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)

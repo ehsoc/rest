@@ -421,3 +421,46 @@ func TestGetParameters(t *testing.T) {
 		}
 	})
 }
+
+func TestGetEncoderMediaTypes(t *testing.T) {
+	ct := resource.NewHTTPContentTypeSelector()
+	ct.AddEncoder("b", encdec.JSONEncoder{}, true)
+	ct.AddEncoder("c", encdec.JSONEncoder{}, false)
+	ct.AddEncoder("a", encdec.JSONEncoder{}, false)
+	m := resource.NewMethod("GET", resource.MethodOperation{}, ct)
+	mt := m.GetEncoderMediaTypes()
+	number := 3
+	if len(mt) != number {
+		t.Fatalf("expecting %v elements", number)
+	}
+	assertStringEqual(t, mt[0], "a")
+	assertStringEqual(t, mt[1], "b")
+	assertStringEqual(t, mt[2], "c")
+}
+
+func TestGetDecoderMediaTypes(t *testing.T) {
+	ct := resource.NewHTTPContentTypeSelector()
+	ct.AddDecoder("b", encdec.JSONDecoder{}, true)
+	ct.AddDecoder("c", encdec.JSONDecoder{}, false)
+	ct.AddDecoder("a", encdec.JSONDecoder{}, false)
+	m := resource.NewMethod("GET", resource.MethodOperation{}, ct)
+	mt := m.GetDecoderMediaTypes()
+	number := 3
+	if len(mt) != number {
+		t.Fatalf("expecting %v elements", number)
+	}
+	assertStringEqual(t, mt[0], "a")
+	assertStringEqual(t, mt[1], "b")
+	assertStringEqual(t, mt[2], "c")
+}
+
+func TestWithRequestBody(t *testing.T) {
+	car := Car{}
+	description := "my request body"
+	m := resource.NewMethod("POST", resource.MethodOperation{}, resource.NewHTTPContentTypeSelector()).
+		WithRequestBody("my request body", car)
+	if !reflect.DeepEqual(m.RequestBody.Body, car) {
+		t.Errorf("got: %v want:%v", m.RequestBody.Body, car)
+	}
+	assertStringEqual(t, m.RequestBody.Description, description)
+}

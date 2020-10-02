@@ -8,7 +8,7 @@ import (
 var octetMimeType = "application/octet-stream"
 var jsonMimeType = "application/json"
 
-func asserStringEqual(t *testing.T, got, want string) {
+func assertStringEqual(t *testing.T, got, want string) {
 	t.Helper()
 	if got != want {
 		t.Errorf("got: %v want: %v", got, want)

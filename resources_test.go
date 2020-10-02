@@ -23,9 +23,9 @@ func TestGetResources(t *testing.T) {
 	if len(rs) != 3 {
 		t.Errorf("got: %v want: %v", len(rs), 3)
 	}
-	asserStringEqual(t, rs[0].Path(), "citroen")
-	asserStringEqual(t, rs[1].Path(), "fiat")
-	asserStringEqual(t, rs[2].Path(), "ford")
+	assertStringEqual(t, rs[0].Path(), "citroen")
+	assertStringEqual(t, rs[1].Path(), "fiat")
+	assertStringEqual(t, rs[2].Path(), "ford")
 }
 
 func TestResource(t *testing.T) {
