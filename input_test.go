@@ -71,7 +71,8 @@ func TestGetURIParam(t *testing.T) {
 	t.Run("get uri", func(t *testing.T) {
 		// I set up the get function on InputContextKey("uriparamfunc") key in the context.
 		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), GetURIParamStub)
-		r, _ := http.NewRequestWithContext(ctx, "POST", "/", nil)
+		r, _ := http.NewRequest("POST", "/", nil)
+		r = r.WithContext(ctx)
 		p := resource.NewURIParameter("myId", reflect.String)
 		parameters := resource.Parameters{}
 		parameters.AddParameter(p)
@@ -97,7 +98,8 @@ func TestGetURIParam(t *testing.T) {
 	t.Run("get uri parameter not defined", func(t *testing.T) {
 		// I set up the get function on InputContextKey("uriparamfunc") key in the context.
 		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), GetURIParamStub)
-		r, _ := http.NewRequestWithContext(ctx, "POST", "/", nil)
+		r, _ := http.NewRequest("POST", "/", nil)
+		r = r.WithContext(ctx)
 		p := resource.NewURIParameter("myId", reflect.String)
 		parameters := resource.Parameters{}
 		parameters.AddParameter(p)
