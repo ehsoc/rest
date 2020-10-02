@@ -61,7 +61,8 @@ func TestGenerateServer(t *testing.T) {
 		api.AddResource(petResource)
 		server := gen.GenerateServer(api)
 		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), gen.GetURIParam())
-		request, _ := http.NewRequestWithContext(ctx, http.MethodGet, "/v2/pet/"+myId, nil)
+		request, _ := http.NewRequest(http.MethodGet, "/v2/pet/"+myId, nil)
+		request = request.WithContext(ctx)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
 		if response.Code != http.StatusOK {
