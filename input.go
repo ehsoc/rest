@@ -5,6 +5,7 @@ import (
 	"mime/multipart"
 	"net/http"
 
+	"github.com/ehsoc/resource/encdec"
 	"github.com/ehsoc/resource/httputil"
 )
 
@@ -17,7 +18,8 @@ import (
 type Input struct {
 	Request              *http.Request
 	Parameters           Parameters
-	RequestBodyParameter interface{}
+	RequestBodyParameter RequestBody
+	BodyDecoder          encdec.Decoder
 }
 
 // GetURIParam gets the URI Param using the InputContextKey("uriparamfunc") context value function.
@@ -122,7 +124,7 @@ func (i Input) GetFormFile(key string) ([]byte, *multipart.FileHeader, error) {
 //GetBody returns the request body, error if is not defined.
 func (i Input) GetBody() (io.ReadCloser, error) {
 	//Check param is defined
-	if i.RequestBodyParameter == nil {
+	if i.RequestBodyParameter.Body == nil {
 		return nil, ErrorRequestBodyNotDefined
 	}
 	return i.Request.Body, nil

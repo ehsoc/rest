@@ -6,25 +6,24 @@ import (
 	"strconv"
 
 	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/encdec"
 )
 
 var PetStore = NewStore()
 
-func operationCreate(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func operationCreate(i resource.Input) (interface{}, error) {
 	pet := Pet{}
 	body, _ := i.GetBody()
-	err := decoder.Decode(body, &pet)
+	err := i.BodyDecoder.Decode(body, &pet)
 	if err != nil {
 		return nil, err
 	}
 	return PetStore.Create(pet)
 }
 
-func operationUpdate(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func operationUpdate(i resource.Input) (interface{}, error) {
 	pet := Pet{}
 	body, _ := i.GetBody()
-	err := decoder.Decode(body, &pet)
+	err := i.BodyDecoder.Decode(body, &pet)
 	if err != nil {
 		return nil, err
 	}
@@ -35,18 +34,18 @@ func operationUpdate(i resource.Input, decoder encdec.Decoder) (interface{}, err
 	return PetStore.Create(pet)
 }
 
-func operationGetPetById(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func operationGetPetById(i resource.Input) (interface{}, error) {
 	petId, _ := i.GetURIParam("petId")
 	return PetStore.Get(petId)
 }
 
-func operationDeletePet(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func operationDeletePet(i resource.Input) (interface{}, error) {
 	petId, _ := i.GetURIParam("petId")
 	log.Println("Deleting pet id:", petId)
 	return nil, PetStore.Delete(petId)
 }
 
-func operationUploadImage(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func operationUploadImage(i resource.Input) (interface{}, error) {
 	petId, _ := i.GetURIParam("petId")
 	log.Println("Uploading image pet id:", petId)
 	fb, _, _ := i.GetFormFile("file")
@@ -62,7 +61,7 @@ type XmlPetsWrapper struct {
 	Pets    []Pet    `xml:"Pet"`
 }
 
-func operationFindByStatus(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func operationFindByStatus(i resource.Input) (interface{}, error) {
 	status, err := i.GetQuery("status")
 	if err != nil {
 		log.Println(err)

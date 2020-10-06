@@ -104,7 +104,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		docMethod.Produces = method.GetEncoderMediaTypes()
 
 		//Responses
-		for _, response := range method.Responses {
+		for _, response := range method.GetResponses() {
 			res := spec.NewResponse()
 			//Body()  returns an interfaces so can be nil
 			if response.Body() != nil {

@@ -40,7 +40,7 @@ func inputGetFunctionsMiddleware(getURIParamFunc func(r *http.Request, key strin
 func resourcesCheck(res map[string]Resource) {
 	for _, resource := range res {
 		for _, m := range resource.methods {
-			for _, resp := range m.Responses {
+			for _, resp := range m.GetResponses() {
 				httpResponseCodeCheck(resp.Code(), m.HTTPMethod, resource.path)
 				parameterOperationCheck(m, resource.path)
 			}

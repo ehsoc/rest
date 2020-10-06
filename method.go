@@ -11,16 +11,15 @@ import (
 
 //Method represents a http operation that is performed on a resource.
 type Method struct {
-	HTTPMethod                string
-	Summary                   string
-	Description               string
-	RequestBody               RequestBody
-	Responses                 []Response
-	bodyRequiredErrorResponse Response
-	MethodOperation           MethodOperation
-	contentTypeSelector       HTTPContentTypeSelector
+	HTTPMethod          string
+	Summary             string
+	Description         string
+	RequestBody         RequestBody
+	MethodOperation     MethodOperation
+	contentTypeSelector HTTPContentTypeSelector
 	http.Handler
 	Parameters
+	validation
 }
 
 //NewMethod returns a Method instance
@@ -29,17 +28,9 @@ func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSe
 	m.HTTPMethod = HTTPMethod
 	m.MethodOperation = methodOperation
 	m.contentTypeSelector = contentTypeSelector
-	m.newResponse(m.MethodOperation.successResponse)
-	m.newResponse(m.MethodOperation.failResponse)
-	m.newResponse(m.contentTypeSelector.UnsupportedMediaTypeResponse)
 	m.parameters = make(map[ParameterType]map[string]Parameter)
 	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
 	return &m
-}
-
-func (m *Method) newResponse(response Response) Response {
-	m.Responses = append(m.Responses, response)
-	return response
 }
 
 func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
@@ -82,9 +73,33 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if m.MethodOperation.Operation == nil {
 		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
-	input := Input{r, m.Parameters, m.RequestBody}
-	entity, err := m.MethodOperation.Execute(input, decoder)
+	input := Input{r, m.Parameters, m.RequestBody, decoder}
+	// Validation
+	// A MethodValidation will override parameter validations and responses
+	if m.Validator != nil {
+		err := m.Validate(input)
+		if err != nil {
+			writeResponse(r.Context(), w, m.validationResponse)
+			return
+		}
+	} else {
+		for _, p := range m.GetParameters() {
+			if p.Validator != nil && p.validationResponse.code != 0 {
+				err := p.Validate(input)
+				if err != nil {
+					writeResponse(r.Context(), w, p.validationResponse)
+					return
+				}
+			}
+		}
+	}
+	//Operation
+	entity, err := m.MethodOperation.Execute(input)
 	if err != nil {
+		// response with code 0 means no response on operation error
+		if m.MethodOperation.failResponse.code == 0 {
+			return
+		}
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
 		return
 	}
@@ -152,6 +167,37 @@ func (m *Method) WithSummary(summary string) *Method {
 
 //WithRequestBody sets RequestBody property
 func (m *Method) WithRequestBody(description string, body interface{}) *Method {
-	m.RequestBody = RequestBody{description, body}
+	m.RequestBody = RequestBody{description, body, true}
 	return m
+}
+
+//WithValidation sets the validation operation and the response in case of error, this method will override any parameter validation.
+func (m *Method) WithValidation(validator Validator, failedValidationResponse Response) *Method {
+	m.validation = validation{validator, failedValidationResponse}
+	return m
+}
+
+// GetResponses gets the valid response collection of the method.
+// Responses with 0 code are considered a non valid response.
+func (m *Method) GetResponses() []Response {
+	responses := make([]Response, 0)
+	if m.MethodOperation.successResponse.code != 0 {
+		responses = append(responses, m.MethodOperation.successResponse)
+	}
+	if m.MethodOperation.failResponse.code != 0 {
+		responses = append(responses, m.MethodOperation.failResponse)
+	}
+	if m.contentTypeSelector.UnsupportedMediaTypeResponse.code != 0 {
+		responses = append(responses, m.contentTypeSelector.UnsupportedMediaTypeResponse)
+	}
+	if m.Validator != nil && m.validationResponse.code != 0 {
+		responses = append(responses, m.validationResponse)
+	} else {
+		for _, p := range m.GetParameters() {
+			if p.Validator != nil && p.validationResponse.code != 0 {
+				responses = append(responses, p.validationResponse)
+			}
+		}
+	}
+	return responses
 }

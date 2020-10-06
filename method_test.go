@@ -29,7 +29,7 @@ type OperationStub struct {
 	Metadata    string
 }
 
-func (o *OperationStub) Execute(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func (o *OperationStub) Execute(i resource.Input) (interface{}, error) {
 	o.wasCall = true
 	fbytes, _, _ := i.GetFormFile("file")
 	o.FileData = string(fbytes)
@@ -38,7 +38,7 @@ func (o *OperationStub) Execute(i resource.Input, decoder encdec.Decoder) (inter
 	car := Car{}
 	body, _ := i.GetBody()
 	if body != nil && body != http.NoBody {
-		decoder.Decode(body, &car)
+		i.BodyDecoder.Decode(body, &car)
 		o.entity = car
 	}
 	jsonPetData, _ := i.GetFormValue("jsonPetData")
@@ -135,7 +135,7 @@ func TestOperations(t *testing.T) {
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
-		method.AddParameter(resource.NewQueryParameter("error"))
+		method.AddParameter(resource.NewQueryParameter("error", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -158,7 +158,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		contentTypes.Negotiator = NegotiatorErrorStub{}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, resource.NewResponse(0), resource.NewResponse(0), false)
+		mo := resource.NewMethodOperation(operation, resource.NewResponse(200), resource.NewResponse(0), false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
@@ -179,7 +179,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, false)
 		contentTypes.Negotiator = NegotiatorErrorStub{}
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, resource.NewResponse(0), resource.NewResponse(0), false)
+		mo := resource.NewMethodOperation(operation, resource.NewResponse(200), resource.NewResponse(0), false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
@@ -196,7 +196,7 @@ func TestOperations(t *testing.T) {
 		contentTypes.UnsupportedMediaTypeResponse = unsupportedMediaResponse
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		mo := resource.NewMethodOperation(operation, resource.NewResponse(0), resource.NewResponse(0), false)
+		mo := resource.NewMethodOperation(operation, resource.NewResponse(200), resource.NewResponse(0), false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString("{}"))
 		request.Header.Set("Content-Type", "unknown")
@@ -242,7 +242,7 @@ func TestOperations(t *testing.T) {
 		wantedCar := Car{200, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: Car{}}
 		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes).WithRequestBody("", Car{})
 		buf := bytes.NewBufferString("")
 		_, encoder, _ := contentTypes.GetDefaultEncoder()
 		encoder.Encode(buf, wantedCar)
@@ -339,7 +339,7 @@ func TestAddParameter(t *testing.T) {
 	t.Run("nil parameters", func(t *testing.T) {
 		defer assertNoPanic(t)
 		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
-		m.AddParameter(resource.NewQueryParameter("myparam"))
+		m.AddParameter(resource.NewQueryParameter("myparam", reflect.String))
 	})
 	m := resource.Method{}
 	p := resource.Parameter{HTTPType: resource.URIParameter, Name: "id"}
@@ -403,7 +403,7 @@ func TestChainMethods(t *testing.T) {
 func TestNilOperation(t *testing.T) {
 	ct := resource.NewHTTPContentTypeSelector()
 	ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
-	m := resource.NewMethod("POST", resource.NewMethodOperation(nil, resource.NewResponse(0), resource.NewResponse(0), false), ct)
+	m := resource.NewMethod("POST", resource.NewMethodOperation(nil, resource.NewResponse(200), resource.Response{}, false), ct)
 	request, _ := http.NewRequest("POST", "/", nil)
 	response := httptest.NewRecorder()
 	defer func() { recover() }()
@@ -463,4 +463,88 @@ func TestWithRequestBody(t *testing.T) {
 		t.Errorf("got: %v want:%v", m.RequestBody.Body, car)
 	}
 	assertStringEqual(t, m.RequestBody.Description, description)
+}
+
+type MethodValidatorSpy struct {
+	called bool
+	passed bool
+}
+
+func (vs *MethodValidatorSpy) Validate(i resource.Input) error {
+	vs.called = true
+	r, _ := i.GetQueryString("requiredparam")
+	if r == "" {
+		return errors.New("requiredparam is required")
+	}
+	vs.passed = true
+	return nil
+}
+
+func TestMethodWithValidation(t *testing.T) {
+	t.Run("pass validation", func(t *testing.T) {
+		v := &MethodValidatorSpy{}
+		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(500), false), mustGetCTS()).
+			WithValidation(v, resource.NewResponse(400)).
+			WithParameter(resource.NewQueryParameter("requiredparam", reflect.String))
+		req, _ := http.NewRequest("GET", "/?requiredparam=something", nil)
+		resp := httptest.NewRecorder()
+		m.ServeHTTP(resp, req)
+		if !v.called {
+			t.Errorf("Validator was not called %v", resp)
+		}
+		if !v.passed {
+			t.Errorf("expecting passed to be true")
+		}
+		assertResponseCode(t, resp, 200)
+	})
+	t.Run("don't pass validation", func(t *testing.T) {
+		v := &MethodValidatorSpy{}
+		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(500), false), mustGetCTS()).
+			WithValidation(v, resource.NewResponse(400))
+		req, _ := http.NewRequest("GET", "/", nil)
+		resp := httptest.NewRecorder()
+		m.ServeHTTP(resp, req)
+		if !v.called {
+			t.Errorf("Validator was not called %v", resp)
+		}
+		if v.passed {
+			t.Errorf("not expecting passed to be true")
+		}
+		assertResponseCode(t, resp, 400)
+	})
+}
+
+func TestParameterValidation(t *testing.T) {
+	t.Run("pass validation", func(t *testing.T) {
+		v := &MethodValidatorSpy{}
+		param := resource.NewQueryParameter("requiredparam", reflect.String).WithValidation(v, resource.NewResponse(415))
+		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(500), false), mustGetCTS()).
+			WithParameter(param)
+		req, _ := http.NewRequest("GET", "/?requiredparam=something", nil)
+		resp := httptest.NewRecorder()
+		m.ServeHTTP(resp, req)
+		if !v.called {
+			t.Errorf("Validator was not called %v", resp)
+		}
+		if !v.passed {
+			t.Errorf("expecting passed to be true")
+		}
+		assertResponseCode(t, resp, 200)
+	})
+	t.Run("don't pass validation", func(t *testing.T) {
+		v := &MethodValidatorSpy{}
+		param := resource.NewQueryParameter("requiredparam", reflect.String).WithValidation(v, resource.NewResponse(415))
+		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(500), false), mustGetCTS()).
+			WithParameter(param)
+		req, _ := http.NewRequest("GET", "/", nil)
+		resp := httptest.NewRecorder()
+		m.ServeHTTP(resp, req)
+		if !v.called {
+			t.Errorf("Validator was not called %v", resp)
+		}
+		if v.passed {
+			t.Errorf("not expecting passed to be true")
+		}
+		assertResponseCode(t, resp, 415)
+	})
 }

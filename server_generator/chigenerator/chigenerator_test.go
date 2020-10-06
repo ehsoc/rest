@@ -21,14 +21,14 @@ type OperationStub struct {
 	PetId   string
 }
 
-func (o *OperationStub) Execute(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+func (o *OperationStub) Execute(i resource.Input) (interface{}, error) {
 	o.wasCall = true
 	petId, _ := i.GetURIParam("petId")
 	o.PetId = petId
 	pet := petstore.Pet{}
 	body, _ := i.GetBody()
 	if body != nil && body != http.NoBody {
-		decoder.Decode(body, &pet)
+		i.BodyDecoder.Decode(body, &pet)
 		o.Pet = pet
 	}
 	error, _ := i.GetQueryString("error")

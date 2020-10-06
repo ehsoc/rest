@@ -1,13 +1,15 @@
 package resource
 
-//Response represents a HTTP response.
+// Response represents a HTTP response.
+// A response with code 0 will be consider a nil response.
 type Response struct {
 	code        int
 	body        interface{}
 	description string
 }
 
-//NewResponse returns a Response
+// NewResponse returns a Response with the specified code.
+// A response with code 0 will be consider a nil response.
 func NewResponse(code int) Response {
 	r := Response{}
 	r.code = code

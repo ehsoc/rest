@@ -11,7 +11,7 @@ import (
 var testParameters = []struct {
 	parameter resource.Parameter
 }{
-	{resource.NewQueryParameter("foo")},
+	{resource.NewQueryParameter("foo", reflect.String)},
 	{resource.NewURIParameter("foo", reflect.String)},
 	{resource.NewFileParameter("foo")},
 	{resource.NewFormDataParameter("foo", reflect.String, encdec.JSONEncoderDecoder{})},
@@ -85,13 +85,13 @@ func TestAsOptional(t *testing.T) {
 
 func TestAsRequired(t *testing.T) {
 	t.Run("as required", func(t *testing.T) {
-		p := resource.NewQueryParameter("foo").AsRequired()
+		p := resource.NewQueryParameter("foo", reflect.String).AsRequired()
 		if !p.Required {
 			t.Errorf("expecting to be true")
 		}
 	})
 	t.Run("method has not a pointer receiver", func(t *testing.T) {
-		p := resource.NewQueryParameter("foo")
+		p := resource.NewQueryParameter("foo", reflect.String)
 		p.AsRequired()
 		if p.Required {
 			t.Errorf("expecting to be false")
@@ -102,11 +102,11 @@ func TestAsRequired(t *testing.T) {
 func TestWithDescription(t *testing.T) {
 	description := "My description"
 	t.Run("set description", func(t *testing.T) {
-		p := resource.NewQueryParameter("foo").WithDescription(description)
+		p := resource.NewQueryParameter("foo", reflect.String).WithDescription(description)
 		assertStringEqual(t, p.Description, description)
 	})
 	t.Run("method has not a pointer receiver", func(t *testing.T) {
-		p := resource.NewQueryParameter("foo")
+		p := resource.NewQueryParameter("foo", reflect.String)
 		p.WithDescription(description)
 		assertStringEqual(t, p.Description, "")
 	})
