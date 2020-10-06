@@ -35,7 +35,9 @@ func GeneratePetStore() resource.RestAPI {
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Update an existing pet").
 		WithValidation(resource.ValidatorFunc(func(input resource.Input) error {
-			//body, _ := input.GetBody()
+			pet := Pet{}
+			body, _ := input.GetBody()
+			input.BodyDecoder.Decode(body, &pet)
 			return nil
 		}),
 			resource.NewResponse(400).WithDescription("Invalid ID supplied"))
