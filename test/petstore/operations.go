@@ -25,13 +25,14 @@ func operationUpdate(i resource.Input) (interface{}, error) {
 	body, _ := i.GetBody()
 	err := i.BodyDecoder.Decode(body, &pet)
 	if err != nil {
+		log.Println("error updating pet: ", err)
 		return nil, err
 	}
 	pet, err = PetStore.Update(strconv.FormatInt(pet.ID, 10), pet)
 	if err != nil {
 		return pet, err
 	}
-	return PetStore.Create(pet)
+	return pet, nil
 }
 
 func operationGetPetById(i resource.Input) (interface{}, error) {

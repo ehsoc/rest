@@ -58,6 +58,10 @@ func (s *Store) Update(petId string, pet Pet) (Pet, error) {
 	if err != nil {
 		return Pet{}, err
 	}
+	petFound, err := s.Get(petId)
+	if err != nil {
+		return petFound, err
+	}
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.store[id] = pet

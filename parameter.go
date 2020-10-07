@@ -27,36 +27,37 @@ type Parameter struct {
 	Required    bool
 	CollectionParam
 	validation
+	Example interface{}
 }
 
 //NewURIParameter creates a URIParameter Parameter. Required property is true by default
 func NewURIParameter(name string, tpe reflect.Kind) Parameter {
-	return Parameter{"", name, URIParameter, tpe, nil, nil, true, CollectionParam{}, validation{}}
+	return Parameter{"", name, URIParameter, tpe, nil, nil, true, CollectionParam{}, validation{}, nil}
 }
 
 //NewHeaderParameter creates a HeaderParameter Parameter. Required property is true by default
 func NewHeaderParameter(name string, tpe reflect.Kind) Parameter {
-	return Parameter{"", name, HeaderParameter, tpe, nil, nil, true, CollectionParam{}, validation{}}
+	return Parameter{"", name, HeaderParameter, tpe, nil, nil, true, CollectionParam{}, validation{}, nil}
 }
 
 //NewQueryParameter creates a QueryParameter Parameter. Required property is false by default
 func NewQueryParameter(name string, tpe reflect.Kind) Parameter {
-	return Parameter{"", name, QueryParameter, tpe, nil, nil, false, CollectionParam{}, validation{}}
+	return Parameter{"", name, QueryParameter, tpe, nil, nil, false, CollectionParam{}, validation{}, nil}
 }
 
 //NewQueryArrayParameter creates a QueryParameter Parameter. Required property is false by default
 func NewQueryArrayParameter(name string, enumValues []interface{}) Parameter {
-	return Parameter{"", name, QueryParameter, reflect.Array, nil, nil, false, CollectionParam{"", enumValues}, validation{}}
+	return Parameter{"", name, QueryParameter, reflect.Array, nil, nil, false, CollectionParam{"", enumValues}, validation{}, nil}
 }
 
 //NewFormDataParameter creates a FormDataParameter Parameter. Required property is false by default
 func NewFormDataParameter(name string, tpe reflect.Kind, decoder encdec.Decoder) Parameter {
-	return Parameter{"", name, FormDataParameter, tpe, nil, decoder, false, CollectionParam{}, validation{}}
+	return Parameter{"", name, FormDataParameter, tpe, nil, decoder, false, CollectionParam{}, validation{}, nil}
 }
 
 //NewFileParameter creates a FileParameter Parameter. Required property is false by default
 func NewFileParameter(name string) Parameter {
-	return Parameter{"", name, FileParameter, reflect.String, nil, nil, false, CollectionParam{}, validation{}}
+	return Parameter{"", name, FileParameter, reflect.String, nil, nil, false, CollectionParam{}, validation{}, nil}
 }
 
 //WithDescription chain method sets description property
@@ -80,6 +81,11 @@ func (p Parameter) AsOptional() Parameter {
 //AsRequired chain method sets Required property to true
 func (p Parameter) AsRequired() Parameter {
 	p.Required = true
+	return p
+}
+
+func (p Parameter) WithExample(example interface{}) Parameter {
+	p.Example = example
 	return p
 }
 

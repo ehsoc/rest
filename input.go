@@ -23,7 +23,7 @@ type Input struct {
 }
 
 // GetURIParam gets the URI Param using the InputContextKey("uriparamfunc") context value function.
-// If the InputContextKey("uriparamfunc") cintext value is not set will return error.
+// If the InputContextKey("uriparamfunc") context value is not set will return error.
 // If the URI parameter is not set, will return error.
 func (i Input) GetURIParam(key string) (string, error) {
 	//Check param is defined

@@ -1,6 +1,9 @@
 package petstore
 
 import (
+	"bytes"
+	"io"
+	"io/ioutil"
 	"reflect"
 
 	"github.com/ehsoc/resource"
@@ -37,13 +40,19 @@ func GeneratePetStore() resource.RestAPI {
 		WithValidation(resource.ValidatorFunc(func(input resource.Input) error {
 			pet := Pet{}
 			body, _ := input.GetBody()
-			input.BodyDecoder.Decode(body, &pet)
+			respBody := new(bytes.Buffer)
+			cBody := io.TeeReader(body, respBody)
+			err := input.BodyDecoder.Decode(cBody, &pet)
+			if err != nil {
+				return err
+			}
+			input.Request.Body = ioutil.NopCloser(respBody)
 			return nil
 		}),
 			resource.NewResponse(400).WithDescription("Invalid ID supplied"))
 
 	//Uri Parameters declaration, so it is available to all anonymous resources functions
-	petIdURIParam := resource.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return")
+	petIdURIParam := resource.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return").WithExample(1)
 	//SubResource
 	//New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
 	pets.Resource("{petId}", func(r *resource.Resource) {
@@ -59,7 +68,16 @@ func GeneratePetStore() resource.RestAPI {
 		deleteByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200), notFoundResponse, false)
 		r.Delete(deleteByIdMethodOperation, ct).
 			WithSummary("Deletes a pet").
-			WithParameter(petIdURIParam.WithDescription("Pet id to delete")).
+			WithParameter(
+				petIdURIParam.WithDescription("Pet id to delete").
+					WithValidation(resource.ValidatorFunc(func(i resource.Input) error {
+						petId, _ := i.GetURIParam("petId")
+						_, err := getInt64Id(petId)
+						if err != nil {
+							return err
+						}
+						return nil
+					}), resource.NewResponse(400).WithDescription("Invalid ID supplied"))).
 			WithParameter(resource.NewHeaderParameter("api_key", reflect.String).AsOptional())
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource

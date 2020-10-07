@@ -98,6 +98,10 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			}
 			specParam.Description = parameter.Description
 			specParam.Required = parameter.Required
+			//Example on parameters is not allowed, so a extension is set.
+			if parameter.Example != nil {
+				specParam.AddExtension("x-example", parameter.Example)
+			}
 			docMethod.AddParam(specParam)
 		}
 		docMethod.Consumes = method.GetDecoderMediaTypes()
@@ -172,7 +176,9 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.R
 	for _, apiResource := range restApi.GetResources() {
 		o.resolveResource("/", apiResource)
 	}
-	json.NewEncoder(w).Encode(o.swagger)
+	e := json.NewEncoder(w)
+	e.SetIndent(" ", "  ")
+	e.Encode(o.swagger)
 }
 
 func (o *OpenAPIV2SpecGenerator) addDefinition(name string, schema *spec.Schema) {

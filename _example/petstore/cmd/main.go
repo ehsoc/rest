@@ -16,6 +16,8 @@ import (
 func main() {
 	api := petstore.GeneratePetStore()
 	api.Host = "localhost:1323"
+	api.Title = "My petstore"
+	api.Version = "v1"
 	petServer := api.GenerateServer(chigenerator.ChiGenerator{})
 
 	r := chi.NewRouter()
