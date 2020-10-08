@@ -100,10 +100,6 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !success {
-		// response with code 0 means no response on operation failure
-		if m.MethodOperation.failResponse.code == 0 {
-			return
-		}
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
 		return
 	}

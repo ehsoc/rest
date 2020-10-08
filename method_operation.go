@@ -17,10 +17,12 @@ type MethodOperation struct {
 
 // NewMethodOperation returns a new MethodOperation instance.
 // successResponse code property cannot be 0. 0 code means a nil response, and this parameter is required.
-// failedResponse property with code 0, means that there is no response in case of Operation failure.
+// failedResponse response property with code 0, means that there is no response in case of Operation failure.
+// Please check if your operation returns a success false, if you don't define a failure response (a response with code 0),
+// and your operation returns a success false, the HTTP Server could return a panic.
 func NewMethodOperation(operation Operation, successResponse, failedResponse Response, operationResultAsBody bool) MethodOperation {
 	if successResponse.code == 0 {
-		panic("resource: successResponse with code 0 is consider a nil response, and not nil successResponse value is required.")
+		panic("resource: successResponse with code 0 is consider a nil response, and a not nil successResponse value is required.")
 	}
 	return MethodOperation{operation, successResponse, failedResponse, operationResultAsBody}
 }

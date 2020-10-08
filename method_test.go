@@ -148,12 +148,12 @@ func TestOperations(t *testing.T) {
 		}
 		assertResponseCode(t, response, 500)
 	})
-	t.Run("POST Operation Failed with query parameter trigger", func(t *testing.T) {
+	t.Run("POST Operation Failed with query parameter trigger, no failed response defined", func(t *testing.T) {
 		responseBody := ResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-		failResponse := resource.NewResponse(http.StatusFailedDependency).WithBody(ResponseBody{http.StatusFailedDependency, ""})
+		failResponse := resource.Response{}
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
@@ -165,12 +165,23 @@ func TestOperations(t *testing.T) {
 			t.Errorf("Expecting operation execution.")
 		}
 		assertResponseCode(t, response, failResponse.Code())
-		enc := encdec.JSONEncoderDecoder{}
-		gotResponse := ResponseBody{}
-		enc.Decode(response.Body, &gotResponse)
-		if !reflect.DeepEqual(gotResponse, failResponse.Body()) {
-			t.Errorf("got:%v want:%v", gotResponse, failResponse.Body())
+	})
+	t.Run("GET Operation Failed with query parameter trigger", func(t *testing.T) {
+		successResponse := resource.NewResponse(http.StatusCreated)
+		contentTypes := resource.NewHTTPContentTypeSelector()
+		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		failResponse := resource.NewResponse(http.StatusNotFound)
+		operation := &OperationStub{}
+		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
+		method := resource.NewMethod(http.MethodGet, mo, contentTypes)
+		method.AddParameter(resource.NewQueryParameter("fail", reflect.String))
+		request, _ := http.NewRequest(http.MethodPost, "/?fail=fail", nil)
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		if !operation.wasCall {
+			t.Errorf("Expecting operation execution.")
 		}
+		assertResponseCode(t, response, failResponse.Code())
 	})
 	t.Run("unsupported media response in negotiation in POST with no body", func(t *testing.T) {
 		responseBody := ResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
