@@ -26,17 +26,26 @@ Resource is an experimental Web Resource abstraction for composing a REST API in
 
 Example:
 ```
-	getCarOperation := func(i resource.Input, decoder encdec.Decoder) (interface{}, error) {
+	getCarOperation := func(i res.Input) (body interface{}, success bool, err error) {
 		carId, err := i.GetURIParam("carId")
 		if err != nil {
 			log.Println("error getting parameter: ", err)
-			return Car{}, err
+			return Car{}, false, err
 		}
-		return Car{carId, "Mazda"}, nil
+		if carId == "error" {
+			//Internal error trying to get the car. This will trigger a response code 500
+			return nil, false, errors.New("Internal error")
+		}
+		if carId != "101" {
+			//Car not found, success is false, no error. This will trigger a response code 404
+			return nil, false, nil
+		}
+		//Car found, success true, error nil. This will trigger a response code 200
+		return Car{carId, "Foo"}, true, nil
 	}
 	getCar := res.NewMethodOperation(
 		res.OperationFunc(getCarOperation),
-		res.NewResponse(200),
+		res.NewResponse(200).WithBody(Car{}),
 		res.NewResponse(404),
 		true,
 	)
@@ -55,5 +64,4 @@ Example:
 	})
 	server := root.GenerateServer(chigenerator.ChiGenerator{})
 	root.GenerateSpec(os.Stdout, &oaiv2.OpenAPIV2SpecGenerator{})
-	http.ListenAndServe(":8080", server)
 ```
