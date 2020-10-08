@@ -19,10 +19,19 @@ Resource is an experimental Web Resource abstraction for composing a REST API in
 - Method: A Method represents an HTTP method with a HTTP Handler.
 - MethodOperation: Describes an Operation and two Responses, one for Operation success, and another for failure.
 - HTTPContentTypeSelector: Describes the available content types of expected request and responses. Contains a default Content-Type negotiator that you can replace with your own implementation.
-- Operation: Represents a logical operation function.
-	- 	Inputs: *http.Request, and encdec.Decoder as inputs.
-	- 	Output: interface{}, and error (error on failure, nil if success)
-- Properties: Currently only for documenting purposes, because do not enforce the use of these properties nor affect any functionality, you roll your own request parsing.
+- Operation: Represents a logical operation function.`Operation` is an interface defined by an `Execute` method.
+
+	- Execute method:
+		- 	Inputs: Input
+		- 	Output: `body` interface{}, `success` bool, and `err` error .
+	
+
+			1. `body` (interface{}): is the body that is going to be sent to the client.
+			2. `success` (bool):  false value means that the operation result was not the expected, but it is not an API error nor a client error. This will 		trigger the `successResponse` (argument passed in the `NewMethodOperation` function) if `success` return value is true. If false, will return 		`failResponse` (argument passed in the `NewMethodOperation` function).
+
+			3.  `err` (error): The `err`(error) is meant to indicate an internal server error when `err`!=nil, like a database failure or other API error. T		he `err`!=nil will trigger a 500 error.
+	
+- Properties: For specification, validation, and getting helper functions.
 
 Example:
 ```
