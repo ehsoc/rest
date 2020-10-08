@@ -21,7 +21,7 @@ type OperationStub struct {
 	PetId   string
 }
 
-func (o *OperationStub) Execute(i resource.Input) (interface{}, error) {
+func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
 	o.wasCall = true
 	petId, _ := i.GetURIParam("petId")
 	o.PetId = petId
@@ -33,9 +33,9 @@ func (o *OperationStub) Execute(i resource.Input) (interface{}, error) {
 	}
 	error, _ := i.GetQueryString("error")
 	if error != "" {
-		return nil, errors.New("Failed")
+		return nil, false, errors.New("Failed")
 	}
-	return o.Pet, nil
+	return o.Pet, true, nil
 }
 
 func GetURIFuncStub() {

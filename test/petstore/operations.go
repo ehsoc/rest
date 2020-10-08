@@ -10,51 +10,67 @@ import (
 
 var PetStore = NewStore()
 
-func operationCreate(i resource.Input) (interface{}, error) {
+func operationCreate(i resource.Input) (interface{}, bool, error) {
 	pet := Pet{}
 	body, _ := i.GetBody()
 	err := i.BodyDecoder.Decode(body, &pet)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return PetStore.Create(pet)
+	pet, err = PetStore.Create(pet)
+	if err != nil {
+		return pet, false, err
+	}
+	return pet, true, nil
 }
 
-func operationUpdate(i resource.Input) (interface{}, error) {
+func operationUpdate(i resource.Input) (interface{}, bool, error) {
 	pet := Pet{}
 	body, _ := i.GetBody()
 	err := i.BodyDecoder.Decode(body, &pet)
 	if err != nil {
 		log.Println("error updating pet: ", err)
-		return nil, err
+		return nil, false, err
 	}
 	pet, err = PetStore.Update(strconv.FormatInt(pet.ID, 10), pet)
 	if err != nil {
-		return pet, err
+		return pet, false, err
 	}
-	return pet, nil
+	return pet, true, nil
 }
 
-func operationGetPetById(i resource.Input) (interface{}, error) {
+func operationGetPetById(i resource.Input) (interface{}, bool, error) {
 	petId, _ := i.GetURIParam("petId")
-	return PetStore.Get(petId)
+	pet, err := PetStore.Get(petId)
+	if err != nil {
+		if err == ErrorPetNotFound {
+			//not found but is not an error
+			return pet, false, nil
+		}
+		return pet, false, err
+	}
+	return pet, false, nil
 }
 
-func operationDeletePet(i resource.Input) (interface{}, error) {
+func operationDeletePet(i resource.Input) (interface{}, bool, error) {
 	petId, _ := i.GetURIParam("petId")
 	log.Println("Deleting pet id:", petId)
-	return nil, PetStore.Delete(petId)
+	err := PetStore.Delete(petId)
+	if err != nil {
+		return nil, false, err
+	}
+	return nil, true, nil
 }
 
-func operationUploadImage(i resource.Input) (interface{}, error) {
+func operationUploadImage(i resource.Input) (interface{}, bool, error) {
 	petId, _ := i.GetURIParam("petId")
 	log.Println("Uploading image pet id:", petId)
 	fb, _, _ := i.GetFormFile("file")
 	err := PetStore.UploadPhoto(petId, fb)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return nil, nil
+	return nil, true, nil
 }
 
 type XmlPetsWrapper struct {
@@ -62,11 +78,10 @@ type XmlPetsWrapper struct {
 	Pets    []Pet    `xml:"Pet"`
 }
 
-func operationFindByStatus(i resource.Input) (interface{}, error) {
+func operationFindByStatus(i resource.Input) (interface{}, bool, error) {
 	status, err := i.GetQuery("status")
 	if err != nil {
-		log.Println(err)
-		return nil, err
+		return nil, false, err
 	}
 	log.Println("searching by status: ")
 	for _, s := range status {
@@ -74,11 +89,11 @@ func operationFindByStatus(i resource.Input) (interface{}, error) {
 	}
 	petsList, err := PetStore.List()
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	//If the encoder is XML, we want to wrap it with <pets>
 	if i.Request.Context().Value(resource.ContentTypeContextKey("encoder")) == "application/xml" {
-		return XmlPetsWrapper{Pets: petsList}, nil
+		return XmlPetsWrapper{Pets: petsList}, true, nil
 	}
-	return petsList, nil
+	return petsList, true, nil
 }

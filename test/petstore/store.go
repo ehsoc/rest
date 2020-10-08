@@ -18,6 +18,8 @@ type Store struct {
 	InMemoryFs afero.Fs
 }
 
+var ErrorPetNotFound = errors.New("Pet not found.")
+
 func NewStore() *Store {
 	store := Store{}
 	store.store = make(map[int64]Pet)
@@ -41,7 +43,7 @@ func (s *Store) Get(petId string) (Pet, error) {
 	if pet, ok := s.store[id]; ok {
 		return pet, nil
 	}
-	return Pet{}, errors.New("Pet not found.")
+	return Pet{}, ErrorPetNotFound
 }
 
 func (s *Store) Create(pet Pet) (Pet, error) {

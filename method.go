@@ -75,7 +75,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	input := Input{r, m.Parameters, m.RequestBody, decoder}
 	// Validation
-	// A MethodValidation will override parameter validations and responses
+	// A method validation will override parameter validations and responses
 	if m.Validator != nil {
 		err := m.Validate(input)
 		if err != nil {
@@ -94,9 +94,13 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//Operation
-	entity, err := m.MethodOperation.Execute(input)
+	entity, success, err := m.MethodOperation.Execute(input)
 	if err != nil {
-		// response with code 0 means no response on operation error
+		writeResponse(r.Context(), w, Response{500, err, ""})
+		return
+	}
+	if !success {
+		// response with code 0 means no response on operation failure
 		if m.MethodOperation.failResponse.code == 0 {
 			return
 		}

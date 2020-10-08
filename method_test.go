@@ -29,7 +29,7 @@ type OperationStub struct {
 	Metadata    string
 }
 
-func (o *OperationStub) Execute(i resource.Input) (interface{}, error) {
+func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
 	o.wasCall = true
 	fbytes, _, _ := i.GetFormFile("file")
 	o.FileData = string(fbytes)
@@ -51,9 +51,13 @@ func (o *OperationStub) Execute(i resource.Input) (interface{}, error) {
 	}
 	error, _ := i.GetQueryString("error")
 	if error != "" {
-		return nil, errors.New("Failed")
+		return nil, false, errors.New("Error")
 	}
-	return o.Car, nil
+	fail, _ := i.GetQueryString("fail")
+	if fail != "" {
+		return nil, false, nil
+	}
+	return o.Car, true, nil
 }
 
 type NegotiatorErrorStub struct {
@@ -126,7 +130,7 @@ func TestOperations(t *testing.T) {
 			t.Errorf("got:%v want:%v", gotResponse, responseBody)
 		}
 	})
-	t.Run("POST Operation Failed with query parameter trigger", func(t *testing.T) {
+	t.Run("POST Operation Error with query parameter trigger", func(t *testing.T) {
 		responseBody := ResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
@@ -137,6 +141,24 @@ func TestOperations(t *testing.T) {
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
 		method.AddParameter(resource.NewQueryParameter("error", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		if !operation.wasCall {
+			t.Errorf("Expecting operation execution.")
+		}
+		assertResponseCode(t, response, 500)
+	})
+	t.Run("POST Operation Failed with query parameter trigger", func(t *testing.T) {
+		responseBody := ResponseBody{http.StatusCreated, ""}
+		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
+		contentTypes := resource.NewHTTPContentTypeSelector()
+		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		failResponse := resource.NewResponse(http.StatusFailedDependency).WithBody(ResponseBody{http.StatusFailedDependency, ""})
+		operation := &OperationStub{}
+		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
+		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method.AddParameter(resource.NewQueryParameter("fail", reflect.String))
+		request, _ := http.NewRequest(http.MethodPost, "/?fail=fail", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
 		if !operation.wasCall {
