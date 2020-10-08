@@ -34,7 +34,7 @@ Resource is an experimental Web Resource abstraction for composing a REST API in
 - Parameters: For specification, validation, and get helper functions.
 
 Example:
-```
+```go
 getCarOperation := func(i res.Input) (body interface{}, success bool, err error) {
 	carId, err := i.GetURIParam("carId")
 	if err != nil {
