@@ -73,4 +73,5 @@ root.Resource("car", func(r *res.Resource) {
 })
 server := root.GenerateServer(chigenerator.ChiGenerator{})
 root.GenerateSpec(os.Stdout, &oaiv2.OpenAPIV2SpecGenerator{})
+http.ListenAndServe(":8080", server)
 ```

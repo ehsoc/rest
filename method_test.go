@@ -81,7 +81,7 @@ type Car struct {
 	Colors []Color `json:"colors"`
 }
 
-var ISErrorResponse = resource.NewResponse(http.StatusInternalServerError).WithBody(ResponseBody{http.StatusInternalServerError, ""})
+var ISErrorResponse = resource.NewResponse(http.StatusNotFound).WithBody(ResponseBody{http.StatusNotFound, ""})
 
 func TestOperations(t *testing.T) {
 	t.Run("POST no response body", func(t *testing.T) {
@@ -580,4 +580,28 @@ func TestParameterValidation(t *testing.T) {
 		}
 		assertResponseCode(t, resp, 415)
 	})
+}
+
+func TestGetResponses(t *testing.T) {
+	v := &MethodValidatorSpy{}
+	successResponse := resource.NewResponse(200).WithBody(Car{})
+	contentTypes := resource.NewHTTPContentTypeSelector()
+	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	failResponse := ISErrorResponse
+	mo := resource.NewMethodOperation(&OperationStub{}, successResponse, failResponse, true)
+	validationResponse := resource.NewResponse(405)
+	methodValidationResponse := resource.NewResponse(400)
+	method := resource.NewMethod(http.MethodPost, mo, contentTypes).
+		WithParameter(resource.NewQueryParameter("p", reflect.String).WithValidation(v, validationResponse)).
+		WithValidation(v, methodValidationResponse)
+	responses := method.GetResponses()
+	wantResponses := []resource.Response{
+		successResponse,
+		failResponse,
+		methodValidationResponse,
+		validationResponse,
+	}
+	if !reflect.DeepEqual(responses, wantResponses) {
+		t.Errorf("got: %v want: %v", responses, wantResponses)
+	}
 }

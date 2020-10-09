@@ -75,25 +75,26 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	input := Input{r, m.Parameters, m.RequestBody, decoder}
 	// Validation
-	// A method validation will override parameter validations and responses
+	// Method validation
 	if m.Validator != nil {
 		err := m.Validate(input)
 		if err != nil {
 			writeResponse(r.Context(), w, m.validationResponse)
 			return
 		}
-	} else {
-		for _, p := range m.GetParameters() {
-			if p.Validator != nil && p.validationResponse.code != 0 {
-				err := p.Validate(input)
-				if err != nil {
-					writeResponse(r.Context(), w, p.validationResponse)
-					return
-				}
+	}
+	// Parameter validation
+	for _, p := range m.GetParameters() {
+		if p.Validator != nil && p.validationResponse.code != 0 {
+			err := p.Validate(input)
+			if err != nil {
+				writeResponse(r.Context(), w, p.validationResponse)
+				return
 			}
 		}
 	}
-	//Operation
+
+	// Operation
 	entity, success, err := m.MethodOperation.Execute(input)
 	if err != nil {
 		writeResponse(r.Context(), w, Response{500, err, ""})
@@ -187,16 +188,12 @@ func (m *Method) GetResponses() []Response {
 	if m.MethodOperation.failResponse.code != 0 {
 		responses = append(responses, m.MethodOperation.failResponse)
 	}
-	if m.contentTypeSelector.UnsupportedMediaTypeResponse.code != 0 {
-		responses = append(responses, m.contentTypeSelector.UnsupportedMediaTypeResponse)
-	}
 	if m.Validator != nil && m.validationResponse.code != 0 {
 		responses = append(responses, m.validationResponse)
-	} else {
-		for _, p := range m.GetParameters() {
-			if p.Validator != nil && p.validationResponse.code != 0 {
-				responses = append(responses, p.validationResponse)
-			}
+	}
+	for _, p := range m.GetParameters() {
+		if p.Validator != nil && p.validationResponse.code != 0 {
+			responses = append(responses, p.validationResponse)
 		}
 	}
 	return responses
