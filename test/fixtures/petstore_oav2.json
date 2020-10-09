@@ -47,9 +47,6 @@
 					},
 					"400": {
 						"description": "Bad Request"
-					},
-					"415": {
-						"description": "Unsupported Media Type"
 					}
 				}
 			},
@@ -82,9 +79,6 @@
 					},
 					"404": {
 						"description": "Pet not found"
-					},
-					"415": {
-						"description": "Unsupported Media Type"
 					}
 				}
 			}
@@ -126,9 +120,6 @@
 					},
 					"400": {
 						"description": "Invalid status value"
-					},
-					"415": {
-						"description": "Unsupported Media Type"
 					}
 				}
 			}
@@ -159,9 +150,6 @@
 					},
 					"404": {
 						"description": "Not Found"
-					},
-					"415": {
-						"description": "Unsupported Media Type"
 					}
 				}
 			},
@@ -237,9 +225,6 @@
 					},
 					"404": {
 						"description": "Not Found"
-					},
-					"415": {
-						"description": "Unsupported Media Type"
 					}
 				}
 			}
@@ -291,12 +276,6 @@
 						"schema": {
 							"$ref": "#/definitions/ApiResponse"
 						}
-					},
-					"415": {
-						"description": "Unsupported Media Type"
-					},
-					"500": {
-						"description": "Internal Server Error"
 					}
 				}
 			}

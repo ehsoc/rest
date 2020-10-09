@@ -516,7 +516,7 @@ func (vs *MethodValidatorSpy) Validate(i resource.Input) error {
 func TestMethodWithValidation(t *testing.T) {
 	t.Run("pass validation", func(t *testing.T) {
 		v := &MethodValidatorSpy{}
-		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(500), false), mustGetCTS()).
+		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(404), false), mustGetCTS()).
 			WithValidation(v, resource.NewResponse(400)).
 			WithParameter(resource.NewQueryParameter("requiredparam", reflect.String))
 		req, _ := http.NewRequest("GET", "/?requiredparam=something", nil)
@@ -532,7 +532,7 @@ func TestMethodWithValidation(t *testing.T) {
 	})
 	t.Run("don't pass validation", func(t *testing.T) {
 		v := &MethodValidatorSpy{}
-		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(500), false), mustGetCTS()).
+		m := resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(404), false), mustGetCTS()).
 			WithValidation(v, resource.NewResponse(400))
 		req, _ := http.NewRequest("GET", "/", nil)
 		resp := httptest.NewRecorder()
