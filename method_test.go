@@ -15,7 +15,7 @@ import (
 	"github.com/ehsoc/resource/encdec"
 )
 
-type ResponseBody struct {
+type TestResponseBody struct {
 	Code    int
 	Message string
 }
@@ -81,7 +81,7 @@ type Car struct {
 	Colors []Color `json:"colors"`
 }
 
-var ISErrorResponse = resource.NewResponse(http.StatusNotFound).WithBody(ResponseBody{http.StatusNotFound, ""})
+var ISErrorResponse = resource.NewResponse(http.StatusNotFound).WithBody(TestResponseBody{http.StatusNotFound, ""})
 
 func TestOperations(t *testing.T) {
 	t.Run("POST no response body", func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestOperations(t *testing.T) {
 		}
 		assertResponseCode(t, response, successResponse.Code())
 		enc := encdec.JSONEncoderDecoder{}
-		gotResponse := ResponseBody{}
+		gotResponse := TestResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
 		body := response.Body.String()
 		if body != "" {
@@ -108,7 +108,7 @@ func TestOperations(t *testing.T) {
 		}
 	})
 	t.Run("POST response body", func(t *testing.T) {
-		responseBody := ResponseBody{http.StatusCreated, ""}
+		responseBody := TestResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
@@ -124,18 +124,18 @@ func TestOperations(t *testing.T) {
 		}
 		assertResponseCode(t, response, successResponse.Code())
 		enc := encdec.JSONEncoderDecoder{}
-		gotResponse := ResponseBody{}
+		gotResponse := TestResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
 		if !reflect.DeepEqual(gotResponse, responseBody) {
 			t.Errorf("got:%v want:%v", gotResponse, responseBody)
 		}
 	})
 	t.Run("POST Operation Error with query parameter trigger", func(t *testing.T) {
-		responseBody := ResponseBody{http.StatusCreated, ""}
+		responseBody := TestResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-		failResponse := resource.NewResponse(http.StatusFailedDependency).WithBody(ResponseBody{http.StatusFailedDependency, ""})
+		failResponse := resource.NewResponse(http.StatusFailedDependency).WithBody(TestResponseBody{http.StatusFailedDependency, ""})
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse, failResponse, false)
 		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
@@ -149,7 +149,7 @@ func TestOperations(t *testing.T) {
 		assertResponseCode(t, response, 500)
 	})
 	t.Run("POST Operation Failed with query parameter trigger, no failed response defined", func(t *testing.T) {
-		responseBody := ResponseBody{http.StatusCreated, ""}
+		responseBody := TestResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
@@ -184,7 +184,7 @@ func TestOperations(t *testing.T) {
 		assertResponseCode(t, response, failResponse.Code())
 	})
 	t.Run("unsupported media response in negotiation in POST with no body", func(t *testing.T) {
-		responseBody := ResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
+		responseBody := TestResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
 		unsupportedMediaResponse := resource.NewResponse(http.StatusUnsupportedMediaType).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.UnsupportedMediaTypeResponse = unsupportedMediaResponse
@@ -198,14 +198,14 @@ func TestOperations(t *testing.T) {
 		method.ServeHTTP(response, request)
 		assertResponseCode(t, response, unsupportedMediaResponse.Code())
 		enc := encdec.JSONEncoderDecoder{}
-		gotResponse := ResponseBody{}
+		gotResponse := TestResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
 		if !reflect.DeepEqual(gotResponse, unsupportedMediaResponse.Body()) {
 			t.Errorf("got:%v want:%v", gotResponse, unsupportedMediaResponse.Body())
 		}
 	})
 	t.Run("unsupported media response in negotiation in POST with body no default type", func(t *testing.T) {
-		responseBody := ResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
+		responseBody := TestResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
 		unsupportedMediaResponse := resource.NewResponse(http.StatusUnsupportedMediaType).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.UnsupportedMediaTypeResponse = unsupportedMediaResponse
@@ -223,7 +223,7 @@ func TestOperations(t *testing.T) {
 		}
 	})
 	t.Run("unsupported media response decoder negotiation", func(t *testing.T) {
-		responseBody := ResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
+		responseBody := TestResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
 		unsupportedMediaResponse := resource.NewResponse(http.StatusUnsupportedMediaType).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.UnsupportedMediaTypeResponse = unsupportedMediaResponse
@@ -238,7 +238,7 @@ func TestOperations(t *testing.T) {
 		method.ServeHTTP(response, request)
 		assertResponseCode(t, response, unsupportedMediaResponse.Code())
 		enc := encdec.JSONEncoderDecoder{}
-		gotResponse := ResponseBody{}
+		gotResponse := TestResponseBody{}
 		enc.Decode(response.Body, &gotResponse)
 		if !reflect.DeepEqual(gotResponse, unsupportedMediaResponse.Body()) {
 			t.Errorf("got:%v want:%v", gotResponse, unsupportedMediaResponse.Body())

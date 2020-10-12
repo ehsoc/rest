@@ -3,8 +3,8 @@ package resource
 // Response represents a HTTP response.
 // A response with code 0 will be consider a nil response.
 type Response struct {
-	code        int
-	body        interface{}
+	code int
+	MutableResponseBody
 	description string
 }
 
@@ -16,9 +16,23 @@ func NewResponse(code int) Response {
 	return r
 }
 
+type StaticResponseBody struct {
+	body interface{}
+}
+
+func (s StaticResponseBody) Mutate(v interface{}, success bool, err error) {
+
+}
+
 //WithBody chain method will set body property.
 func (r Response) WithBody(body interface{}) Response {
-	r.body = body
+	r.MutableResponseBody = StaticResponseBody{body}
+	return r
+}
+
+//WithMutableBody chain method will set body property.
+func (r Response) WithMutableBody(mutableResponseBody MutableResponseBody) Response {
+	r.MutableResponseBody = mutableResponseBody
 	return r
 }
 
@@ -40,5 +54,8 @@ func (r Response) Description() string {
 
 //Body returns the body property
 func (r Response) Body() interface{} {
-	return r.body
+	if staticResponse, ok := r.MutableResponseBody.(StaticResponseBody); ok {
+		return staticResponse.body
+	}
+	return r.MutableResponseBody
 }

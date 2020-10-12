@@ -39,3 +39,34 @@ func TestNewResponse(t *testing.T) {
 	})
 
 }
+
+type MutableBodyStub struct {
+	Code      int
+	ErrorType string
+	Message   string
+}
+
+var errorMessage = "this is my error"
+var myError = "myError"
+
+func (mr *MutableBodyStub) Mutate(v interface{}, success bool, err error) {
+	mr.Code = 500
+	mr.ErrorType = myError
+	mr.Message = errorMessage
+}
+
+func TestMutateResponseBody(t *testing.T) {
+
+	want := &MutableBodyStub{500, myError, errorMessage}
+	mutableResponseBody := &MutableBodyStub{}
+	resp := resource.NewResponse(500).WithMutableBody(mutableResponseBody)
+	noChange := resp.Body()
+	if !reflect.DeepEqual(noChange, mutableResponseBody) {
+		t.Errorf("got: %#v \nwant: %#v", noChange, mutableResponseBody)
+	}
+	resp.Mutate(nil, false, nil)
+	got := resp.Body()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %#v want: %#v", got, want)
+	}
+}

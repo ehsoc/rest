@@ -97,7 +97,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	// Operation
 	entity, success, err := m.MethodOperation.Execute(input)
 	if err != nil {
-		writeResponse(r.Context(), w, Response{500, err, ""})
+		writeResponse(r.Context(), w, NewResponse(500))
 		return
 	}
 	if !success {
@@ -118,6 +118,10 @@ func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {
 		return
 	}
 	write(w, encoder, resp)
+}
+
+func mutateBody(response *Response, entity interface{}, success bool, err error) {
+	response.MutableResponseBody.Mutate(entity, success, err)
 }
 
 func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
