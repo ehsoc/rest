@@ -7,9 +7,9 @@ import (
 	"net/http"
 )
 
-//RestAPI is the root of a REST API abstraction.
-//It is responsable document generation like output Open API v2 json generation and
-//Server handler generation
+// RestAPI is the root of a REST API abstraction.
+// It is responsable for specification generation (GenerateSpec function), and
+// Server handler generation (GenerateServer function)
 type RestAPI struct {
 	ID          string
 	Version     string
@@ -20,14 +20,17 @@ type RestAPI struct {
 	Resources
 }
 
-func (r RestAPI) GenerateSpec(w io.Writer, docGenerator APISpecGenerator) {
-	docGenerator.GenerateAPISpec(w, r)
+// GenerateSpec will generate the API specification using APISpecGenerator implementation (docGenerator),
+// and will write to an io.Writer implementation (writer)
+func (r RestAPI) GenerateSpec(writer io.Writer, docGenerator APISpecGenerator) {
+	docGenerator.GenerateAPISpec(writer, r)
 }
 
-func (r RestAPI) GenerateServer(d ServerGenerator) http.Handler {
+// GenerateServer generates a http.Handler using a ServerGenerator implementation (serverGenerator)
+func (r RestAPI) GenerateServer(serverGenerator ServerGenerator) http.Handler {
 	resourcesCheck(r.resources)
-	server := d.GenerateServer(r)
-	return inputGetFunctionsMiddleware(d.GetURIParam(), server)
+	server := serverGenerator.GenerateServer(r)
+	return inputGetFunctionsMiddleware(serverGenerator.GetURIParam(), server)
 }
 
 func inputGetFunctionsMiddleware(getURIParamFunc func(r *http.Request, key string) string, next http.Handler) http.Handler {
@@ -49,8 +52,8 @@ func resourcesCheck(res map[string]Resource) {
 	}
 }
 
-//An invalid code will panic in an implementation of http server (see checkWriteHeaderCode function on https://golang.org/src/net/http/server.go)
-//We will enforce this before the server is up and running, and avoid an unexpected panic.
+// An invalid code will panic in an implementation of http server (see checkWriteHeaderCode function on https://golang.org/src/net/http/server.go)
+// We will check this before the server is up and running, and avoid an unexpected panic.
 func httpResponseCodeCheck(code int, httpMethod string, path string) {
 	if code < 100 || code > 999 {
 		panic(fmt.Sprintf("GenerateServer check error: invalid response code %v on method: %v of resource: %v", code, httpMethod, path))

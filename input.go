@@ -9,11 +9,10 @@ import (
 	"github.com/ehsoc/resource/httputil"
 )
 
-// Input is intendend to help you to check specification-implementation consistency control.
-// Input Get methods can help to do this. They will return an error if the parameter or body is not defined.
-// Request is the http.Request of the handler, you can use it, but you need to check if the parameter is defined,
-// if you want specification-implementation consistency control.
-// Parameters is the Parameter collection defined for the method.
+// Input type is used as Operation Execute method as input.
+// Input Get methods can help to check property definition against implementation, returning an error if parameter was not defined.
+// Request property provide access to the http.Request pointer.
+// Paramters is the collection of defined method's parameters.
 // RequestBodyParameter parameter is the Request Body defined for the method.
 type Input struct {
 	Request              *http.Request
@@ -22,9 +21,9 @@ type Input struct {
 	BodyDecoder          encdec.Decoder
 }
 
-// GetURIParam gets the URI Param using the InputContextKey("uriparamfunc") context value function.
-// If the InputContextKey("uriparamfunc") context value is not set will return error.
-// If the URI parameter is not set, will return error.
+// GetURIParam gets the URI Param using the InputContextKey("uriparamfunc") context value.
+// If the InputContextKey("uriparamfunc") context value is not set will return an error.
+// If the URI parameter is not set, will return an error.
 func (i Input) GetURIParam(key string) (string, error) {
 	//Check param is defined
 	_, err := i.Parameters.GetParameter(URIParameter, key)
@@ -40,7 +39,7 @@ func (i Input) GetURIParam(key string) (string, error) {
 }
 
 // GetHeader gets the request query slice associated to the given key.
-// If the parameter is not defined will return error.
+// If the parameter is not defined it will return an error.
 func (i Input) GetHeader(key string) (string, error) {
 	//Check param is defined
 	_, err := i.Parameters.GetParameter(HeaderParameter, key)
@@ -51,7 +50,7 @@ func (i Input) GetHeader(key string) (string, error) {
 }
 
 // GetQuery gets the request query slice associated to the given key.
-// If the parameter is not defined, will return error.
+// If the parameter is not defined, will return an error.
 func (i Input) GetQuery(key string) ([]string, error) {
 	//Check param is defined
 	_, err := i.Parameters.GetParameter(QueryParameter, key)
@@ -110,7 +109,7 @@ func (i Input) GetFormFiles(key string) ([]*multipart.FileHeader, error) {
 	return httputil.GetFiles(i.Request, key)
 }
 
-//GetFormFile gets the first file content and header for the provided form key.
+// GetFormFile gets the first file content and header for the provided form key.
 // If the parameter is not defined, will return error.
 func (i Input) GetFormFile(key string) ([]byte, *multipart.FileHeader, error) {
 	//Check param is defined
@@ -121,7 +120,7 @@ func (i Input) GetFormFile(key string) ([]byte, *multipart.FileHeader, error) {
 	return httputil.GetFormFile(i.Request, key)
 }
 
-//GetBody returns the request body, error if is not defined.
+// GetBody returns the request body, error if is not defined.
 func (i Input) GetBody() (io.ReadCloser, error) {
 	//Check param is defined
 	if i.RequestBodyParameter.Body == nil {

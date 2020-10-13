@@ -4,8 +4,8 @@ type Parameters struct {
 	parameters map[ParameterType]map[string]Parameter
 }
 
-//AddParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
-//It will silently override a parameter if the same key was already set.
+// AddParameter adds a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
+// It will silently override a parameter if the same key is already set.
 func (p *Parameters) AddParameter(parameter Parameter) {
 	p.checkNilMap()
 	if _, ok := p.parameters[parameter.HTTPType]; !ok {
@@ -20,9 +20,8 @@ func (p *Parameters) checkNilMap() {
 	}
 }
 
-//GetParameters returns the collection of parameters.
-//This is a copy of the internal collection, so parameters cannot be changed from this slice.
-//The order of the slice elements will not be consistent.
+// GetParameters gets the collection of parameters.
+// The order of the slice elements will not be consistent.
 func (p *Parameters) GetParameters() []Parameter {
 	p.checkNilMap()
 	ps := make([]Parameter, 0)
@@ -34,7 +33,7 @@ func (p *Parameters) GetParameters() []Parameter {
 	return ps
 }
 
-//GetParameter returns the specified parameter, error if is not found.
+// GetParameter gets the parameter of the given ParameterType and name, error if is not found.
 func (p *Parameters) GetParameter(paramType ParameterType, name string) (Parameter, error) {
 	p.checkNilMap()
 	params, ok := p.parameters[paramType]

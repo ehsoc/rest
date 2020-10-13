@@ -1,5 +1,6 @@
 package resource
 
+// Validator type implementation will provide a method that validates the given Input.
 type Validator interface {
 	Validate(Input) error
 }
@@ -10,7 +11,7 @@ type Validator interface {
 // Validator that calls f.
 type ValidatorFunc func(i Input) error
 
-//Execute calls f(body, parameters, decoder)
+// Validate calls f(i)
 func (f ValidatorFunc) Validate(i Input) error {
 	return f(i)
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/ehsoc/resource/encdec"
 )
 
-//Method represents a http operation that is performed on a resource.
+// Method represents a http operation that is performed on a resource.
 type Method struct {
 	HTTPMethod          string
 	Summary             string
@@ -22,7 +22,7 @@ type Method struct {
 	validation
 }
 
-//NewMethod returns a Method instance
+// NewMethod returns a Method instance
 func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	m := Method{}
 	m.HTTPMethod = HTTPMethod
@@ -69,7 +69,7 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	decoder, ok := r.Context().Value(EncoderDecoderContextKey("decoder")).(encdec.Decoder)
 	if !ok {
-		//Fallback decoder is a simple string decoder, so we will avoid to pass a nil decoder
+		// Fallback decoder is a simple string decoder, so we will avoid to pass a nil decoder
 		decoder = encdec.TextDecoder{}
 	}
 	if m.MethodOperation.Operation == nil {
@@ -137,6 +137,7 @@ func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
 	}
 }
 
+// GetEncoderMediaTypes gets a string slice of the method's encoder media types
 func (m *Method) GetEncoderMediaTypes() []string {
 	mediaTypes := []string{}
 	for m := range m.contentTypeSelector.encoderContentTypes {
@@ -147,6 +148,7 @@ func (m *Method) GetEncoderMediaTypes() []string {
 	return mediaTypes
 }
 
+// GetDecoderMediaTypes gets a string slice of the method's decoder media types
 func (m *Method) GetDecoderMediaTypes() []string {
 	mediaTypes := []string{}
 	for m := range m.contentTypeSelector.decoderContentTypes {
@@ -157,32 +159,32 @@ func (m *Method) GetDecoderMediaTypes() []string {
 	return mediaTypes
 }
 
-//WithParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
-//It will silently override a parameter if the same key was already set.
+// WithParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
+// It will silently override a parameter if the same key was already set.
 func (m *Method) WithParameter(parameter Parameter) *Method {
 	m.AddParameter(parameter)
 	return m
 }
 
-//WithDescription sets description property
+// WithDescription sets the description property
 func (m *Method) WithDescription(description string) *Method {
 	m.Description = description
 	return m
 }
 
-//WithSummary sets summary property
+// WithSummary sets the summary property
 func (m *Method) WithSummary(summary string) *Method {
 	m.Summary = summary
 	return m
 }
 
-//WithRequestBody sets RequestBody property
+// WithRequestBody sets the RequestBody property
 func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 	m.RequestBody = RequestBody{description, body, true}
 	return m
 }
 
-//WithValidation sets the validation operation and the response in case of error, this method will override any parameter validation.
+// WithValidation sets the validation operation and the response in case of error.
 func (m *Method) WithValidation(validator Validator, failedValidationResponse Response) *Method {
 	m.validation = validation{validator, failedValidationResponse}
 	return m

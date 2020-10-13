@@ -2,7 +2,8 @@ package resource
 
 // Response represents a HTTP response.
 // A response with code 0 will be consider a nil response.
-// MutableResponseBody is an interface that represents the Http body response.
+// MutableResponseBody is an interface that represents the Http body response, that can mutate after a validation or an operation, taking the outputs as
+// inputs.
 type Response struct {
 	code int
 	MutableResponseBody
