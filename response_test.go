@@ -56,7 +56,6 @@ func (mr *MutableBodyStub) Mutate(v interface{}, success bool, err error) {
 }
 
 func TestMutateResponseBody(t *testing.T) {
-
 	want := &MutableBodyStub{500, myError, errorMessage}
 	mutableResponseBody := &MutableBodyStub{}
 	resp := resource.NewResponse(500).WithMutableBody(mutableResponseBody)
@@ -67,6 +66,21 @@ func TestMutateResponseBody(t *testing.T) {
 	resp.Mutate(nil, false, nil)
 	got := resp.Body()
 	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %#v want: %#v", got, want)
+	}
+}
+
+func TestWithOperationResultBody(t *testing.T) {
+	resp := resource.NewResponse(200).WithOperationResultBody(Car{})
+	want := Car{}
+	got := resp.Body()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got: %#v want: %#v", got, want)
+	}
+	operationResult := Car{Brand: "Foo"}
+	resp.Mutate(operationResult, false, nil)
+	mutatedResponse := resp.Body()
+	if !reflect.DeepEqual(mutatedResponse, operationResult) {
 		t.Errorf("got: %#v want: %#v", got, want)
 	}
 }

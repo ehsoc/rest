@@ -18,8 +18,7 @@ func TestAddMethod(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		m := resource.NewMethod("GET", mo, ct)
 		r.AddMethod(m)
 		if len(r.Methods()) != 1 {
@@ -59,8 +58,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Get(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -78,8 +76,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Post(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -97,8 +94,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Put(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -116,8 +112,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Patch(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -135,8 +130,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Delete(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -154,8 +148,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Options(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -173,8 +166,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Connect(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -192,8 +184,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Head(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -211,8 +202,7 @@ func TestGet(t *testing.T) {
 		mo := resource.NewMethodOperation(
 			&OperationStub{},
 			resource.NewResponse(200),
-			resource.NewResponse(404),
-			true)
+			resource.NewResponse(404))
 		r.Trace(mo, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")

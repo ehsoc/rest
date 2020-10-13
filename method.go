@@ -37,6 +37,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		responseContentType, encoder, err := m.contentTypeSelector.NegotiateEncoder(r)
 		if err != nil {
+			mutateResponseBody(&m.contentTypeSelector.UnsupportedMediaTypeResponse, nil, false, err)
 			m.writeResponseFallBack(w, m.contentTypeSelector.UnsupportedMediaTypeResponse)
 			return
 		}
@@ -45,6 +46,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 		decoderContentType, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
 		ctx = context.WithValue(ctx, ContentTypeContextKey("decoder"), decoderContentType)
 		if err != nil && r.Body != http.NoBody && r.Body != nil {
+			mutateResponseBody(&m.contentTypeSelector.UnsupportedMediaTypeResponse, nil, false, err)
 			writeResponse(ctx, w, m.contentTypeSelector.UnsupportedMediaTypeResponse)
 			return
 		}
@@ -79,6 +81,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if m.Validator != nil {
 		err := m.Validate(input)
 		if err != nil {
+			mutateResponseBody(&m.validationResponse, nil, false, err)
 			writeResponse(r.Context(), w, m.validationResponse)
 			return
 		}
@@ -88,6 +91,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		if p.Validator != nil && p.validationResponse.code != 0 {
 			err := p.Validate(input)
 			if err != nil {
+				mutateResponseBody(&p.validationResponse, nil, false, err)
 				writeResponse(r.Context(), w, p.validationResponse)
 				return
 			}
@@ -97,17 +101,17 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	// Operation
 	entity, success, err := m.MethodOperation.Execute(input)
 	if err != nil {
-		writeResponse(r.Context(), w, NewResponse(500))
+		errResponse := NewResponse(500)
+		mutateResponseBody(&errResponse, entity, success, err)
+		writeResponse(r.Context(), w, errResponse)
 		return
 	}
 	if !success {
+		mutateResponseBody(&m.MethodOperation.failResponse, entity, success, err)
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
 		return
 	}
-	if m.MethodOperation.operationResultAsBody {
-		writeResponse(r.Context(), w, NewResponse(m.MethodOperation.successResponse.Code()).WithBody(entity))
-		return
-	}
+	mutateResponseBody(&m.MethodOperation.successResponse, entity, success, err)
 	writeResponse(r.Context(), w, m.MethodOperation.successResponse)
 }
 
@@ -120,8 +124,10 @@ func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {
 	write(w, encoder, resp)
 }
 
-func mutateBody(response *Response, entity interface{}, success bool, err error) {
-	response.MutableResponseBody.Mutate(entity, success, err)
+func mutateResponseBody(response *Response, entity interface{}, success bool, err error) {
+	if response.MutableResponseBody != nil {
+		response.MutableResponseBody.Mutate(entity, success, err)
+	}
 }
 
 func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {

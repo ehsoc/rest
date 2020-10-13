@@ -121,10 +121,10 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			} else {
 				res.Description = http.StatusText(response.Code())
 			}
-
 			docMethod.RespondsWith(response.Code(), res)
 			docMethod.Responses.Default = nil
 		}
+
 		switch method.HTTPMethod {
 		case http.MethodPost:
 			pathItem.Post = docMethod

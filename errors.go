@@ -10,6 +10,8 @@ var ErrorResourceMethodCollition = errors.New("method is already define for this
 var ErrorResourceURIParamNoParamFound = errors.New("path must include a parameter name in brackets, like {myParamId}")
 var ErrorResourceURIParamMoreThanOne = errors.New("path just must include one parameter name in brackets")
 var ErrorRequestBodyNotDefined = errors.New("resource: a request body was not defined.")
+var ErrorNilCodeSuccessResponse = errors.New("resource: successResponse with code 0 is considered a nil response. A not nil successResponse value is required.")
+
 var MessageErrResourceSlashesNotAllowed = "resource: slash found on resource name '%s', slashes are not allowed"
 var MessageErrParameterNotDefined = "resource: parameter '%s' not defined"
 var MessageErrGetURIParamFunctionNotDefined = "resource: no get uri parameter function is defined in context value InputContextKey(\"uriparamfunc\") for '%v' parameter"
