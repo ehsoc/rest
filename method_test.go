@@ -150,6 +150,14 @@ func TestOperations(t *testing.T) {
 		assertResponseCode(t, response, 500)
 	})
 	t.Run("POST Operation Failed with query parameter trigger, no failed response defined", func(t *testing.T) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				if _, ok := err.(*resource.TypeErrorNotExpectedZeroCodeFailedResponse); !ok {
+					t.Errorf("got: %T want: %T", err, &resource.TypeErrorNotExpectedZeroCodeFailedResponse{})
+				}
+			}
+		}()
 		responseBody := TestResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
 		contentTypes := resource.NewHTTPContentTypeSelector()
@@ -165,7 +173,7 @@ func TestOperations(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		assertResponseCode(t, response, failResponse.Code())
+		//assertResponseCode(t, response, failResponse.Code())
 	})
 	t.Run("GET Operation Failed with query parameter trigger", func(t *testing.T) {
 		successResponse := resource.NewResponse(http.StatusCreated)
@@ -545,6 +553,12 @@ func TestMethodWithValidation(t *testing.T) {
 			t.Errorf("not expecting passed to be true")
 		}
 		assertResponseCode(t, resp, 400)
+	})
+	t.Run("validation code 0", func(t *testing.T) {
+		defer assertPanicError(t, resource.ErrorNilCodeValidationResponse)
+		v := &MethodValidatorSpy{}
+		resource.NewMethod("GET", resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200), resource.NewResponse(404)), mustGetCTS()).
+			WithValidation(v, resource.Response{})
 	})
 }
 

@@ -3,6 +3,7 @@ package petstore
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"sync"
 	"time"
@@ -40,7 +41,9 @@ func (s *Store) Get(petId string) (Pet, error) {
 	if err != nil {
 		return Pet{}, err
 	}
+	log.Printf("searching pet id: %d\n", id)
 	if pet, ok := s.store[id]; ok {
+		log.Printf("pet found id: %d\n", id)
 		return pet, nil
 	}
 	return Pet{}, ErrorPetNotFound

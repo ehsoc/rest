@@ -107,6 +107,9 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !success {
+		if m.MethodOperation.failResponse.code == 0 {
+			panic(&TypeErrorNotExpectedZeroCodeFailedResponse{Errorf{MessageNotExpectedZeroCodeFailedResponse, r.URL.Path + " " + m.HTTPMethod}})
+		}
 		mutateResponseBody(&m.MethodOperation.failResponse, entity, success, err)
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
 		return
@@ -185,7 +188,11 @@ func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 }
 
 // WithValidation sets the validation operation and the response in case of error.
+// A validation response with code 0 will rise a panic.
 func (m *Method) WithValidation(validator Validator, failedValidationResponse Response) *Method {
+	if failedValidationResponse.code == 0 {
+		panic(ErrorNilCodeValidationResponse)
+	}
 	m.validation = validation{validator, failedValidationResponse}
 	return m
 }

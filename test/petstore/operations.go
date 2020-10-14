@@ -40,7 +40,11 @@ func operationUpdate(i resource.Input) (interface{}, bool, error) {
 }
 
 func operationGetPetById(i resource.Input) (interface{}, bool, error) {
-	petId, _ := i.GetURIParam("petId")
+	petId, err := i.GetURIParam("petId")
+	if err != nil {
+		log.Fatal(err)
+		return nil, false, err
+	}
 	pet, err := PetStore.Get(petId)
 	if err != nil {
 		if err == ErrorPetNotFound {
@@ -49,7 +53,7 @@ func operationGetPetById(i resource.Input) (interface{}, bool, error) {
 		}
 		return pet, false, err
 	}
-	return pet, false, nil
+	return pet, true, nil
 }
 
 func operationDeletePet(i resource.Input) (interface{}, bool, error) {

@@ -8,6 +8,7 @@ type Response struct {
 	code int
 	MutableResponseBody
 	description string
+	disabled    bool
 }
 
 // NewResponse returns a Response with the specified code.
