@@ -11,15 +11,13 @@ import (
 
 const summary string = "this is my method"
 
+var moTest = resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404))
+
 func TestAddMethod(t *testing.T) {
 	ct := resource.NewHTTPContentTypeSelector()
 	t.Run("get method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		m := resource.NewMethod("GET", mo, ct)
+		m := resource.NewMethod("GET", moTest, ct)
 		r.AddMethod(m)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -28,8 +26,8 @@ func TestAddMethod(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodGet {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodGet)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("methods map nil", func(t *testing.T) {
@@ -55,11 +53,7 @@ func TestGet(t *testing.T) {
 	ct := resource.NewHTTPContentTypeSelector()
 	t.Run("get method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Get(mo, ct)
+		r.Get(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -67,17 +61,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodGet {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodGet)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("post method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Post(mo, ct)
+		r.Post(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -85,17 +75,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodPost {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodPost)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("options put", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Put(mo, ct)
+		r.Put(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -103,17 +89,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodPut {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodPut)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("options patch", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Patch(mo, ct)
+		r.Patch(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -121,17 +103,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodPatch {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodPatch)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("delete method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Delete(mo, ct)
+		r.Delete(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -139,17 +117,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodDelete {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodDelete)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("options method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Options(mo, ct)
+		r.Options(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -157,17 +131,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodOptions {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodOptions)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("connect method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Connect(mo, ct)
+		r.Connect(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -175,17 +145,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodConnect {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodConnect)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("head method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Head(mo, ct)
+		r.Head(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -193,17 +159,13 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodHead {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodHead)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 	t.Run("trace method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		mo := resource.NewMethodOperation(
-			&OperationStub{},
-			resource.NewResponse(200),
-			resource.NewResponse(404))
-		r.Trace(mo, ct)
+		r.Trace(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -211,8 +173,8 @@ func TestGet(t *testing.T) {
 		if getMethod.HTTPMethod != http.MethodTrace {
 			t.Errorf("got: %v want: %v", getMethod.HTTPMethod, http.MethodTrace)
 		}
-		if !reflect.DeepEqual(getMethod.MethodOperation, mo) {
-			t.Errorf("got: %v want: %v", getMethod.MethodOperation, mo)
+		if !reflect.DeepEqual(getMethod.MethodOperation, moTest) {
+			t.Errorf("got: %v want: %v", getMethod.MethodOperation, moTest)
 		}
 	})
 }

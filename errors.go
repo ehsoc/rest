@@ -17,7 +17,7 @@ var MessageErrResourceSlashesNotAllowed = "resource: slash found on resource nam
 var MessageErrParameterNotDefined = "resource: parameter '%s' not defined"
 var MessageErrGetURIParamFunctionNotDefined = "resource: no get uri parameter function is defined in context value InputContextKey(\"uriparamfunc\") for '%v' parameter"
 var MessageErrRequiredParameterNotFound = "'%s' is required"
-var MessageNotExpectedZeroCodeFailedResponse = "resource: resource '%s' failedResponse code is 0, either the failed response was not expected, or 0 code was set by mistake."
+var MessageErrFailResponseNotDefined = "resource: resource '%s' failedResponse was not defined, but the operation was expecting one."
 
 type TypeErrorResourceSlashesNotAllowed struct {
 	Errorf
@@ -35,7 +35,7 @@ type TypeErrorGetURIParamFunctionNotDefined struct {
 	Errorf
 }
 
-type TypeErrorNotExpectedZeroCodeFailedResponse struct {
+type TypeErrorFailResponseNotDefined struct {
 	Errorf
 }
 

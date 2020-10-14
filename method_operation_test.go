@@ -7,6 +7,5 @@ import (
 )
 
 func TestNewMethodOperation(t *testing.T) {
-	defer assertPanicError(t, resource.ErrorNilCodeSuccessResponse)
-	resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(0), resource.NewResponse(0))
+	resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(0))
 }

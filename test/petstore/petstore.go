@@ -28,12 +28,12 @@ func GeneratePetStore() resource.RestAPI {
 	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	contentTypes.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	//POST
-	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201), resource.NewResponse(400))
+	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
 	pets.Post(createMethodOperation, contentTypes).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Add a new pet to the store")
 	//PUT
-	updateMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200), resource.NewResponse(404).WithDescription("Pet not found"))
+	updateMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404).WithDescription("Pet not found"))
 	pets.Put(updateMethodOperation, contentTypes).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Update an existing pet").
@@ -59,13 +59,13 @@ func GeneratePetStore() resource.RestAPI {
 		ct := resource.NewHTTPContentTypeSelector()
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
-		getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{}), notFoundResponse)
+		getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
 		r.Get(getByIdMethodOperation, ct).
 			WithSummary("Find pet by ID").
 			WithDescription("Returns a single pet").
 			WithParameter(petIdURIParam)
 		//Delete
-		deleteByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200), notFoundResponse)
+		deleteByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200)).WithFailResponse(notFoundResponse)
 		r.Delete(deleteByIdMethodOperation, ct).
 			WithSummary("Deletes a pet").
 			WithParameter(
@@ -81,7 +81,7 @@ func GeneratePetStore() resource.RestAPI {
 			WithParameter(resource.NewHeaderParameter("api_key", reflect.String).AsOptional())
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource
-			uploadImageMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"), resource.Response{})
+			uploadImageMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"))
 			ct := resource.NewHTTPContentTypeSelector()
 			ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 			ct.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
@@ -99,7 +99,7 @@ func GeneratePetStore() resource.RestAPI {
 		ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoderDecoder{}, false)
 		//GET
-		findByStatusMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.NewResponse(200).WithOperationResultBody([]Pet{}).WithDescription("successful operation"), resource.NewResponse(400).WithDescription("Invalid status value"))
+		findByStatusMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.NewResponse(200).WithOperationResultBody([]Pet{}).WithDescription("successful operation")).WithFailResponse(resource.NewResponse(400).WithDescription("Invalid status value"))
 		statusParam := resource.NewQueryArrayParameter("status", []interface{}{"available", "pending", "sold"}).AsRequired().WithDescription("Status values that need to be considered for filter")
 		statusParam.CollectionFormat = "multi"
 		r.Get(findByStatusMethodOperation, ct).

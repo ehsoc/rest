@@ -51,7 +51,7 @@ func TestGenerateServer(t *testing.T) {
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		getMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(200), resource.NewResponse(http.StatusNotFound))
+		getMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(200)).WithFailResponse(resource.NewResponse(http.StatusNotFound))
 		petResource := resource.NewResource("pet")
 		petResource.Resource("{petId}", func(r *resource.Resource) {
 			uriParam := resource.NewURIParameter("petId", reflect.String)
@@ -83,7 +83,7 @@ func TestGenerateServer(t *testing.T) {
 		contentTypes := resource.NewHTTPContentTypeSelector()
 		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		postMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(http.StatusCreated).WithBody(petstore.Pet{}), resource.NewResponse(http.StatusBadRequest))
+		postMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(http.StatusCreated).WithBody(petstore.Pet{})).WithFailResponse(resource.NewResponse(http.StatusBadRequest))
 		postMethod := resource.NewMethod(http.MethodPost, postMethodOp, contentTypes)
 		petResource := resource.NewResource("pet")
 		postMethod.RequestBody = resource.RequestBody{Description: "", Body: petstore.Pet{}}
@@ -124,7 +124,7 @@ var testRoutes = []struct {
 }
 
 func TestNestedRoutes(t *testing.T) {
-	mo := resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(http.StatusOK), resource.NewResponse(500))
+	mo := resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(http.StatusOK)).WithFailResponse(resource.NewResponse(500))
 	ct := resource.NewHTTPContentTypeSelector()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	rootResource := resource.NewResource("1")

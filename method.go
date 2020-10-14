@@ -107,8 +107,8 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !success {
-		if m.MethodOperation.failResponse.code == 0 {
-			panic(&TypeErrorNotExpectedZeroCodeFailedResponse{Errorf{MessageNotExpectedZeroCodeFailedResponse, r.URL.Path + " " + m.HTTPMethod}})
+		if m.MethodOperation.failResponse.disabled {
+			panic(&TypeErrorFailResponseNotDefined{Errorf{MessageErrFailResponseNotDefined, r.URL.Path + " " + m.HTTPMethod}})
 		}
 		mutateResponseBody(&m.MethodOperation.failResponse, entity, success, err)
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
@@ -188,30 +188,25 @@ func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 }
 
 // WithValidation sets the validation operation and the response in case of error.
-// A validation response with code 0 will rise a panic.
 func (m *Method) WithValidation(validator Validator, failedValidationResponse Response) *Method {
-	if failedValidationResponse.code == 0 {
-		panic(ErrorNilCodeValidationResponse)
-	}
 	m.validation = validation{validator, failedValidationResponse}
 	return m
 }
 
-// GetResponses gets the valid response collection of the method.
-// Responses with 0 code are considered a non valid response.
+// GetResponses gets the response collection of the method.
 func (m *Method) GetResponses() []Response {
 	responses := make([]Response, 0)
-	if m.MethodOperation.successResponse.code != 0 {
+	if !m.MethodOperation.successResponse.disabled {
 		responses = append(responses, m.MethodOperation.successResponse)
 	}
-	if m.MethodOperation.failResponse.code != 0 {
+	if !m.MethodOperation.failResponse.disabled {
 		responses = append(responses, m.MethodOperation.failResponse)
 	}
-	if m.Validator != nil && m.validationResponse.code != 0 {
+	if m.Validator != nil && !m.validationResponse.disabled {
 		responses = append(responses, m.validationResponse)
 	}
 	for _, p := range m.GetParameters() {
-		if p.Validator != nil && p.validationResponse.code != 0 {
+		if p.Validator != nil && !p.validationResponse.disabled {
 			responses = append(responses, p.validationResponse)
 		}
 	}
