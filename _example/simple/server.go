@@ -38,10 +38,9 @@ func GenerateServer() http.Handler {
 	}
 	getCar := res.NewMethodOperation(
 		res.OperationFunc(getCarOperation),
-		res.NewResponse(200).WithBody(Car{}),
-		res.NewResponse(404),
-		true,
-	)
+		res.NewResponse(200).WithOperationResultBody(Car{})).
+		WithFailResponse(res.NewResponse(404))
+
 	ct := res.NewHTTPContentTypeSelector()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
