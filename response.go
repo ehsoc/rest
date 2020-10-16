@@ -1,9 +1,8 @@
 package resource
 
 // Response represents a HTTP response.
-// A response with code 0 will be consider a nil response.
-// MutableResponseBody is an interface that represents the Http body response, that can mutate after a validation or an operation, taking the outputs as
-// inputs.
+// MutableResponseBody is an interface that represents the Http body response,
+// that can mutate after a validation or an operation, taking the outputs of this methods as inputs.
 type Response struct {
 	code int
 	MutableResponseBody
@@ -12,7 +11,6 @@ type Response struct {
 }
 
 // NewResponse returns a Response with the specified code.
-// A response with code 0 will be consider a nil response.
 func NewResponse(code int) Response {
 	r := Response{}
 	r.code = code
@@ -35,23 +33,24 @@ func (s staticResponseBody) Mutate(v interface{}, success bool, err error) {
 
 }
 
-// WithBody will set the body property.
-// It generates a MutableResponseBody implementation under the hood.
+// WithBody will set a static body property.
+// It generates a dummy MutableResponseBody implementation under the hood, that will return the given 'body' parameter without change it.
 func (r Response) WithBody(body interface{}) Response {
 	r.MutableResponseBody = staticResponseBody{body}
 	return r
 }
 
 // WithOperationResultBody will set the body property.
-// It will also return the result of operation body as the response body.
-// It generates a MutableResponseBody implementation under the hood.
+// It generates a MutableResponseBody implementation under the hood, that will take the body result of an Operation as the response body.
+// The given body parameter will be used for the specification only.
 func (r Response) WithOperationResultBody(body interface{}) Response {
 	r.MutableResponseBody = &operationResponseBody{body}
 	return r
 }
 
-// WithMutableBody will set the MutableResponseBody property.
-// This will be used to mutates the result body, using the results of validation or an operation as inputs.
+// WithMutableBody will set the MutableResponseBody implementation.
+// This will be used to mutate the result body, using the result values of validation or an operation as inputs.
+// The struct of MutableResponseBody implementation will be used as response body for the specification.
 func (r Response) WithMutableBody(mutableResponseBody MutableResponseBody) Response {
 	r.MutableResponseBody = mutableResponseBody
 	return r
@@ -73,7 +72,8 @@ func (r Response) Description() string {
 	return r.description
 }
 
-// Body returns the body property.
+// Body returns the MutableResponseBody property.
+// In the case of a body that was set with WithBody or WithOperationResultBody methods, it will return the given 'body' parameter.
 func (r Response) Body() interface{} {
 	if staticResponse, ok := r.MutableResponseBody.(staticResponseBody); ok {
 		return staticResponse.body
