@@ -78,7 +78,7 @@ func GeneratePetStore() resource.RestAPI {
 						}
 						return nil
 					}), resource.NewResponse(400).WithDescription("Invalid ID supplied"))).
-			WithParameter(resource.NewHeaderParameter("api_key", reflect.String).AsOptional())
+			WithParameter(resource.NewHeaderParameter("api_key", reflect.String))
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource
 			uploadImageMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"))

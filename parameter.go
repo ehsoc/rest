@@ -36,9 +36,9 @@ func NewURIParameter(name string, tpe reflect.Kind) Parameter {
 	return Parameter{"", name, URIParameter, tpe, nil, nil, true, CollectionParam{}, validation{}, nil}
 }
 
-// NewHeaderParameter creates a HeaderParameter Parameter. Required property is true by default
+// NewHeaderParameter creates a HeaderParameter Parameter. Required property is false by default
 func NewHeaderParameter(name string, tpe reflect.Kind) Parameter {
-	return Parameter{"", name, HeaderParameter, tpe, nil, nil, true, CollectionParam{}, validation{}, nil}
+	return Parameter{"", name, HeaderParameter, tpe, nil, nil, false, CollectionParam{}, validation{}, nil}
 }
 
 // NewQueryParameter creates a QueryParameter Parameter. Required property is false by default
