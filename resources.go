@@ -7,7 +7,6 @@ type Resources struct {
 }
 
 // GetResources returns the collection of the resource nodes.
-// This is a copy of the internal collection, so resources cannot be changed from this slice.
 // The order of the elements will not be consistent.
 func (rs *Resources) GetResources() []Resource {
 	rs.checkMap()
@@ -19,6 +18,17 @@ func (rs *Resources) GetResources() []Resource {
 }
 
 // Resource creates a new resource node and append resources defined in fn function to the collection of resources to the new resource node.
+// The usage for the method is as follows:
+//
+//	r := resource.NewResource("root")
+// 	r.Resource("parent", func(r *resource.Resource) {
+// 		r.Resource("child1", func(r *resource.Resource) {
+//
+// 		})
+// 	r.Resource("child2", func(r *resource.Resource) {
+//
+// 		})
+// 	})
 func (rs *Resources) Resource(name string, fn func(r *Resource)) {
 	rs.checkMap()
 	newResource := NewResource(name)
