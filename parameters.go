@@ -4,7 +4,7 @@ type Parameters struct {
 	parameters map[ParameterType]map[string]Parameter
 }
 
-// AddParameter adds a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
+// AddParameter adds a new parameter to the collection with the unique composite key by HTTPType and Name properties.
 // It will silently override a parameter if the same key is already set.
 func (p *Parameters) AddParameter(parameter Parameter) {
 	p.checkNilMap()
@@ -20,7 +20,7 @@ func (p *Parameters) checkNilMap() {
 	}
 }
 
-// GetParameters gets the collection of parameters.
+// GetParameters gets the parameter collection.
 // The order of the slice elements will not be consistent.
 func (p *Parameters) GetParameters() []Parameter {
 	p.checkNilMap()
