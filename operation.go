@@ -1,7 +1,7 @@
 package resource
 
 // Operation defines a resource operation.
-// Execute function will execute the operation.
+// Execute method will execute the operation.
 // Return values:
 // Body: can be nil, and it will be the body to be returned if it sets to do so.
 // Success: will be true if the operation did what the client was expecting in the most positive outcome.

@@ -58,7 +58,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 
 func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response) {
 	_, encoder, err := m.contentTypeSelector.GetDefaultEncoder()
-	//if no default encdec is set will only return the header code
+	// if no default encdec is set will only return the header code
 	if err != nil {
 		w.WriteHeader(response.Code())
 		return
@@ -162,7 +162,7 @@ func (m *Method) GetDecoderMediaTypes() []string {
 	return mediaTypes
 }
 
-// WithParameter will add a new parameter to the collection with the unique key of parameter's HTTPType and Name properties.
+// WithParameter will add a new parameter to the collection with the unique key compose by HTTPType and Name properties.
 // It will silently override a parameter if the same key was already set.
 func (m *Method) WithParameter(parameter Parameter) *Method {
 	m.AddParameter(parameter)
@@ -187,7 +187,7 @@ func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 	return m
 }
 
-// WithValidation sets the validation operation and the response in case of error.
+// WithValidation sets the validation operation and the response in case of validation error.
 func (m *Method) WithValidation(validator Validator, failedValidationResponse Response) *Method {
 	m.validation = validation{validator, failedValidationResponse}
 	return m
