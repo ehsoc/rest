@@ -6,9 +6,8 @@ import (
 	"github.com/ehsoc/resource/encdec"
 )
 
-// HTTPContentTypeSelector contains all available content-types mimetypes,
-// associated with their respective encoder-decoders. Implements Negotiator interface through
-// embedding a Negotiator.
+// HTTPContentTypeSelector contains all available MIME types,
+// associated with their respective Encoder/Decoder. Implements Negotiator interface embedding a Negotiator.
 type HTTPContentTypeSelector struct {
 	encoderContentTypes map[string]encdec.Encoder
 	decoderContentTypes map[string]encdec.Decoder
@@ -18,24 +17,23 @@ type HTTPContentTypeSelector struct {
 	UnsupportedMediaTypeResponse Response
 }
 
-var DefaultUnsupportedMediaResponse = NewResponse(415)
-
-// NewHTTPContentTypeSelector will return a HTTPContentTypeSelector with an empty content-type
-// map and the Default Negotiator.
-// The Negotiator is a content-type negotiator, that can be replaced by a custom Negotiator implementation.
+// NewHTTPContentTypeSelector will return a HTTPContentTypeSelector.
+// Negotiator is a content-type negotiator, that can be replaced by a custom Negotiator implementation.
 func NewHTTPContentTypeSelector() HTTPContentTypeSelector {
 	var encoderContentTypes = make(map[string]encdec.Encoder)
 	var decoderContentTypes = make(map[string]encdec.Decoder)
-	return HTTPContentTypeSelector{encoderContentTypes, decoderContentTypes, "", "", DefaultNegotiator{}, DefaultUnsupportedMediaResponse}
+	return HTTPContentTypeSelector{encoderContentTypes, decoderContentTypes, "", "", DefaultNegotiator{}, NewResponse(415)}
 }
 
-// Add will add a new content-type encoder and decoder. defaultencdec encoder and decoder parameter will set the default for decoder and decoder.
-func (h *HTTPContentTypeSelector) Add(contentType string, ed encdec.EncoderDecoder, defaultencdec bool) {
-	h.AddEncoder(contentType, ed, defaultencdec)
-	h.AddDecoder(contentType, ed, defaultencdec)
+// Add adds a content-type EncoderDecoder.
+// isDefault parameter will set the default encoder and decoder.
+func (h *HTTPContentTypeSelector) Add(contentType string, ed encdec.EncoderDecoder, isDefault bool) {
+	h.AddEncoder(contentType, ed, isDefault)
+	h.AddDecoder(contentType, ed, isDefault)
 }
 
-// AddEncoder will add a new content-type decoder. isDefault parameter will set this decoder as the default one.
+// AddEncoder adds a content-type encoder.
+// isDefault parameter sets this encoder as default.
 func (h *HTTPContentTypeSelector) AddEncoder(contentType string, encoder encdec.Encoder, isDefault bool) {
 	h.checkNilEncoderMap()
 	h.encoderContentTypes[contentType] = encoder
@@ -44,7 +42,8 @@ func (h *HTTPContentTypeSelector) AddEncoder(contentType string, encoder encdec.
 	}
 }
 
-// AddDecoder will add a new content-type decoder. isDefault parameter will set this decoder as the default one.
+// AddDecoder adds a new content-type decoder.
+// isDefault parameter will set this decoder as default.
 func (h *HTTPContentTypeSelector) AddDecoder(contentType string, decoder encdec.Decoder, isDefault bool) {
 	h.checkNilDecoderMap()
 	h.decoderContentTypes[contentType] = decoder
@@ -53,7 +52,7 @@ func (h *HTTPContentTypeSelector) AddDecoder(contentType string, decoder encdec.
 	}
 }
 
-// GetEncoder will return the encoder with the provided contentType as key
+// GetEncoder gets the encoder with the provided contentType as key
 func (h *HTTPContentTypeSelector) GetEncoder(contentType string) (encdec.Encoder, error) {
 	if ed, ok := h.encoderContentTypes[contentType]; ok {
 		return ed, nil
@@ -61,7 +60,7 @@ func (h *HTTPContentTypeSelector) GetEncoder(contentType string) (encdec.Encoder
 	return nil, ErrorNoDefaultContentTypeIsSet
 }
 
-// GetDecoder will return the encoder with the provided contentType as key
+// GetDecoder gets the decoder with the provided contentType as key
 func (h *HTTPContentTypeSelector) GetDecoder(contentType string) (encdec.Decoder, error) {
 	if ed, ok := h.decoderContentTypes[contentType]; ok {
 		return ed, nil
@@ -69,7 +68,7 @@ func (h *HTTPContentTypeSelector) GetDecoder(contentType string) (encdec.Decoder
 	return nil, ErrorNoDefaultContentTypeIsSet
 }
 
-// GetDefaultEncoder returns the default encoder is one is defined
+// GetDefaultEncoder gets default encoder.
 func (h *HTTPContentTypeSelector) GetDefaultEncoder() (string, encdec.Encoder, error) {
 	if ed, ok := h.encoderContentTypes[h.defaultEncoder]; ok {
 		return h.defaultEncoder, ed, nil
@@ -77,7 +76,7 @@ func (h *HTTPContentTypeSelector) GetDefaultEncoder() (string, encdec.Encoder, e
 	return "", nil, ErrorNoDefaultContentTypeIsSet
 }
 
-// GetDefaultDecoder returns the default encoder is one is defined
+// GetDefaultDecoder gets the default decoder.
 func (h *HTTPContentTypeSelector) GetDefaultDecoder() (string, encdec.Decoder, error) {
 	if ed, ok := h.decoderContentTypes[h.defaultEncoder]; ok {
 		return h.defaultDecoder, ed, nil

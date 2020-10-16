@@ -13,7 +13,7 @@ import (
 type DefaultNegotiator struct {
 }
 
-// NegotiateEncoder the one of the method implementation of Negotiator interface
+// NegotiateEncoder resolves the MIME type and Encoder to be used by the Handler to process the response.
 func (d DefaultNegotiator) NegotiateEncoder(r *http.Request, cts *HTTPContentTypeSelector) (string, encdec.Encoder, error) {
 	accept := r.Header.Get("Accept")
 	if strings.Trim(accept, "") != "" {
@@ -28,7 +28,7 @@ func (d DefaultNegotiator) NegotiateEncoder(r *http.Request, cts *HTTPContentTyp
 	return cts.GetDefaultEncoder()
 }
 
-// NegotiateDecoder the one of the method implementation of Negotiator interface
+// NegotiateDecoder resolves the MIME type and Decoder to be used by the Handler to process the request.
 func (d DefaultNegotiator) NegotiateDecoder(r *http.Request, cts *HTTPContentTypeSelector) (string, encdec.Decoder, error) {
 	ct := r.Header.Get("Content-Type")
 	// Only if it is a non-empty and not nil Body we will require a Content-Type header

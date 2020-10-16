@@ -9,10 +9,11 @@ import (
 	"github.com/ehsoc/resource/httputil"
 )
 
-// Input type is used as Operation Execute method as input.
-// Input Get methods can help to check property definition against implementation, returning an error if parameter was not defined.
+// Input type is the main parameter of the Execute method of an Operation interface implementation.
+// Input getter methods are intended to be used as a specification-implementation check control,
+// so if a parameter was not defined will return an error.
 // Request property provide access to the http.Request pointer.
-// Paramters is the collection of defined method's parameters.
+// Parameters is the collection of parameter defined for the method.
 // RequestBodyParameter parameter is the Request Body defined for the method.
 type Input struct {
 	Request              *http.Request
@@ -98,7 +99,7 @@ func (i Input) GetFormValues(key string) ([]string, error) {
 }
 
 // GetFormFiles gets all the files of a multipart form with the provided key, in a slice of *multipart.FileHeader
-// If the parameter is not defined will return error, as well any other error will returned if a problem
+// If the parameter is not defined will return error, as well any other error will be returned if a problem
 // is find getting the files.
 func (i Input) GetFormFiles(key string) ([]*multipart.FileHeader, error) {
 	//Check param is defined
@@ -120,7 +121,7 @@ func (i Input) GetFormFile(key string) ([]byte, *multipart.FileHeader, error) {
 	return httputil.GetFormFile(i.Request, key)
 }
 
-// GetBody returns the request body, error if is not defined.
+// GetBody gets the request body, error if is not defined.
 func (i Input) GetBody() (io.ReadCloser, error) {
 	//Check param is defined
 	if i.RequestBodyParameter.Body == nil {
