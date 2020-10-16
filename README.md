@@ -1,20 +1,63 @@
 # resource
-Resource is an experimental Web Resource abstraction for composing a REST API in Go (Golang).
+Resource is an experimental Web Resource abstraction for composing REST APIs in Go (Golang).
 
 - **Rapid prototyping**.
 - **Web Server generation (http.Handler)**
 - **REST API Specification generation (Open-API v2)**
 
-## It is based on 2 main components:
-1. Resource. Each resource is a node, and each resource node contains a collection of resources.
-2. RestAPI (Like a Resource, but it is the root) 
+## Base components:
+- RestAPI (Like a Resource, but it is the root node)
+- Resource. Each resource is a node.
 
-## RestAPI main functions :
-1. GenerateServer(restAPI RestAPI) http.Handler
-2. GenerateAPISpec(w io.Writer, restAPI RestAPI)
+Code example:
+
+```go
+api := resource.RestAPI{}
+	api.BasePath = "/v2"
+	api.Host = "localhost"
+	api.Resource("car", func(r *resource.Resource){
+		r.Resource("findMatch", func(r *resource.Resource){
+		}
+		r.Resource("{carId}", func(r *resource.Resource){
+		}
+	})
+	r.Resource("ping", func(r *resource.Resource){
+	}
+	r.Resource("user", func(r *resource.Resource){
+		r.Resource("signOut", func(r *resource.Resource){
+		}
+	}
+	
+```
+Diagram representation of the above code:
+
+```
+                                     +-----------+
+                                     |           |
+                          +----------+  RestAPI  +-----------+
+                          |          |   "v2"    |           |
+                          |          +-----+-----+           |
+                          |                |                 |
+                   +------v-----+    +-----v-----+     +-----v-----+
+                   |            |    |           |     |           |
+       +-----------+  Resource  |    |  Resource |     |  Resource |
+       |           |   "car"    |    |  "ping"   |     |  "user"   |
+       |           +-----+------+    +-----------+     +-----+-----+
+       |                 |                                   |
++------v------+    +-----v------+                      +-----v------+
+|             |    |            |                      |            |
+|  Resource   |    |  Resource  |                      |  Resource  |
+| "findMatch" |    |  "{carId}" |                      |  "signOut" |
++-------------+    +------------+                      +------------+
+
+```
 
 
-**Resource components:**
+## RestAPI methods:
+- GenerateServer(restAPI RestAPI) http.Handler
+- GenerateAPISpec(w io.Writer, restAPI RestAPI)
+
+## Resource main components:
 - Methods: A collection of HTTP methods (Method)
 - Method: A Method represents an HTTP method with a HTTP Handler.
 - MethodOperation: Describes an Operation and two Responses, one for Operation success, and another for failure.
@@ -54,10 +97,9 @@ getCarOperation := func(i res.Input) (body interface{}, success bool, err error)
 }
 getCar := res.NewMethodOperation(
 	res.OperationFunc(getCarOperation),
-	res.NewResponse(200).WithBody(Car{}),
-	res.NewResponse(404),
-	true,
-)
+	res.NewResponse(200).WithOperationResultBody(Car{})).
+	WithFailResponse(res.NewResponse(404))
+
 ct := res.NewHTTPContentTypeSelector()
 ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
