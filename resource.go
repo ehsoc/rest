@@ -2,11 +2,11 @@ package resource
 
 import (
 	"net/http"
-	"regexp"
 	"strings"
 )
 
-// Resource represents a REST API resource and a node in a url path tree.
+// Resource represents a REST API resource, and a node in a URL tree path.
+// It contains a collection of resource methods, and a collection of resources.
 type Resource struct {
 	path        string
 	Summary     string
@@ -14,7 +14,6 @@ type Resource struct {
 	// a unique method key is defined by a combination of a path and a HTTP method.
 	methods map[string]*Method
 	Resources
-	uRIParam Parameter
 }
 
 // NewResource creates a new resource node.
@@ -30,82 +29,63 @@ func NewResource(name string) Resource {
 	return r
 }
 
-// func newResourceWithURIParam(pathStr string, paramDescription string, paramType reflect.Kind) (Resource, error) {
-// 	params := getURLParamName(pathStr)
-// 	if params == nil {
-// 		return Resource{}, ErrorResourceURIParamNoParamFound
-// 	}
-// 	if len(params) > 1 {
-// 		return Resource{}, ErrorResourceURIParamMoreThanOne
-// 	}
-// 	r := Resource{}
-// 	r.path = pathStr
-// 	r.uRIParam = NewURIParameter(strings.Trim(params[0], "{}"), paramType).WithDescription(paramDescription)
-// 	return r, nil
-// }
-
-func getURLParamName(pathStr string) []string {
-	re := regexp.MustCompile(`\{(.*?)\}`)
-	return re.FindAllString(pathStr, -1)
-}
-
-// Get adds a new method GET to the method collection
+// Get adds a new GET method to the method collection
 func (rs *Resource) Get(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodGet, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Post adds a new method POST to the method collection
+// Post adds a new POST method to the method collection
 func (rs *Resource) Post(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodPost, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Delete adds a new method DELETE to the method collection
+// Delete adds a new DELETE method to the method collection
 func (rs *Resource) Delete(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodDelete, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Options adds a new method OPTIONS to the method collection
+// Options adds a new OPTIONS method to the method collection
 func (rs *Resource) Options(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodOptions, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Put adds a new method PUT to the method collection
+// Put adds a new PUT method to the method collection
 func (rs *Resource) Put(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodPut, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Patch adds a new method PATCH to the method collection
+// Patch adds a new PATCH method to the method collection
 func (rs *Resource) Patch(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodPatch, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Connect adds a new method CONNECT to the method collection
+// Connect adds a new CONNECT method to the method collection
 func (rs *Resource) Connect(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodConnect, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Head adds a new method HEAD to the method collection
+// Head adds a new HEAD method to the method collection
 func (rs *Resource) Head(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodHead, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)
 	return method
 }
 
-// Trace adds a new method TRACE to the method collection
+// Trace adds a new TRACE method to the method collection
 func (rs *Resource) Trace(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
 	method := NewMethod(http.MethodTrace, methodOperation, contentTypeSelector)
 	rs.AddMethod(method)

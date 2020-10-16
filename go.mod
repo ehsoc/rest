@@ -7,5 +7,6 @@ require (
 	github.com/go-openapi/spec v0.19.9
 	github.com/nsf/jsondiff v0.0.0-20200515183724-f29ed568f4ce
 	github.com/spf13/afero v1.4.0
+	github.com/swaggo/http-swagger v0.0.0-20200308142732-58ac5e232fba
 	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
 )
