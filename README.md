@@ -1,6 +1,6 @@
 # resource
 Resource is an experimental Web Resource abstraction for composing REST APIs in Go (Golang).
-
+ 
 - **Rapid prototyping**.
 - **Web Server generation (http.Handler)**
 - **REST API Specification generation (Open-API v2)**
@@ -59,9 +59,9 @@ Diagram representation of the above code:
 
 ## Resource main components:
 - Methods: A collection of HTTP methods (Method)
-- Method: A Method represents an HTTP method with a HTTP Handler.
-- MethodOperation: Describes an Operation and two Responses, one for Operation success, and another for failure.
-- HTTPContentTypeSelector: Describes the available content types of expected request and responses. Contains a default Content-Type negotiator that you can replace with your own implementation.
+- Method: A Method represents an HTTP method with an HTTP Handler.
+- MethodOperation: Describes an Operation and Responses, one for Operation success, and another for failure.
+- HTTPContentTypeSelector: Describes the available content types of for request and responses. Contains a default Content-Type negotiator that you can replace with your own implementation.
 - Operation: Represents a logical operation function.`Operation` is an interface defined by an `Execute` method.
 
 	- Execute method:
