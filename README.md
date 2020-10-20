@@ -66,7 +66,7 @@ api.Resource("user", func(r *resource.Resource) {
 - Method: A Method represents an HTTP method with an HTTP Handler.
 - MethodOperation: Describes an Operation and Responses (success and failure).
 - Renderers: Describes the available renderers for request and responses. 
-- Negotiator: Interface responsable for the content negotiation. A default implementation will be fill when you create a new Method.
+- Negotiator: Interface responsable for content negotiation. A default implementation will be set when you create a Method.
 - Operation: Represents a logical operation function upon a resource, like delete, list, create, etc. `Operation` is an interface defined by an `Execute` method.
 
 	- Execute method:
@@ -79,7 +79,7 @@ api.Resource("user", func(r *resource.Resource) {
 
 			3.  `err` (error): The `err`(error) is meant to indicate an API error, or any internal server error, like a database failure, i/o error, etc. The `err`!=nil will always trigger a 500 code error.
 	
-- Parameters: The parameters expected to be send by the client. The main purpose of the declaration of parameters is for specification documentation.
+- Parameters: The parameters expected to be send by the client. The main purpose of the declaration of parameters is for API specification generation.
 
 ### Resource main components diagram:
 
