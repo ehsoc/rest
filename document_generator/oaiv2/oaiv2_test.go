@@ -30,7 +30,7 @@ func TestNoEmptyResources(t *testing.T) {
 	api.Resource("car", func(r *resource.Resource) {
 		carIdParam := resource.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *resource.Resource) {
-			r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{}).WithParameter(carIdParam)
+			r.Get(resource.MethodOperation{}, resource.Renderers{}).WithParameter(carIdParam)
 		})
 	})
 	gen := oaiv2.OpenAPIV2SpecGenerator{}

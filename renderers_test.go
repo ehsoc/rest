@@ -27,18 +27,18 @@ func (e *EncodeDecoderSpy) Decode(r io.Reader, v interface{}) error {
 func TestAdd(t *testing.T) {
 	t.Run("nil maps", func(t *testing.T) {
 		defer assertNoPanic(t)
-		ct := resource.HTTPContentTypeSelector{}
-		ct.Add("", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.Renderers{}
+		renderers.Add("", encdec.JSONEncoderDecoder{}, true)
 	})
 }
 
 func TestEncoderDecoderSelector(t *testing.T) {
 	t.Run("getting an existent key on encoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
-		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add(wantContentType, e, false)
-		encoder, err := contentTypes.GetEncoder(wantContentType)
+		wantMIMEType := "test/message"
+		renderers := resource.NewRenderers()
+		renderers.Add(wantMIMEType, e, false)
+		encoder, err := renderers.GetEncoder(wantMIMEType)
 		if err != nil {
 			t.Fatalf("Not expecting error: %v", err)
 		}
@@ -48,20 +48,20 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	})
 	t.Run("getting a non existent key on encoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
-		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add(wantContentType, e, false)
-		_, err := contentTypes.GetEncoder("randomkey")
+		wantMIMEType := "test/message"
+		renderers := resource.NewRenderers()
+		renderers.Add(wantMIMEType, e, false)
+		_, err := renderers.GetEncoder("randomkey")
 		if err == nil {
 			t.Errorf("Was expecting error.")
 		}
 	})
 	t.Run("getting an existent key on decoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
-		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add(wantContentType, e, false)
-		encoderDecoder, err := contentTypes.GetDecoder(wantContentType)
+		wantMIMEType := "test/message"
+		renderers := resource.NewRenderers()
+		renderers.Add(wantMIMEType, e, false)
+		encoderDecoder, err := renderers.GetDecoder(wantMIMEType)
 		if err != nil {
 			t.Fatalf("Not expecting error: %v", err)
 		}
@@ -73,10 +73,10 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	})
 	t.Run("getting a non existent key on decoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
-		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add(wantContentType, e, false)
-		_, err := contentTypes.GetDecoder("randomkey")
+		wantMIMEType := "test/message"
+		renderers := resource.NewRenderers()
+		renderers.Add(wantMIMEType, e, false)
+		_, err := renderers.GetDecoder("randomkey")
 		if err == nil {
 			t.Errorf("Was expecting error.")
 		}
@@ -87,30 +87,30 @@ func TestEncoderDecoderSelector(t *testing.T) {
 func TestGetDefaultEncoderDecoder(t *testing.T) {
 	t.Run("no default encdec", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
-		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add(wantContentType, e, false)
-		_, _, err := contentTypes.GetDefaultEncoder()
+		wantMIMEType := "test/message"
+		renderers := resource.NewRenderers()
+		renderers.Add(wantMIMEType, e, false)
+		_, _, err := renderers.GetDefaultEncoder()
 		if err == nil {
 			t.Errorf("Was expecting error.")
 		}
 	})
 	t.Run("get default encdec", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
-		wantContentType := "test/message"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("random/json", e, false)
-		contentTypes.Add("r/xml", e, true)
+		wantMIMEType := "test/message"
+		renderers := resource.NewRenderers()
+		renderers.Add("random/json", e, false)
+		renderers.Add("r/xml", e, true)
 		//The last overwrites all
-		contentTypes.Add(wantContentType, e, true)
-		contentTypes.Add("r/tson", e, false)
-		contentTypes.Add("r/ttext", e, false)
-		got, _, err := contentTypes.GetDefaultDecoder()
+		renderers.Add(wantMIMEType, e, true)
+		renderers.Add("r/tson", e, false)
+		renderers.Add("r/ttext", e, false)
+		got, _, err := renderers.GetDefaultDecoder()
 		if err != nil {
 			t.Fatalf("Not expecting error: %v", err)
 		}
-		if got != wantContentType {
-			t.Errorf("got:%s want:%s", got, wantContentType)
+		if got != wantMIMEType {
+			t.Errorf("got:%s want:%s", got, wantMIMEType)
 		}
 	})
 

@@ -65,7 +65,8 @@ api.Resource("user", func(r *resource.Resource) {
 - Methods: A collection of HTTP methods (Method)
 - Method: A Method represents an HTTP method with an HTTP Handler.
 - MethodOperation: Describes an Operation and Responses (success and failure).
-- HTTPContentTypeSelector: Describes the available content types of for request and responses. It contains a Negotiator interface, that is the responsable for the content negotation.
+- Renderers: Describes the available renderers for request and responses. 
+- Negotiator: Interface responsable for the content negotiation. A default implementation will be fill when you create a new Method.
 - Operation: Represents a logical operation function upon a resource, like delete, list, create, etc. `Operation` is an interface defined by an `Execute` method.
 
 	- Execute method:
@@ -96,7 +97,7 @@ api.Resource("user", func(r *resource.Resource) {
                                         |                +-----+-----+        +----+------+          |
                                         |                      |                   |                 |
                                +--------+-------+      +-------+--------+
-                               | MethodOperation|      ContentTypeSelector
+                               | MethodOperation|      |    Renderers   |
                         +------+                +---+  |                |
                         |      |                |   |  |                |
 Your operation method   |      +------+---------+   |  +----------------+
@@ -136,7 +137,7 @@ successResponse := res.NewResponse(200).WithOperationResultBody(Car{})
 failResponse := res.NewResponse(404)
 getCar := res.NewMethodOperation(res.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
 
-ct := res.NewHTTPContentTypeSelector()
+ct := res.NewRenderers()
 ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 root := res.RestAPI{}

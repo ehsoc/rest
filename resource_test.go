@@ -14,10 +14,10 @@ const summary string = "this is my method"
 var moTest = resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404))
 
 func TestAddMethod(t *testing.T) {
-	ct := resource.NewHTTPContentTypeSelector()
+	renderers := resource.NewRenderers()
 	t.Run("get method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		m := resource.NewMethod("GET", moTest, ct)
+		m := resource.NewMethod("GET", moTest, renderers)
 		r.AddMethod(m)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -33,27 +33,27 @@ func TestAddMethod(t *testing.T) {
 	t.Run("methods map nil", func(t *testing.T) {
 		defer assertNoPanic(t)
 		r := resource.Resource{}
-		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		r.Get(resource.MethodOperation{}, resource.Renderers{})
 	})
 	t.Run("methods map nil with constructor", func(t *testing.T) {
 		defer assertNoPanic(t)
 		r := resource.NewResource("pet")
-		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		r.Get(resource.MethodOperation{}, resource.Renderers{})
 	})
 	t.Run("error on existing method", func(t *testing.T) {
 		defer assertPanicError(t, resource.ErrorResourceMethodCollition)
 		r := resource.NewResource("")
-		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
-		r.Post(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
-		r.Get(resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		r.Get(resource.MethodOperation{}, resource.Renderers{})
+		r.Post(resource.MethodOperation{}, resource.Renderers{})
+		r.Get(resource.MethodOperation{}, resource.Renderers{})
 	})
 }
 
 func TestGet(t *testing.T) {
-	ct := resource.NewHTTPContentTypeSelector()
+	renderers := resource.NewRenderers()
 	t.Run("get method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Get(moTest, ct)
+		r.Get(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -67,7 +67,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("post method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Post(moTest, ct)
+		r.Post(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -81,7 +81,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("options put", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Put(moTest, ct)
+		r.Put(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -95,7 +95,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("options patch", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Patch(moTest, ct)
+		r.Patch(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -109,7 +109,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("delete method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Delete(moTest, ct)
+		r.Delete(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -123,7 +123,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("options method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Options(moTest, ct)
+		r.Options(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -137,7 +137,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("connect method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Connect(moTest, ct)
+		r.Connect(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -151,7 +151,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("head method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Head(moTest, ct)
+		r.Head(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -165,7 +165,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("trace method", func(t *testing.T) {
 		r := resource.NewResource("pet")
-		r.Trace(moTest, ct)
+		r.Trace(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}

@@ -40,8 +40,8 @@ func GenerateServer() http.Handler {
 	failResponse := res.NewResponse(404)
 	getCar := res.NewMethodOperation(res.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
 
-	ct := res.NewHTTPContentTypeSelector()
-	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	rds := res.NewRenderers()
+	rds.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 	root := res.RestAPI{}
 	root.BasePath = "/v1"
@@ -50,7 +50,7 @@ func GenerateServer() http.Handler {
 	root.Resource("car", func(r *res.Resource) {
 		carIdParam := res.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *res.Resource) {
-			r.Get(getCar, ct).WithParameter(carIdParam)
+			r.Get(getCar, rds).WithParameter(carIdParam)
 		})
 	})
 	server := root.GenerateServer(chigenerator.ChiGenerator{})

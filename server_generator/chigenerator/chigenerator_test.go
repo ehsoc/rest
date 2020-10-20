@@ -48,14 +48,14 @@ func TestGenerateServer(t *testing.T) {
 		api := resource.RestAPI{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		getMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(200)).WithFailResponse(resource.NewResponse(http.StatusNotFound))
 		petResource := resource.NewResource("pet")
 		petResource.Resource("{petId}", func(r *resource.Resource) {
 			uriParam := resource.NewURIParameter("petId", reflect.String)
-			r.Get(getMethodOp, contentTypes).WithParameter(uriParam)
+			r.Get(getMethodOp, renderers).WithParameter(uriParam)
 		})
 		myId := "101"
 		api.AddResource(petResource)
@@ -80,11 +80,11 @@ func TestGenerateServer(t *testing.T) {
 		api := resource.RestAPI{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		postMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(http.StatusCreated).WithBody(petstore.Pet{})).WithFailResponse(resource.NewResponse(http.StatusBadRequest))
-		postMethod := resource.NewMethod(http.MethodPost, postMethodOp, contentTypes)
+		postMethod := resource.NewMethod(http.MethodPost, postMethodOp, renderers)
 		petResource := resource.NewResource("pet")
 		postMethod.RequestBody = resource.RequestBody{Description: "", Body: petstore.Pet{}}
 		petResource.AddMethod(postMethod)
@@ -125,7 +125,7 @@ var testRoutes = []struct {
 
 func TestNestedRoutes(t *testing.T) {
 	mo := resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(http.StatusOK)).WithFailResponse(resource.NewResponse(500))
-	ct := resource.NewHTTPContentTypeSelector()
+	ct := resource.NewRenderers()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	rootResource := resource.NewResource("1")
 	rootResource.Resource("2", func(r *resource.Resource) {

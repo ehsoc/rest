@@ -11,43 +11,45 @@ import (
 
 // Method represents a http operation that is performed on a resource.
 type Method struct {
-	HTTPMethod          string
-	Summary             string
-	Description         string
-	RequestBody         RequestBody
-	MethodOperation     MethodOperation
-	contentTypeSelector HTTPContentTypeSelector
+	HTTPMethod      string
+	Summary         string
+	Description     string
+	RequestBody     RequestBody
+	MethodOperation MethodOperation
+	renderers       Renderers
+	Negotiator
 	http.Handler
 	Parameters
 	validation
 }
 
 // NewMethod returns a Method instance
-func NewMethod(HTTPMethod string, methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
+func NewMethod(HTTPMethod string, methodOperation MethodOperation, renderers Renderers) *Method {
 	m := Method{}
 	m.HTTPMethod = HTTPMethod
 	m.MethodOperation = methodOperation
-	m.contentTypeSelector = contentTypeSelector
+	m.renderers = renderers
+	m.Negotiator = DefaultNegotiator{}
 	m.parameters = make(map[ParameterType]map[string]Parameter)
-	m.Handler = m.contentTypeMiddleware(http.HandlerFunc(m.mainHandler))
+	m.Handler = m.negotiationMiddleware(http.HandlerFunc(m.mainHandler))
 	return &m
 }
 
-func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
+func (m *Method) negotiationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		responseContentType, encoder, err := m.contentTypeSelector.NegotiateEncoder(r)
+		responseContentType, encoder, err := m.Negotiator.NegotiateEncoder(r, &m.renderers)
 		if err != nil {
-			mutateResponseBody(&m.contentTypeSelector.UnsupportedMediaTypeResponse, nil, false, err)
-			m.writeResponseFallBack(w, m.contentTypeSelector.UnsupportedMediaTypeResponse)
+			mutateResponseBody(&m.renderers.UnsupportedMediaTypeResponse, nil, false, err)
+			m.writeResponseFallBack(w, m.renderers.UnsupportedMediaTypeResponse)
 			return
 		}
 		ctx := context.WithValue(r.Context(), EncoderDecoderContextKey("encoder"), encoder)
 		ctx = context.WithValue(ctx, ContentTypeContextKey("encoder"), responseContentType)
-		decoderContentType, decoder, err := m.contentTypeSelector.NegotiateDecoder(r)
+		decoderContentType, decoder, err := m.Negotiator.NegotiateDecoder(r, &m.renderers)
 		ctx = context.WithValue(ctx, ContentTypeContextKey("decoder"), decoderContentType)
 		if err != nil && r.Body != http.NoBody && r.Body != nil {
-			mutateResponseBody(&m.contentTypeSelector.UnsupportedMediaTypeResponse, nil, false, err)
-			writeResponse(ctx, w, m.contentTypeSelector.UnsupportedMediaTypeResponse)
+			mutateResponseBody(&m.renderers.UnsupportedMediaTypeResponse, nil, false, err)
+			writeResponse(ctx, w, m.renderers.UnsupportedMediaTypeResponse)
 			return
 		}
 		ctx = context.WithValue(ctx, EncoderDecoderContextKey("decoder"), decoder)
@@ -57,7 +59,7 @@ func (m *Method) contentTypeMiddleware(next http.Handler) http.Handler {
 }
 
 func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response) {
-	_, encoder, err := m.contentTypeSelector.GetDefaultEncoder()
+	_, encoder, err := m.renderers.GetDefaultEncoder()
 	// if no default encdec is set will only return the header code
 	if err != nil {
 		w.WriteHeader(response.Code())
@@ -143,7 +145,7 @@ func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
 // GetEncoderMediaTypes gets a string slice of the method's encoder media types
 func (m *Method) GetEncoderMediaTypes() []string {
 	mediaTypes := []string{}
-	for m := range m.contentTypeSelector.encoderContentTypes {
+	for m := range m.renderers.encoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
 	//Sorting map keys for order consistency
@@ -154,7 +156,7 @@ func (m *Method) GetEncoderMediaTypes() []string {
 // GetDecoderMediaTypes gets a string slice of the method's decoder media types
 func (m *Method) GetDecoderMediaTypes() []string {
 	mediaTypes := []string{}
-	for m := range m.contentTypeSelector.decoderContentTypes {
+	for m := range m.renderers.decoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
 	//Sorting map keys for consistency

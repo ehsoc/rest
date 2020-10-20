@@ -30,64 +30,64 @@ func NewResource(name string) Resource {
 }
 
 // Get adds a new GET method to the method collection
-func (rs *Resource) Get(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodGet, methodOperation, contentTypeSelector)
+func (rs *Resource) Get(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodGet, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Post adds a new POST method to the method collection
-func (rs *Resource) Post(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodPost, methodOperation, contentTypeSelector)
+func (rs *Resource) Post(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodPost, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Delete adds a new DELETE method to the method collection
-func (rs *Resource) Delete(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodDelete, methodOperation, contentTypeSelector)
+func (rs *Resource) Delete(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodDelete, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Options adds a new OPTIONS method to the method collection
-func (rs *Resource) Options(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodOptions, methodOperation, contentTypeSelector)
+func (rs *Resource) Options(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodOptions, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Put adds a new PUT method to the method collection
-func (rs *Resource) Put(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodPut, methodOperation, contentTypeSelector)
+func (rs *Resource) Put(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodPut, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Patch adds a new PATCH method to the method collection
-func (rs *Resource) Patch(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodPatch, methodOperation, contentTypeSelector)
+func (rs *Resource) Patch(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodPatch, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Connect adds a new CONNECT method to the method collection
-func (rs *Resource) Connect(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodConnect, methodOperation, contentTypeSelector)
+func (rs *Resource) Connect(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodConnect, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Head adds a new HEAD method to the method collection
-func (rs *Resource) Head(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodHead, methodOperation, contentTypeSelector)
+func (rs *Resource) Head(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodHead, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }
 
 // Trace adds a new TRACE method to the method collection
-func (rs *Resource) Trace(methodOperation MethodOperation, contentTypeSelector HTTPContentTypeSelector) *Method {
-	method := NewMethod(http.MethodTrace, methodOperation, contentTypeSelector)
+func (rs *Resource) Trace(methodOperation MethodOperation, renderers Renderers) *Method {
+	method := NewMethod(http.MethodTrace, methodOperation, renderers)
 	rs.AddMethod(method)
 	return method
 }

@@ -64,12 +64,12 @@ func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
 type NegotiatorErrorStub struct {
 }
 
-func (n NegotiatorErrorStub) NegotiateEncoder(*http.Request, *resource.HTTPContentTypeSelector) (mimeType string, encoder encdec.Encoder, err error) {
-	return "", nil, errors.New("content type not available")
+func (n NegotiatorErrorStub) NegotiateEncoder(*http.Request, *resource.Renderers) (mimeType string, encoder encdec.Encoder, err error) {
+	return "", nil, errors.New("renderer not available")
 }
 
-func (n NegotiatorErrorStub) NegotiateDecoder(*http.Request, *resource.HTTPContentTypeSelector) (mimeType string, encoder encdec.Decoder, err error) {
-	return "", nil, errors.New("content type not available")
+func (n NegotiatorErrorStub) NegotiateDecoder(*http.Request, *resource.Renderers) (mimeType string, encoder encdec.Decoder, err error) {
+	return "", nil, errors.New("renderer not available")
 }
 
 type Color struct {
@@ -87,12 +87,12 @@ var ISErrorResponse = resource.NewResponse(http.StatusNotFound).WithBody(TestRes
 func TestOperations(t *testing.T) {
 	t.Run("POST no response body", func(t *testing.T) {
 		successResponse := resource.NewResponse(http.StatusCreated)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := ISErrorResponse
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -111,12 +111,12 @@ func TestOperations(t *testing.T) {
 	t.Run("POST response body", func(t *testing.T) {
 		responseBody := TestResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := ISErrorResponse
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -134,12 +134,12 @@ func TestOperations(t *testing.T) {
 	t.Run("POST Operation Error with query parameter trigger", func(t *testing.T) {
 		responseBody := TestResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.NewResponse(http.StatusFailedDependency).WithBody(TestResponseBody{http.StatusFailedDependency, ""})
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		method.AddParameter(resource.NewQueryParameter("error", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
@@ -160,11 +160,11 @@ func TestOperations(t *testing.T) {
 		}()
 		responseBody := TestResponseBody{http.StatusCreated, ""}
 		successResponse := resource.NewResponse(http.StatusCreated).WithBody(responseBody)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		method.AddParameter(resource.NewQueryParameter("fail", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?fail=fail", nil)
 		response := httptest.NewRecorder()
@@ -176,12 +176,12 @@ func TestOperations(t *testing.T) {
 	})
 	t.Run("GET Operation Failed with query parameter trigger", func(t *testing.T) {
 		successResponse := resource.NewResponse(http.StatusCreated)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.NewResponse(http.StatusNotFound)
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := resource.NewMethod(http.MethodGet, mo, contentTypes)
+		method := resource.NewMethod(http.MethodGet, mo, renderers)
 		method.AddParameter(resource.NewQueryParameter("fail", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?fail=fail", nil)
 		response := httptest.NewRecorder()
@@ -194,13 +194,13 @@ func TestOperations(t *testing.T) {
 	t.Run("unsupported media response in negotiation in POST with no body", func(t *testing.T) {
 		responseBody := TestResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
 		unsupportedMediaResponse := resource.NewResponse(http.StatusUnsupportedMediaType).WithBody(responseBody)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.UnsupportedMediaTypeResponse = unsupportedMediaResponse
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-		contentTypes.Negotiator = NegotiatorErrorStub{}
+		renderers := resource.NewRenderers()
+		renderers.UnsupportedMediaTypeResponse = unsupportedMediaResponse
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, resource.NewResponse(200))
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
+		method.Negotiator = NegotiatorErrorStub{}
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -215,13 +215,13 @@ func TestOperations(t *testing.T) {
 	t.Run("unsupported media response in negotiation in POST with body no default type", func(t *testing.T) {
 		responseBody := TestResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
 		unsupportedMediaResponse := resource.NewResponse(http.StatusUnsupportedMediaType).WithBody(responseBody)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.UnsupportedMediaTypeResponse = unsupportedMediaResponse
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, false)
-		contentTypes.Negotiator = NegotiatorErrorStub{}
+		renderers := resource.NewRenderers()
+		renderers.UnsupportedMediaTypeResponse = unsupportedMediaResponse
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, false)
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, resource.NewResponse(200))
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
+		method.Negotiator = NegotiatorErrorStub{}
 		request, _ := http.NewRequest(http.MethodPost, "/?error=error", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -233,12 +233,12 @@ func TestOperations(t *testing.T) {
 	t.Run("unsupported media response decoder negotiation", func(t *testing.T) {
 		responseBody := TestResponseBody{http.StatusUnsupportedMediaType, "we do not support that"}
 		unsupportedMediaResponse := resource.NewResponse(http.StatusUnsupportedMediaType).WithBody(responseBody)
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.UnsupportedMediaTypeResponse = unsupportedMediaResponse
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.UnsupportedMediaTypeResponse = unsupportedMediaResponse
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, resource.NewResponse(200))
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBufferString("{}"))
 		request.Header.Set("Content-Type", "unknown")
 		request.Header.Set("Accept", "application/json")
@@ -254,13 +254,13 @@ func TestOperations(t *testing.T) {
 	})
 	t.Run("GET id return entity on Body response", func(t *testing.T) {
 		successResponse := resource.NewResponse(200).WithOperationResultBody(Car{})
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := ISErrorResponse
 		wantedCar := Car{2, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: wantedCar}
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -277,15 +277,15 @@ func TestOperations(t *testing.T) {
 	})
 	t.Run("read body", func(t *testing.T) {
 		successResponse := resource.NewResponse(201).WithBody(Car{})
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := ISErrorResponse
 		wantedCar := Car{200, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: Car{}}
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes).WithRequestBody("", Car{})
+		method := resource.NewMethod(http.MethodPost, mo, renderers).WithRequestBody("", Car{})
 		buf := bytes.NewBufferString("")
-		_, encoder, _ := contentTypes.GetDefaultEncoder()
+		_, encoder, _ := renderers.GetDefaultEncoder()
 		encoder.Encode(buf, wantedCar)
 		request, _ := http.NewRequest(http.MethodPost, "/", buf)
 		request.Header.Set("content-type", "application/json")
@@ -307,10 +307,10 @@ func TestOperations(t *testing.T) {
 	t.Run("read multipart/form-data", func(t *testing.T) {
 		operation := &OperationStub{}
 		mo := resource.NewMethodOperation(operation, resource.NewResponse(200).WithDescription("successful operation"))
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
-		contentTypes.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		renderers := resource.NewRenderers()
+		renderers.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
+		renderers.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		method.AddParameter(resource.NewURIParameter("petId", reflect.String))
 		method.AddParameter(resource.NewFormDataParameter("additionalMetadata", reflect.String, nil).WithDescription("Additional data to pass to server"))
 		method.AddParameter(resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data"))
@@ -353,13 +353,13 @@ func TestOperations(t *testing.T) {
 
 	t.Run("GET id return entity on Body response only encoder", func(t *testing.T) {
 		successResponse := resource.NewResponse(200).WithOperationResultBody(Car{})
-		contentTypes := resource.NewHTTPContentTypeSelector()
-		contentTypes.AddEncoder("application/json", encdec.JSONEncoder{}, true)
+		renderers := resource.NewRenderers()
+		renderers.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		failResponse := ISErrorResponse
 		wantedCar := Car{2, "Fiat", []Color{{"blue"}, {"red"}}}
 		operation := &OperationStub{Car: wantedCar}
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := resource.NewMethod(http.MethodPost, mo, contentTypes)
+		method := resource.NewMethod(http.MethodPost, mo, renderers)
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -379,7 +379,7 @@ func TestOperations(t *testing.T) {
 func TestAddParameter(t *testing.T) {
 	t.Run("nil parameters", func(t *testing.T) {
 		defer assertNoPanic(t)
-		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.Renderers{})
 		m.AddParameter(resource.NewQueryParameter("myparam", reflect.String))
 	})
 	m := resource.Method{}
@@ -442,7 +442,7 @@ func TestChainMethods(t *testing.T) {
 }
 
 func TestNilOperation(t *testing.T) {
-	ct := resource.NewHTTPContentTypeSelector()
+	ct := resource.NewRenderers()
 	ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 	m := resource.NewMethod("POST", resource.NewMethodOperation(nil, resource.NewResponse(200)), ct)
 	request, _ := http.NewRequest("POST", "/", nil)
@@ -455,7 +455,7 @@ func TestNilOperation(t *testing.T) {
 func TestGetParameters(t *testing.T) {
 	t.Run("nil parameters", func(t *testing.T) {
 		defer assertNoPanic(t)
-		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.HTTPContentTypeSelector{})
+		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.Renderers{})
 		params := m.GetParameters()
 		if len(params) != 0 {
 			t.Errorf("got: %v want: %v", len(params), 0)
@@ -464,7 +464,7 @@ func TestGetParameters(t *testing.T) {
 }
 
 func TestGetEncoderMediaTypes(t *testing.T) {
-	ct := resource.NewHTTPContentTypeSelector()
+	ct := resource.NewRenderers()
 	ct.AddEncoder("b", encdec.JSONEncoder{}, true)
 	ct.AddEncoder("c", encdec.JSONEncoder{}, false)
 	ct.AddEncoder("a", encdec.JSONEncoder{}, false)
@@ -480,7 +480,7 @@ func TestGetEncoderMediaTypes(t *testing.T) {
 }
 
 func TestGetDecoderMediaTypes(t *testing.T) {
-	ct := resource.NewHTTPContentTypeSelector()
+	ct := resource.NewRenderers()
 	ct.AddDecoder("b", encdec.JSONDecoder{}, true)
 	ct.AddDecoder("c", encdec.JSONDecoder{}, false)
 	ct.AddDecoder("a", encdec.JSONDecoder{}, false)
@@ -498,7 +498,7 @@ func TestGetDecoderMediaTypes(t *testing.T) {
 func TestWithRequestBody(t *testing.T) {
 	car := Car{}
 	description := "my request body"
-	m := resource.NewMethod("POST", resource.MethodOperation{}, resource.NewHTTPContentTypeSelector()).
+	m := resource.NewMethod("POST", resource.MethodOperation{}, resource.NewRenderers()).
 		WithRequestBody("my request body", car)
 	if !reflect.DeepEqual(m.RequestBody.Body, car) {
 		t.Errorf("got: %v want:%v", m.RequestBody.Body, car)
@@ -593,13 +593,13 @@ func TestParameterValidation(t *testing.T) {
 func TestGetResponses(t *testing.T) {
 	v := &MethodValidatorSpy{}
 	successResponse := resource.NewResponse(200).WithBody(Car{})
-	contentTypes := resource.NewHTTPContentTypeSelector()
-	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	renderers := resource.NewRenderers()
+	renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	failResponse := ISErrorResponse
 	mo := resource.NewMethodOperation(&OperationStub{}, successResponse).WithFailResponse(failResponse)
 	validationResponse := resource.NewResponse(405)
 	methodValidationResponse := resource.NewResponse(400)
-	method := resource.NewMethod(http.MethodPost, mo, contentTypes).
+	method := resource.NewMethod(http.MethodPost, mo, renderers).
 		WithParameter(resource.NewQueryParameter("p", reflect.String).WithValidation(v, validationResponse)).
 		WithValidation(v, methodValidationResponse)
 	responses := method.GetResponses()

@@ -24,17 +24,17 @@ var notFoundResponse = resource.NewResponse(404)
 func GeneratePetStore() resource.RestAPI {
 	//Resource /pet
 	pets := resource.NewResource("pet")
-	contentTypes := resource.NewHTTPContentTypeSelector()
-	contentTypes.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-	contentTypes.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
+	renderers := resource.NewRenderers()
+	renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	renderers.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	//POST
 	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
-	pets.Post(createMethodOperation, contentTypes).
+	pets.Post(createMethodOperation, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Add a new pet to the store")
 	//PUT
 	updateMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404).WithDescription("Pet not found"))
-	pets.Put(updateMethodOperation, contentTypes).
+	pets.Put(updateMethodOperation, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Update an existing pet").
 		WithValidation(resource.ValidatorFunc(func(input resource.Input) error {
@@ -56,7 +56,7 @@ func GeneratePetStore() resource.RestAPI {
 	//SubResource
 	//New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
 	pets.Resource("{petId}", func(r *resource.Resource) {
-		ct := resource.NewHTTPContentTypeSelector()
+		ct := resource.NewRenderers()
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
 		getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
@@ -82,7 +82,7 @@ func GeneratePetStore() resource.RestAPI {
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource
 			uploadImageMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"))
-			ct := resource.NewHTTPContentTypeSelector()
+			ct := resource.NewRenderers()
 			ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 			ct.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 			r.Post(uploadImageMethodOperation, ct).
@@ -95,7 +95,7 @@ func GeneratePetStore() resource.RestAPI {
 	})
 	//Resource /pet/findByStatus
 	pets.Resource("findByStatus", func(r *resource.Resource) {
-		ct := resource.NewHTTPContentTypeSelector()
+		ct := resource.NewRenderers()
 		ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoderDecoder{}, false)
 		//GET
