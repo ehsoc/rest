@@ -36,10 +36,9 @@ func GenerateServer() http.Handler {
 		//Car found, success true, error nil. This will trigger a response code 200
 		return Car{carId, "Foo"}, true, nil
 	}
-	getCar := res.NewMethodOperation(
-		res.OperationFunc(getCarOperation),
-		res.NewResponse(200).WithOperationResultBody(Car{})).
-		WithFailResponse(res.NewResponse(404))
+	successResponse := res.NewResponse(200).WithOperationResultBody(Car{})
+	failResponse := res.NewResponse(404)
+	getCar := res.NewMethodOperation(res.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
 
 	ct := res.NewHTTPContentTypeSelector()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)

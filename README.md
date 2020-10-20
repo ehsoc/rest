@@ -6,30 +6,34 @@ Resource is an experimental Web Resource abstraction for composing REST APIs in 
 - **REST API Specification generation (Open-API v2)**
 
 ## Base components:
-- RestAPI (Like a Resource, but it is the root node)
-- Resource. Each resource is a node.
+- RestAPI (Like a Resource, but it is the root resource node)
+- Resource. Each resource is a node in a URL path.
 
-Code example:
+**Code example:**
 
 ```go
 api := resource.RestAPI{}
-	api.BasePath = "/v2"
-	api.Host = "localhost"
-	api.Resource("car", func(r *resource.Resource){
-		r.Resource("findMatch", func(r *resource.Resource){
-		}
-		r.Resource("{carId}", func(r *resource.Resource){
-		}
+api.BasePath = "/v2"
+api.Host = "localhost"
+
+api.Resource("car", func(r *resource.Resource) {
+	r.Resource("findMatch", func(r *resource.Resource) {
 	})
-	r.Resource("ping", func(r *resource.Resource){
-	}
-	r.Resource("user", func(r *resource.Resource){
-		r.Resource("signOut", func(r *resource.Resource){
-		}
-	}
+	r.Resource("{carId}", func(r *resource.Resource) {
+	})
+})
+
+api.Resource("ping", func(r *resource.Resource) {
+})
+
+api.Resource("user", func(r *resource.Resource) {
+	r.Resource("signOut", func(r *resource.Resource) {
+	})
+})
 	
 ```
-Diagram representation of the above code:
+
+**Diagram of the above code:**
 
 ```
                                      +-----------+
@@ -60,23 +64,56 @@ Diagram representation of the above code:
 ## Resource main components:
 - Methods: A collection of HTTP methods (Method)
 - Method: A Method represents an HTTP method with an HTTP Handler.
-- MethodOperation: Describes an Operation and Responses, one for Operation success, and another for failure.
-- HTTPContentTypeSelector: Describes the available content types of for request and responses. Contains a default Content-Type negotiator that you can replace with your own implementation.
-- Operation: Represents a logical operation function.`Operation` is an interface defined by an `Execute` method.
+- MethodOperation: Describes an Operation and Responses (success and failure).
+- HTTPContentTypeSelector: Describes the available content types of for request and responses. It contains a Negotiator interface, that is the responsable for the content negotation.
+- Operation: Represents a logical operation function upon a resource, like delete, list, create, etc. `Operation` is an interface defined by an `Execute` method.
 
 	- Execute method:
-		- 	Inputs: Input
+		- 	Inputs: `Input` type
 		- 	Output: `body` interface{}, `success` bool, and `err` error .
 	
 
-			1. `body` (interface{}): is the body that is going to be sent to the client.
-			2. `success` (bool):  false value means that the operation result was not the expected, but it is not an API error nor a client error. This will 		trigger the `successResponse` (argument passed in the `NewMethodOperation` function) if `success` return value is true. If false, will return 		`failResponse` (argument passed in the `NewMethodOperation` function).
+			1. `body` (interface{}): Is the body that is going to be send to the client.(Optional)
+			2. `success` (bool): If the value is true, it will trigger the `successResponse` (argument passed in the `NewMethodOperation` function). If the value is false, it will trigger the `failResponse` (argument passed in the `NewMethodOperation` function). False means that the most positive operation output didn't happened, but is not either an API error or a client error.
 
-			3.  `err` (error): The `err`(error) is meant to indicate an internal server error when `err`!=nil, like a database failure or other API error. T		he `err`!=nil will trigger a 500 error.
+			3.  `err` (error): The `err`(error) is meant to indicate an API error, or any internal server error, like a database failure, i/o error, etc. The `err`!=nil will always trigger a 500 code error.
 	
-- Parameters: For specification, validation, and get helper functions.
+- Parameters: The parameters expected to be send by the client. The main purpose of the declaration of parameters is for specification documentation.
 
-Example:
+### Resource main components diagram:
+
+```
+                                                                   +-----------+
+                                                                   | Resource  |
+                                                               +---+ "{carId}" +---+
+                                                               |   |           |   |
+                                                               |   +-----------+   |
+                                                               |                   |
+                                                         +-----+-----+        +----+------+
+                                                         |  Method   |        |  Method   |
+                                        +----------------+   "GET"   |        | "DELETE"  +----------+
+                                        |                |           |        |           |          |
+                                        |                +-----+-----+        +----+------+          |
+                                        |                      |                   |                 |
+                               +--------+-------+      +-------+--------+
+                               | MethodOperation|      ContentTypeSelector
+                        +------+                +---+  |                |
+                        |      |                |   |  |                |
+Your operation method   |      +------+---------+   |  +----------------+
+goes here               |             |             |
+    +                   |             |             |
+    |             +-----+-----+  +----+------+   +--+--------+
+    |             | Operation |  | Response  |   |  Response |
+    +-----------> |           |  | success   |   |  fail     |
+                  |           |  |           |   |           |
+                  +-----------+  +-----------+   +-----------+
+
+
+
+
+```
+
+## Code example:
 ```go
 getCarOperation := func(i res.Input) (body interface{}, success bool, err error) {
 	carId, err := i.GetURIParam("carId")
@@ -95,10 +132,9 @@ getCarOperation := func(i res.Input) (body interface{}, success bool, err error)
 	//Car found, success true, error nil. This will trigger a response code 200
 	return Car{carId, "Foo"}, true, nil
 }
-getCar := res.NewMethodOperation(
-	res.OperationFunc(getCarOperation),
-	res.NewResponse(200).WithOperationResultBody(Car{})).
-	WithFailResponse(res.NewResponse(404))
+successResponse := res.NewResponse(200).WithOperationResultBody(Car{})
+failResponse := res.NewResponse(404)
+getCar := res.NewMethodOperation(res.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
 
 ct := res.NewHTTPContentTypeSelector()
 ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
