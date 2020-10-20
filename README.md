@@ -61,25 +61,29 @@ api.Resource("user", func(r *resource.Resource) {
 - GenerateServer(restAPI RestAPI) http.Handler
 - GenerateAPISpec(w io.Writer, restAPI RestAPI)
 
-## Resource main components:
-- Methods: A collection of HTTP methods (Method)
-- Method: A Method represents an HTTP method with an HTTP Handler.
-- MethodOperation: Describes an Operation and Responses (success and failure).
+## Resource
+- Methods: A collection of HTTP methods (`Method`)
+- Resources: Collection of child resources.
+
+### Method
+A `Method` represents an HTTP method with an HTTP Handler.
+- MethodOperation: Describes an `Operation` and responses (`Response` for success and failure).
 - Renderers: Describes the available renderers for request and responses. 
 - Negotiator: Interface responsable for content negotiation. A default implementation will be set when you create a Method.
-- Operation: Represents a logical operation function upon a resource, like delete, list, create, etc. `Operation` is an interface defined by an `Execute` method.
+- Parameters: The parameters expected to be sent by the client. The main purpose of the declaration of parameters is for API specification generation.
+  
+### Operation
+Represents a logical operation upon a resource, like delete, list, create, etc. `Operation` is an interface defined by an `Execute` method.
 
-	- Execute method:
-		- 	Inputs: `Input` type
-		- 	Output: `body` interface{}, `success` bool, and `err` error .
-	
+#### Execute method
+- 	Inputs: `Input` type
+- 	Output: `body` interface{}, `success` bool, and `err` error .
 
-			1. `body` (interface{}): Is the body that is going to be send to the client.(Optional)
-			2. `success` (bool): If the value is true, it will trigger the `successResponse` (argument passed in the `NewMethodOperation` function). If the value is false, it will trigger the `failResponse` (argument passed in the `NewMethodOperation` function). False means that the most positive operation output didn't happened, but is not either an API error or a client error.
 
-			3.  `err` (error): The `err`(error) is meant to indicate an API error, or any internal server error, like a database failure, i/o error, etc. The `err`!=nil will always trigger a 500 code error.
-	
-- Parameters: The parameters expected to be send by the client. The main purpose of the declaration of parameters is for API specification generation.
+	1. `body` (interface{}): Is the body that is going to be send to the client.(Optional)
+	2. `success` (bool): If the value is true, it will trigger the `successResponse` (argument passed in the `NewMethodOperation` function). If the value is false, it will trigger the `failResponse` (argument passed in the `NewMethodOperation` function). False means that the most positive operation output didn't happened, but is not either an API error or a client error.
+
+	3.  `err` (error): The `err`(error) is meant to indicate an API error, or any internal server error, like a database failure, i/o error, etc. The `err`!=nil will always trigger a 500 code error.
 
 ### Resource main components diagram:
 
