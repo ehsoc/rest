@@ -66,11 +66,15 @@ api.Resource("user", func(r *resource.Resource) {
 - Resources: Collection of child resources.
 
 ### Method
-A `Method` represents an HTTP method with an HTTP Handler.
+A `Method` represents an HTTP method with an HTTP Handler. A default handler will make sense of the method specification and return the appropriate HTTP response. The specification elements to be managed by the default handler are: Content negotiation, validation, and operation. 
+
 - MethodOperation: Describes an `Operation` and responses (`Response` for success and failure).
 - Renderers: Describes the available renderers for request and responses. 
 - Negotiator: Interface responsable for content negotiation. A default implementation will be set when you create a Method.
 - Parameters: The parameters expected to be sent by the client. The main purpose of the declaration of parameters is for API specification generation.
+- Handler: The http.Handler of the method.  The default handler will be set when you create a new Method.
+
+\* You can override the default handler if necessary, with the `Handler` property (method.Handler = MyHandler)
   
 ### Operation
 Represents a logical operation upon a resource, like delete, list, create, etc. `Operation` is an interface defined by an `Execute` method.
