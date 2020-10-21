@@ -23,14 +23,14 @@ type OpenAPIV2SpecGenerator struct {
 func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource resource.Resource) {
 	pathItem := spec.PathItem{}
 	for _, method := range apiResource.Methods() {
-		docMethod := spec.NewOperation("")
-		docMethod.Description = method.Description
-		docMethod.Summary = method.Summary
+		specMethod := spec.NewOperation("")
+		specMethod.Description = method.Description
+		specMethod.Summary = method.Summary
 		if method.RequestBody.Body != nil {
 			param := spec.BodyParam("body", o.toSchema(method.RequestBody.Body)).AsRequired()
 			param.SimpleSchema = spec.SimpleSchema{}
 			param.Description = method.RequestBody.Description
-			docMethod.AddParam(param)
+			specMethod.AddParam(param)
 		}
 		//Parameters
 		//Sorting parameters map for a consistent order in Marshaling
@@ -102,10 +102,10 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			if parameter.Example != nil {
 				specParam.AddExtension("x-example", parameter.Example)
 			}
-			docMethod.AddParam(specParam)
+			specMethod.AddParam(specParam)
 		}
-		docMethod.Consumes = method.GetDecoderMediaTypes()
-		docMethod.Produces = method.GetEncoderMediaTypes()
+		specMethod.Consumes = method.GetDecoderMediaTypes()
+		specMethod.Produces = method.GetEncoderMediaTypes()
 
 		//Responses
 		for _, response := range method.GetResponses() {
@@ -121,19 +121,19 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			} else {
 				res.Description = http.StatusText(response.Code())
 			}
-			docMethod.RespondsWith(response.Code(), res)
-			docMethod.Responses.Default = nil
+			specMethod.RespondsWith(response.Code(), res)
+			specMethod.Responses.Default = nil
 		}
 
 		switch method.HTTPMethod {
 		case http.MethodPost:
-			pathItem.Post = docMethod
+			pathItem.Post = specMethod
 		case http.MethodPut:
-			pathItem.Put = docMethod
+			pathItem.Put = specMethod
 		case http.MethodGet:
-			pathItem.Get = docMethod
+			pathItem.Get = specMethod
 		case http.MethodDelete:
-			pathItem.Delete = docMethod
+			pathItem.Delete = specMethod
 		}
 
 	}

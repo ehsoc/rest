@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/document_generator/oaiv2"
 	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/resource/specification_generator/oaiv2"
 	"github.com/ehsoc/resource/test/petstore"
 	"github.com/go-openapi/spec"
 	"github.com/nsf/jsondiff"

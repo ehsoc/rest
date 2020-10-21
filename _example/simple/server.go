@@ -8,9 +8,9 @@ import (
 	"reflect"
 
 	res "github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/document_generator/oaiv2"
 	"github.com/ehsoc/resource/encdec"
 	"github.com/ehsoc/resource/server_generator/chigenerator"
+	"github.com/ehsoc/resource/specification_generator/oaiv2"
 )
 
 type Car struct {

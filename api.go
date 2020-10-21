@@ -20,10 +20,10 @@ type RestAPI struct {
 	Resources
 }
 
-// GenerateSpec will generate the API specification using APISpecGenerator implementation (docGenerator),
-// and will write to an io.Writer implementation (writer)
-func (r RestAPI) GenerateSpec(writer io.Writer, docGenerator APISpecGenerator) {
-	docGenerator.GenerateAPISpec(writer, r)
+// GenerateSpec will generate the API specification using APISpecGenerator interface implementation (specGenerator),
+// and will write into a io.Writer implementation (writer)
+func (r RestAPI) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) {
+	specGenerator.GenerateAPISpec(writer, r)
 }
 
 // GenerateServer generates a http.Handler using a ServerGenerator implementation (serverGenerator)
