@@ -5,11 +5,10 @@ import (
 	"io"
 )
 
-//JSONEncoder implements Encoder to encode on json format
+// JSONEncoder implements Encoder interface to encode JSON format
 type JSONEncoder struct{}
 
-//Encode implements method of Encoder interface
+// Encode writes to w the JSON encoding of v
 func (j JSONEncoder) Encode(w io.Writer, v interface{}) error {
-	encoder := json.NewEncoder(w)
-	return encoder.Encode(v)
+	return json.NewEncoder(w).Encode(v)
 }

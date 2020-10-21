@@ -2,8 +2,8 @@ package encdec
 
 import "io"
 
-//Encoder interface purpose is to compose different encoders based on
-//libraries like encoding/json or encoding/xml
+// Encoder purpose is to provide a common interface wraping around encoder libraries
+// so that they can easily be passed as arguments values to be executed by other methods.
 type Encoder interface {
 	Encode(w io.Writer, v interface{}) error
 }

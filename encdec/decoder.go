@@ -2,8 +2,8 @@ package encdec
 
 import "io"
 
-//Decoder interface purpose is to compose different decoders based on
-//libraries like encoding/json or encoding/xml
+// Decoder purpose is to provide a common interface wraping around decoder libraries
+// so that they can easily be passed as arguments values to be executed by other methods.
 type Decoder interface {
 	Decode(r io.Reader, v interface{}) error
 }

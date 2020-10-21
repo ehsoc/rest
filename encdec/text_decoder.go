@@ -6,10 +6,10 @@ import (
 	"reflect"
 )
 
-//TextDecoder implements Decoder to encode on text format
+// TextDecoder implements Decoder to encode on text format
 type TextDecoder struct{}
 
-//Decode implements Decode method of interface Decoder
+// Decode implements Decode method of interface Decoder
 func (t TextDecoder) Decode(r io.Reader, v interface{}) error {
 	rv := reflect.ValueOf(v)
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {

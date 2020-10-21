@@ -5,11 +5,11 @@ import (
 	"io"
 )
 
-//JSONDecoder implements Decoder to decode json format
+// JSONDecoder implements Decoder interface to decode JSON format
 type JSONDecoder struct{}
 
-//Decode implements Decode method of interface Decoder
+// Decode is a wrapper around encoding/json JSON Decoder, that read from r and store it in v
 func (j JSONDecoder) Decode(r io.Reader, v interface{}) error {
-	encoder := json.NewDecoder(r)
-	return encoder.Decode(v)
+	return json.NewDecoder(r).Decode(v)
+
 }

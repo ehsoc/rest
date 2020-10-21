@@ -5,10 +5,10 @@ import (
 	"io"
 )
 
-//XMLEncoder implements Encoder to encode on xml format
+// XMLEncoder implements Encoder to encode on xml format
 type XMLEncoder struct{}
 
-//Encode implements method of Encoder interface
+// Encode implements method of Encoder interface
 func (x XMLEncoder) Encode(w io.Writer, v interface{}) error {
 	w.Write([]byte(xml.Header))
 	encoder := xml.NewEncoder(w)
