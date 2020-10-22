@@ -3,6 +3,7 @@ package oaiv2_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -65,8 +66,6 @@ func TestGenerateAPISpec(t *testing.T) {
 	err := json.Unmarshal(petJson, &wantSwagger)
 	assertNoErrorFatal(t, err)
 
-	//TODO check definitions
-
 	if gotSwagger.BasePath != wantSwagger.BasePath {
 		t.Errorf("got: %v want: %v", gotSwagger.BasePath, wantSwagger.BasePath)
 	}
@@ -78,8 +77,8 @@ func TestGenerateAPISpec(t *testing.T) {
 	if !ok {
 		t.Fatalf("Path not found")
 	}
-	assertOAv2OperationEqual(t, gotPetPath.Post, wantPetPath.Post)
-	assertOAv2OperationEqual(t, gotPetPath.Put, wantPetPath.Put)
+	assertJsonStructEqual(t, gotPetPath.Post, wantPetPath.Post)
+	assertJsonStructEqual(t, gotPetPath.Put, wantPetPath.Put)
 
 	gotGetPetIDPath, ok := gotSwagger.Paths.Paths["/pet/{petId}"]
 	if !ok {
@@ -89,9 +88,9 @@ func TestGenerateAPISpec(t *testing.T) {
 	if !ok {
 		t.Fatalf("Path not found")
 	}
-	assertOAv2OperationEqual(t, gotGetPetIDPath.Get, wantGetPetIDPath.Get)
+	assertJsonStructEqual(t, gotGetPetIDPath.Get, wantGetPetIDPath.Get)
 	//Delete
-	assertOAv2OperationEqual(t, gotGetPetIDPath.Delete, wantGetPetIDPath.Delete)
+	assertJsonStructEqual(t, gotGetPetIDPath.Delete, wantGetPetIDPath.Delete)
 
 	//Upload Image
 	gotUploadImagePath, ok := gotSwagger.Paths.Paths["/pet/{petId}/uploadImage"]
@@ -102,7 +101,7 @@ func TestGenerateAPISpec(t *testing.T) {
 	if !ok {
 		t.Fatalf("Path not found")
 	}
-	assertOAv2OperationEqual(t, gotUploadImagePath.Post, wantUploadImagePath.Post)
+	assertJsonStructEqual(t, gotUploadImagePath.Post, wantUploadImagePath.Post)
 
 	//Find by status
 	gotFindByStatusPath, ok := gotSwagger.Paths.Paths["/pet/findByStatus"]
@@ -114,7 +113,23 @@ func TestGenerateAPISpec(t *testing.T) {
 		t.Fatalf("Path not found")
 	}
 	//fmt.Printf("%#v", gotFindByStatusPath)
-	assertOAv2OperationEqual(t, gotFindByStatusPath.Get, wantFindByStatusPath.Get)
+	assertJsonStructEqual(t, gotFindByStatusPath.Get, wantFindByStatusPath.Get)
+
+	t.Run("security definitions apiKey", func(t *testing.T) {
+		if gotSwagger.SecurityDefinitions == nil {
+			t.Fatal("SecurityDefinitions in nil")
+		}
+		gotApiKeySchema, ok := gotSwagger.SecurityDefinitions["api_key"]
+		if !ok {
+			t.Fatal("expecting api_key in generated spec")
+		}
+		wantApiKeySchema, ok := wantSwagger.SecurityDefinitions["api_key"]
+		fmt.Println(wantSwagger.SecurityDefinitions)
+		if !ok {
+			t.Fatal("expecting api_key in test fixture")
+		}
+		assertJsonStructEqual(t, gotApiKeySchema, wantApiKeySchema)
+	})
 
 }
 
@@ -134,7 +149,7 @@ func assertJsonSchemaEqual(t *testing.T, got, want string) {
 	}
 }
 
-func assertOAv2OperationEqual(t *testing.T, got, want *spec.Operation) {
+func assertJsonStructEqual(t *testing.T, got, want interface{}) {
 	t.Helper()
 	gotJson, err := json.MarshalIndent(got, " ", "  ")
 	wantJson, err := json.MarshalIndent(want, " ", "  ")

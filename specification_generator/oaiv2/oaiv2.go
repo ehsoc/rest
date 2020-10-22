@@ -110,10 +110,13 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		for _, security := range method.SecuritySchemes {
 			switch security.Type {
 			case resource.ApiKeySecurityType:
-				secParam := convertParameter(security.Parameter)
-				secScheme := spec.APIKeyAuth(security.Name, secParam.In)
-				specMethod.SecuredWith(secScheme.Name)
-				o.addSecurityDefinition(secScheme.Name, secScheme)
+				params := security.Parameters.GetParameters()
+				if len(params) > 0 {
+					secParam := convertParameter(params[0])
+					secScheme := spec.APIKeyAuth(security.Name, secParam.In)
+					specMethod.SecuredWith(secScheme.Name)
+					o.addSecurityDefinition(secScheme.Name, secScheme)
+				}
 			}
 		}
 		//Responses
