@@ -18,6 +18,7 @@ type Method struct {
 	MethodOperation MethodOperation
 	renderers       Renderers
 	Negotiator
+	SecuritySchemes []Security
 	http.Handler
 	Parameters
 	validation
@@ -78,6 +79,15 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
 	input := Input{r, m.Parameters, m.RequestBody, decoder}
+	// Security
+	for _, ss := range m.SecuritySchemes {
+		err := ss.validator.Validate(input)
+		if err != nil {
+			mutateResponseBody(&ss.failedAuthenticationResponse, nil, false, err)
+			writeResponse(r.Context(), w, ss.failedAuthenticationResponse)
+			return
+		}
+	}
 	// Validation
 	// Method validation
 	if m.Validator != nil {
@@ -192,6 +202,12 @@ func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 // WithValidation sets the validation operation and the response in case of validation error.
 func (m *Method) WithValidation(validator Validator, failedValidationResponse Response) *Method {
 	m.validation = validation{validator, failedValidationResponse}
+	return m
+}
+
+// WithSecurity adds a security to SecuritySchemes slice
+func (m *Method) WithSecurity(security Security) *Method {
+	m.SecuritySchemes = append(m.SecuritySchemes, security)
 	return m
 }
 

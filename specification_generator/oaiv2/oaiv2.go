@@ -106,7 +106,16 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		}
 		specMethod.Consumes = method.GetDecoderMediaTypes()
 		specMethod.Produces = method.GetEncoderMediaTypes()
-
+		//Security
+		for _, security := range method.SecuritySchemes {
+			switch security.Type {
+			case resource.ApiKeySecurityType:
+				secParam := convertParameter(security.Parameter)
+				secScheme := spec.APIKeyAuth(security.Name, secParam.In)
+				specMethod.SecuredWith(secScheme.Name)
+				o.addSecurityDefinition(secScheme.Name, secScheme)
+			}
+		}
 		//Responses
 		for _, response := range method.GetResponses() {
 			res := spec.NewResponse()
@@ -163,6 +172,50 @@ func typedParam(param *spec.Parameter, tpe reflect.Kind) {
 	}
 }
 
+func convertParameter(parameter resource.Parameter) *spec.Parameter {
+	specParam := &spec.Parameter{}
+	switch parameter.HTTPType {
+	case resource.QueryParameter:
+		specParam = spec.QueryParam(parameter.Name)
+		if parameter.Type == reflect.Array {
+			specParam.Type = "array"
+			specParam.Items = spec.NewItems()
+			if parameter.EnumValues != nil && len(parameter.EnumValues) > 0 {
+				specParam.Items.WithEnum(parameter.EnumValues...).WithDefault(parameter.EnumValues[0])
+				specParam.CollectionFormat = parameter.CollectionFormat
+				// ssch := o.toSchema(parameter.EnumValues[0])
+				// if len(ssch.SchemaProps.Type) > 0 {
+				// 	specParam.Items.Type = ssch.SchemaProps.Type[0]
+				// }
+			}
+		} else {
+			typedParam(specParam, parameter.Type)
+		}
+	case resource.URIParameter:
+		specParam = spec.PathParam(parameter.Name)
+		typedParam(specParam, parameter.Type)
+	case resource.HeaderParameter:
+		specParam = spec.HeaderParam(parameter.Name)
+		typedParam(specParam, parameter.Type)
+	case resource.FormDataParameter:
+		specParam = spec.FormDataParam(parameter.Name)
+		//In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
+		if parameter.Body != nil {
+			parameter.Type = reflect.String
+		}
+		typedParam(specParam, parameter.Type)
+	case resource.FileParameter:
+		specParam = spec.FileParam(parameter.Name)
+	}
+	specParam.Description = parameter.Description
+	specParam.Required = parameter.Required
+	//Example on parameters is not allowed, so a extension is set.
+	if parameter.Example != nil {
+		specParam.AddExtension("x-example", parameter.Example)
+	}
+	return specParam
+}
+
 func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.RestAPI) {
 	o.swagger.Swagger = "2.0"
 	o.swagger.BasePath = restApi.BasePath
@@ -186,6 +239,13 @@ func (o *OpenAPIV2SpecGenerator) addDefinition(name string, schema *spec.Schema)
 		o.swagger.Definitions = make(spec.Definitions)
 	}
 	o.swagger.Definitions[name] = *schema
+}
+
+func (o *OpenAPIV2SpecGenerator) addSecurityDefinition(name string, schema *spec.SecurityScheme) {
+	if o.swagger.SecurityDefinitions == nil {
+		o.swagger.SecurityDefinitions = make(spec.SecurityDefinitions)
+	}
+	o.swagger.SecurityDefinitions[name] = schema
 }
 
 func (o *OpenAPIV2SpecGenerator) toSchema(v interface{}) *spec.Schema {

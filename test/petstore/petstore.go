@@ -60,10 +60,15 @@ func GeneratePetStore() resource.RestAPI {
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
 		getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
+		apiKeyAuth := resource.NewSecurity("api_key", resource.ApiKeySecurityType, resource.ValidatorFunc(func(i resource.Input) error {
+			return nil
+		}), resource.NewResponse(401))
+
 		r.Get(getByIdMethodOperation, ct).
 			WithSummary("Find pet by ID").
 			WithDescription("Returns a single pet").
-			WithParameter(petIdURIParam)
+			WithParameter(petIdURIParam).
+			WithSecurity(apiKeyAuth)
 		//Delete
 		deleteByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200)).WithFailResponse(notFoundResponse)
 		r.Delete(deleteByIdMethodOperation, ct).

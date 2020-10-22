@@ -629,3 +629,50 @@ func TestMutableResponse(t *testing.T) {
 		t.Errorf("got: %#v want: %#v", got, want)
 	}
 }
+
+type SecurityOperationStub struct {
+	authenticateCalled bool
+	authorizeCalled    bool
+}
+
+func (s *SecurityOperationStub) Authorize(i resource.Input) error {
+	s.authorizeCalled = true
+	return nil
+}
+
+func (s *SecurityOperationStub) Authenticate(i resource.Input) error {
+	s.authenticateCalled = true
+	return nil
+}
+
+type SecurityValidationStub struct {
+	called bool
+}
+
+func (s *SecurityValidationStub) Validate(i resource.Input) error {
+	s.called = true
+	return nil
+}
+
+func TestSecurity(t *testing.T) {
+	t.Run("GET ", func(t *testing.T) {
+		successResponse := resource.NewResponse(200)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		failResponse := resource.NewResponse(404)
+		operation := &OperationStub{}
+		sv := &SecurityValidationStub{}
+		security := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, sv, resource.NewResponse(401))
+		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
+		method := resource.NewMethod(http.MethodGet, mo, renderers).WithSecurity(security)
+		method.AddParameter(resource.NewQueryParameter("fail", reflect.String))
+		request, _ := http.NewRequest(http.MethodPost, "/?fail=fail", nil)
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		if !operation.wasCall {
+			t.Errorf("Expecting operation execution.")
+		}
+		assertResponseCode(t, response, failResponse.Code())
+		assertTrue(t, sv.called)
+	})
+}
