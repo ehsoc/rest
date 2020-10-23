@@ -114,7 +114,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 				if len(params) > 0 {
 					secParam := convertParameter(params[0])
 					secScheme := spec.APIKeyAuth(security.Name, secParam.In)
-					specMethod.SecuredWith(secScheme.Name)
+					specMethod.SecuredWith(secScheme.Name, []string{}...)
 					o.addSecurityDefinition(secScheme.Name, secScheme)
 				}
 			}

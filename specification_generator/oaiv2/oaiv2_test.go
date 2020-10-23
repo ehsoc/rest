@@ -3,7 +3,6 @@ package oaiv2_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -124,13 +123,11 @@ func TestGenerateAPISpec(t *testing.T) {
 			t.Fatal("expecting api_key in generated spec")
 		}
 		wantApiKeySchema, ok := wantSwagger.SecurityDefinitions["api_key"]
-		fmt.Println(wantSwagger.SecurityDefinitions)
 		if !ok {
 			t.Fatal("expecting api_key in test fixture")
 		}
 		assertJsonStructEqual(t, gotApiKeySchema, wantApiKeySchema)
 	})
-
 }
 
 func assertJsonSchemaEqual(t *testing.T, got, want string) {
