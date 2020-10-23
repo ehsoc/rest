@@ -117,6 +117,23 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 					specMethod.SecuredWith(secScheme.Name, []string{}...)
 					o.addSecurityDefinition(secScheme.Name, secScheme)
 				}
+			case resource.Oauth2SecurityType:
+				if security.OAuthFlows != nil {
+					//Open Api doesn't support multiple flows, so will create a oauth scheme per flow
+					for k, flow := range security.OAuthFlows {
+						secScheme := getOAuth2SecScheme(flow)
+						if k != 0 {
+							security.Name += "_" + secScheme.Flow
+						}
+						secScheme.Name = security.Name
+						scopes := []string{}
+						for scp, _ := range secScheme.Scopes {
+							scopes = append(scopes, scp)
+						}
+						specMethod.SecuredWith(secScheme.Name, scopes...)
+						o.addSecurityDefinition(secScheme.Name, secScheme)
+					}
+				}
 			}
 		}
 		//Responses
@@ -235,6 +252,28 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.R
 	e := json.NewEncoder(w)
 	e.SetIndent(" ", "  ")
 	e.Encode(o.swagger)
+}
+
+func getOAuth2SecScheme(flow resource.OAuthFlow) *spec.SecurityScheme {
+	secScheme := &spec.SecurityScheme{}
+	switch flow.Name {
+	case resource.FlowImplicitType:
+		secScheme = spec.OAuth2Implicit(flow.AuthorizationURL)
+	case resource.FlowPasswordType:
+		secScheme = spec.OAuth2Password(flow.TokenURL)
+	case resource.FlowAuthCodeType:
+		secScheme = spec.OAuth2AccessToken(flow.AuthorizationURL, flow.TokenURL)
+	case resource.FlowClientCredentialType:
+		secScheme = spec.OAuth2Application(flow.TokenURL)
+	}
+	secScheme = &spec.SecurityScheme{SecuritySchemeProps: spec.SecuritySchemeProps{
+		Type:             "oauth2",
+		Flow:             flow.Name,
+		TokenURL:         flow.TokenURL,
+		AuthorizationURL: flow.AuthorizationURL,
+	}}
+	secScheme.Scopes = flow.Scopes
+	return secScheme
 }
 
 func (o *OpenAPIV2SpecGenerator) addDefinition(name string, schema *spec.Schema) {

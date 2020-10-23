@@ -128,6 +128,20 @@ func TestGenerateAPISpec(t *testing.T) {
 		}
 		assertJsonStructEqual(t, gotApiKeySchema, wantApiKeySchema)
 	})
+	t.Run("security definitions oauth2", func(t *testing.T) {
+		if gotSwagger.SecurityDefinitions == nil {
+			t.Fatal("SecurityDefinitions in nil")
+		}
+		gotOAuth2Schema, ok := gotSwagger.SecurityDefinitions["petstore_auth"]
+		if !ok {
+			t.Fatal("expecting petstore_auth in generated spec")
+		}
+		wantOAuth2Schema, ok := wantSwagger.SecurityDefinitions["petstore_auth"]
+		if !ok {
+			t.Fatal("expecting petstore_auth in test fixture")
+		}
+		assertJsonStructEqual(t, gotOAuth2Schema, wantOAuth2Schema)
+	})
 }
 
 func assertJsonSchemaEqual(t *testing.T, got, want string) {
