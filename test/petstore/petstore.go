@@ -29,9 +29,20 @@ func GeneratePetStore() resource.RestAPI {
 	renderers.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	//POST
 	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
+	petAuth := resource.NewSecurity("petstore_auth", resource.Oauth2SecurityType, resource.ValidatorFunc(func(i resource.Input) error {
+		return nil
+	}), resource.NewResponse(401)).WithOAuth2Flow(
+		resource.OAuthFlow{
+			Name:             resource.FlowImplicitType,
+			AuthorizationURL: "localhost:5050/oauth/dialog",
+			Scopes: map[string]string{
+				"write:pets": "modify pets in your account",
+				"read:pets":  "read your pets"},
+		})
 	pets.Post(createMethodOperation, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
-		WithSummary("Add a new pet to the store")
+		WithSummary("Add a new pet to the store").
+		WithSecurity(petAuth)
 	//PUT
 	updateMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404).WithDescription("Pet not found"))
 	pets.Put(updateMethodOperation, renderers).
@@ -63,6 +74,8 @@ func GeneratePetStore() resource.RestAPI {
 		apiKeyAuth := resource.NewSecurity("api_key", resource.ApiKeySecurityType, resource.ValidatorFunc(func(i resource.Input) error {
 			return nil
 		}), resource.NewResponse(401))
+
+		apiKeyAuth.AddParameter(resource.NewHeaderParameter("api_key", reflect.String))
 
 		r.Get(getByIdMethodOperation, ct).
 			WithSummary("Find pet by ID").

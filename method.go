@@ -18,7 +18,7 @@ type Method struct {
 	MethodOperation MethodOperation
 	renderers       Renderers
 	Negotiator
-	SecuritySchemes []Security
+	SecuritySchemes []*Security
 	http.Handler
 	Parameters
 	validation
@@ -83,8 +83,8 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	for _, ss := range m.SecuritySchemes {
 		err := ss.validator.Validate(input)
 		if err != nil {
-			mutateResponseBody(&ss.failedAuthenticationResponse, nil, false, err)
-			writeResponse(r.Context(), w, ss.failedAuthenticationResponse)
+			mutateResponseBody(&ss.FailedAuthenticationResponse, nil, false, err)
+			writeResponse(r.Context(), w, ss.FailedAuthenticationResponse)
 			return
 		}
 	}
@@ -206,7 +206,7 @@ func (m *Method) WithValidation(validator Validator, failedValidationResponse Re
 }
 
 // WithSecurity adds a security to SecuritySchemes slice
-func (m *Method) WithSecurity(security Security) *Method {
+func (m *Method) WithSecurity(security *Security) *Method {
 	m.SecuritySchemes = append(m.SecuritySchemes, security)
 	return m
 }
