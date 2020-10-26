@@ -144,22 +144,6 @@ func TestGenerateAPISpec(t *testing.T) {
 	})
 }
 
-func assertJsonSchemaEqual(t *testing.T, got, want string) {
-	gotJson := spec.Schema{}
-	err := json.Unmarshal([]byte(got), &gotJson)
-	if err != nil {
-		t.Fatalf("Not expecting error: %v", err)
-	}
-	wantJson := spec.Schema{}
-	err = json.Unmarshal([]byte(want), &wantJson)
-	if err != nil {
-		t.Fatalf("Not expecting error: %v", err)
-	}
-	if !reflect.DeepEqual(gotJson, wantJson) {
-		t.Errorf("\ngot: %v \nwant: %v", got, want)
-	}
-}
-
 func assertJsonStructEqual(t *testing.T, got, want interface{}) {
 	t.Helper()
 	gotJson, err := json.MarshalIndent(got, " ", "  ")
@@ -167,10 +151,12 @@ func assertJsonStructEqual(t *testing.T, got, want interface{}) {
 	if err != nil {
 		t.Fatalf("Not expecting error: %v", err)
 	}
-	opts := jsondiff.DefaultConsoleOptions()
-	opts.PrintTypes = false
-	_, result := jsondiff.Compare(gotJson, wantJson, &opts)
-	if !reflect.DeepEqual(got, want) {
+
+	if !reflect.DeepEqual(gotJson, wantJson) {
+		opts := jsondiff.DefaultConsoleOptions()
+		opts.PrintTypes = false
+		_, result := jsondiff.Compare(gotJson, wantJson, &opts)
+		t.Errorf("got: %v want:%v", got, want)
 		t.Errorf("Expecting equal, diff: %s", result)
 	}
 }

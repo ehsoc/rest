@@ -119,19 +119,19 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 				}
 			case resource.Oauth2SecurityType:
 				if security.OAuthFlows != nil {
-					//Open Api doesn't support multiple flows, so will create a oauth scheme per flow
+					//OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow
 					for k, flow := range security.OAuthFlows {
 						secScheme := getOAuth2SecScheme(flow)
 						if k != 0 {
 							security.Name += "_" + secScheme.Flow
 						}
-						secScheme.Name = security.Name
 						scopes := []string{}
-						for scp, _ := range secScheme.Scopes {
+						for scp := range secScheme.Scopes {
 							scopes = append(scopes, scp)
 						}
-						specMethod.SecuredWith(secScheme.Name, scopes...)
-						o.addSecurityDefinition(secScheme.Name, secScheme)
+						sort.Strings(scopes)
+						specMethod.SecuredWith(security.Name, scopes...)
+						o.addSecurityDefinition(security.Name, secScheme)
 					}
 				}
 			}
