@@ -109,6 +109,10 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		//Security
 		for _, security := range method.SecuritySchemes {
 			switch security.Type {
+			case resource.BasicSecurityType:
+				secScheme := spec.BasicAuth()
+				specMethod.SecuredWith(security.Name, []string{}...)
+				o.addSecurityDefinition(security.Name, secScheme)
 			case resource.ApiKeySecurityType:
 				params := security.Parameters.GetParameters()
 				if len(params) > 0 {

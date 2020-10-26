@@ -142,6 +142,20 @@ func TestGenerateAPISpec(t *testing.T) {
 		}
 		assertJsonStructEqual(t, gotOAuth2Schema, wantOAuth2Schema)
 	})
+	t.Run("security definitions basic", func(t *testing.T) {
+		if gotSwagger.SecurityDefinitions == nil {
+			t.Fatal("SecurityDefinitions in nil")
+		}
+		gotSecuritySchema, ok := gotSwagger.SecurityDefinitions["basicSecurity"]
+		if !ok {
+			t.Fatal("expecting basicSecurity in generated spec")
+		}
+		wantSecuritySchema, ok := wantSwagger.SecurityDefinitions["basicSecurity"]
+		if !ok {
+			t.Fatal("expecting basicSecurity in test fixture")
+		}
+		assertJsonStructEqual(t, gotSecuritySchema, wantSecuritySchema)
+	})
 }
 
 func assertJsonStructEqual(t *testing.T, got, want interface{}) {
@@ -156,7 +170,6 @@ func assertJsonStructEqual(t *testing.T, got, want interface{}) {
 		opts := jsondiff.DefaultConsoleOptions()
 		opts.PrintTypes = false
 		_, result := jsondiff.Compare(gotJson, wantJson, &opts)
-		t.Errorf("got: %v want:%v", got, want)
 		t.Errorf("Expecting equal, diff: %s", result)
 	}
 }

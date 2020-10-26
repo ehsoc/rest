@@ -120,10 +120,14 @@ func GeneratePetStore() resource.RestAPI {
 		findByStatusMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.NewResponse(200).WithOperationResultBody([]Pet{}).WithDescription("successful operation")).WithFailResponse(resource.NewResponse(400).WithDescription("Invalid status value"))
 		statusParam := resource.NewQueryArrayParameter("status", []interface{}{"available", "pending", "sold"}).AsRequired().WithDescription("Status values that need to be considered for filter")
 		statusParam.CollectionFormat = "multi"
+		basicSecurity := resource.NewSecurity("basicSecurity", resource.BasicSecurityType, resource.ValidatorFunc(func(i resource.Input) error {
+			return nil
+		}), resource.NewResponse(401))
 		r.Get(findByStatusMethodOperation, ct).
 			WithSummary("Finds Pets by status").
 			WithDescription("Multiple status values can be provided with comma separated strings").
-			WithParameter(statusParam)
+			WithParameter(statusParam).
+			WithSecurity(basicSecurity)
 	})
 
 	api := resource.RestAPI{}
