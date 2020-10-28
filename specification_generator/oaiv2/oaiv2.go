@@ -269,13 +269,15 @@ func getOAuth2SecScheme(flow resource.OAuthFlow) *spec.SecurityScheme {
 		secScheme = spec.OAuth2AccessToken(flow.AuthorizationURL, flow.TokenURL)
 	case resource.FlowClientCredentialType:
 		secScheme = spec.OAuth2Application(flow.TokenURL)
+	default:
+		secScheme = &spec.SecurityScheme{SecuritySchemeProps: spec.SecuritySchemeProps{
+			Type:             "oauth2",
+			Flow:             flow.Name,
+			TokenURL:         flow.TokenURL,
+			AuthorizationURL: flow.AuthorizationURL,
+		}}
 	}
-	secScheme = &spec.SecurityScheme{SecuritySchemeProps: spec.SecuritySchemeProps{
-		Type:             "oauth2",
-		Flow:             flow.Name,
-		TokenURL:         flow.TokenURL,
-		AuthorizationURL: flow.AuthorizationURL,
-	}}
+
 	secScheme.Scopes = flow.Scopes
 	return secScheme
 }
