@@ -121,10 +121,10 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 					specMethod.SecuredWith(secScheme.Name, []string{}...)
 					o.addSecurityDefinition(secScheme.Name, secScheme)
 				}
-			case resource.Oauth2SecurityType:
-				if security.OAuthFlows != nil {
+			case resource.OAuth2SecurityType:
+				if security.OAuth2Flows != nil {
 					//OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow
-					for k, flow := range security.OAuthFlows {
+					for k, flow := range security.OAuth2Flows {
 						secScheme := getOAuth2SecScheme(flow)
 						if k != 0 {
 							security.Name += "_" + secScheme.Flow
@@ -258,7 +258,7 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.R
 	e.Encode(o.swagger)
 }
 
-func getOAuth2SecScheme(flow resource.OAuthFlow) *spec.SecurityScheme {
+func getOAuth2SecScheme(flow resource.OAuth2Flow) *spec.SecurityScheme {
 	secScheme := &spec.SecurityScheme{}
 	switch flow.Name {
 	case resource.FlowImplicitType:

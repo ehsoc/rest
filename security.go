@@ -7,27 +7,67 @@ type Security struct {
 	Parameters
 	validator                    Validator
 	FailedAuthenticationResponse Response
-	OAuthFlows                   []OAuthFlow
+	OAuth2Flows                  []OAuth2Flow
 }
 
 const (
 	BasicSecurityType  = "basic"
 	ApiKeySecurityType = "apiKey"
-	Oauth2SecurityType = "oauth2"
+	OAuth2SecurityType = "oauth2"
 )
 
+// NewSecurity creates a new security scheme
 func NewSecurity(name string, typ string, securityOperation Validator, failedAuthenticationResponse Response) *Security {
-	s := &Security{Name: name, Type: typ, validator: securityOperation, FailedAuthenticationResponse: failedAuthenticationResponse}
+	s := &Security{
+		Name:                         name,
+		Type:                         typ,
+		validator:                    securityOperation,
+		FailedAuthenticationResponse: failedAuthenticationResponse,
+	}
 	s.parameters = make(map[ParameterType]map[string]Parameter)
 	return s
 }
 
-func (s *Security) WithOAuth2Flow(flow OAuthFlow) *Security {
-	s.OAuthFlows = append(s.OAuthFlows, flow)
+// NewOAuth2Security creates a new security scheme of OAuth2SecurityType type
+func NewOAuth2Security(name string, securityOperation Validator, failedAuthenticationResponse Response) *Security {
+	return NewSecurity(name, OAuth2SecurityType, securityOperation, failedAuthenticationResponse)
+}
+
+// WithImplicitOAuth2Flow adds a new oauth2 flow of implicit type with the necessary parameters
+func (s *Security) WithImplicitOAuth2Flow(tokenURL string) *Security {
+	flow := OAuth2Flow{Name: FlowImplicitType, TokenURL: tokenURL}
+	s.OAuth2Flows = append(s.OAuth2Flows, flow)
 	return s
 }
 
-type OAuthFlow struct {
+// WithPasswordOAuth2Flow adds a new oauth2 flow of password type with the necessary parameters
+func (s *Security) WithPasswordOAuth2Flow(authorizationURL string) *Security {
+	flow := OAuth2Flow{Name: FlowPasswordType, AuthorizationURL: authorizationURL}
+	s.OAuth2Flows = append(s.OAuth2Flows, flow)
+	return s
+}
+
+// WithAuthCodeOAuth2Flow adds a new oauth2 flow of authorization_code type with the necessary parameters
+func (s *Security) WithAuthCodeOAuth2Flow(authorizationURL, tokenURL string) *Security {
+	flow := OAuth2Flow{Name: FlowAuthCodeType, AuthorizationURL: authorizationURL, TokenURL: tokenURL}
+	s.OAuth2Flows = append(s.OAuth2Flows, flow)
+	return s
+}
+
+// WithClientCredentialOAuth2Flow adds a new oauth2 flow of client_credential type with the necessary parameters
+func (s *Security) WithClientCredentialOAuth2Flow(tokenURL string) *Security {
+	flow := OAuth2Flow{Name: FlowClientCredentialType, TokenURL: tokenURL}
+	s.OAuth2Flows = append(s.OAuth2Flows, flow)
+	return s
+}
+
+// WithOAuth2Flow adds a new oauth2 flow
+func (s *Security) WithOAuth2Flow(flow OAuth2Flow) *Security {
+	s.OAuth2Flows = append(s.OAuth2Flows, flow)
+	return s
+}
+
+type OAuth2Flow struct {
 	Name             string
 	AuthorizationURL string
 	TokenURL         string

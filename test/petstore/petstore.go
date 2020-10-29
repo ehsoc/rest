@@ -29,10 +29,10 @@ func GeneratePetStore() resource.RestAPI {
 	renderers.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	//POST
 	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
-	petAuth := resource.NewSecurity("petstore_auth", resource.Oauth2SecurityType, resource.ValidatorFunc(func(i resource.Input) error {
+	petAuth := resource.NewSecurity("petstore_auth", resource.OAuth2SecurityType, resource.ValidatorFunc(func(i resource.Input) error {
 		return nil
 	}), resource.NewResponse(401)).WithOAuth2Flow(
-		resource.OAuthFlow{
+		resource.OAuth2Flow{
 			Name:             resource.FlowImplicitType,
 			AuthorizationURL: "localhost:5050/oauth/dialog",
 			Scopes: map[string]string{
