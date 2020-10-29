@@ -22,6 +22,7 @@ func NewResource(name string) Resource {
 	if strings.ContainsAny(name, "/") {
 		panic(&TypeErrorResourceSlashesNotAllowed{Errorf{MessageErrResourceSlashesNotAllowed, name}})
 	}
+	name = strings.TrimSpace(name)
 	r := Resource{}
 	r.methods = make(map[string]*Method)
 	r.resources = make(map[string]Resource)
