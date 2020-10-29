@@ -20,6 +20,12 @@ type RestAPI struct {
 	Resources
 }
 
+// NewRestAPI creates a new RestAPI.
+// host parameter should not be an URL, but the server host name
+func NewRestAPI(basePath, host, title, version string) RestAPI {
+	return RestAPI{BasePath: basePath, Host: host, Title: title, Version: version}
+}
+
 // GenerateSpec will generate the API specification using APISpecGenerator interface implementation (specGenerator),
 // and will write into a io.Writer implementation (writer)
 func (r RestAPI) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) {
