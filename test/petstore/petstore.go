@@ -28,7 +28,7 @@ func GeneratePetStore() resource.RestAPI {
 	renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	renderers.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	//POST
-	createMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
+	create := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
 	petAuth := resource.NewSecurity("petstore_auth", resource.OAuth2SecurityType, resource.ValidatorFunc(func(i resource.Input) error {
 		return nil
 	}), resource.NewResponse(401)).WithOAuth2Flow(
@@ -39,13 +39,13 @@ func GeneratePetStore() resource.RestAPI {
 				"write:pets": "modify pets in your account",
 				"read:pets":  "read your pets"},
 		})
-	pets.Post(createMethodOperation, renderers).
+	pets.Post(create, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Add a new pet to the store").
 		WithSecurity(petAuth)
 	//PUT
-	updateMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404).WithDescription("Pet not found"))
-	pets.Put(updateMethodOperation, renderers).
+	update := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404).WithDescription("Pet not found"))
+	pets.Put(update, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Update an existing pet").
 		WithValidation(resource.ValidatorFunc(func(input resource.Input) error {
@@ -70,21 +70,21 @@ func GeneratePetStore() resource.RestAPI {
 		ct := resource.NewRenderers()
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
-		getByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
+		getById := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
 		apiKeyAuth := resource.NewSecurity("api_key", resource.ApiKeySecurityType, resource.ValidatorFunc(func(i resource.Input) error {
 			return nil
 		}), resource.NewResponse(401))
 
 		apiKeyAuth.AddParameter(resource.NewHeaderParameter("api_key", reflect.String))
 
-		r.Get(getByIdMethodOperation, ct).
+		r.Get(getById, ct).
 			WithSummary("Find pet by ID").
 			WithDescription("Returns a single pet").
 			WithParameter(petIdURIParam).
 			WithSecurity(apiKeyAuth)
 		//Delete
-		deleteByIdMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200)).WithFailResponse(notFoundResponse)
-		r.Delete(deleteByIdMethodOperation, ct).
+		deleteById := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200)).WithFailResponse(notFoundResponse)
+		r.Delete(deleteById, ct).
 			WithSummary("Deletes a pet").
 			WithParameter(
 				petIdURIParam.WithDescription("Pet id to delete").
@@ -99,11 +99,11 @@ func GeneratePetStore() resource.RestAPI {
 			WithParameter(resource.NewHeaderParameter("api_key", reflect.String))
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource
-			uploadImageMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"))
+			uploadImage := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"))
 			ct := resource.NewRenderers()
 			ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 			ct.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
-			r.Post(uploadImageMethodOperation, ct).
+			r.Post(uploadImage, ct).
 				WithParameter(petIdURIParam.WithDescription("ID of pet to update")).
 				WithParameter(resource.NewFormDataParameter("additionalMetadata", reflect.String, encdec.JSONDecoder{}).WithDescription("Additional data to pass to server")).
 				WithParameter(resource.NewFileParameter("file").WithDescription("file to upload")).
@@ -117,13 +117,13 @@ func GeneratePetStore() resource.RestAPI {
 		ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoderDecoder{}, false)
 		//GET
-		findByStatusMethodOperation := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.NewResponse(200).WithOperationResultBody([]Pet{}).WithDescription("successful operation")).WithFailResponse(resource.NewResponse(400).WithDescription("Invalid status value"))
+		findByStatus := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.NewResponse(200).WithOperationResultBody([]Pet{}).WithDescription("successful operation")).WithFailResponse(resource.NewResponse(400).WithDescription("Invalid status value"))
 		statusParam := resource.NewQueryArrayParameter("status", []interface{}{"available", "pending", "sold"}).AsRequired().WithDescription("Status values that need to be considered for filter")
 		statusParam.CollectionFormat = "multi"
 		basicSecurity := resource.NewSecurity("basicSecurity", resource.BasicSecurityType, resource.ValidatorFunc(func(i resource.Input) error {
 			return nil
 		}), resource.NewResponse(401))
-		r.Get(findByStatusMethodOperation, ct).
+		r.Get(findByStatus, ct).
 			WithSummary("Finds Pets by status").
 			WithDescription("Multiple status values can be provided with comma separated strings").
 			WithParameter(statusParam).
