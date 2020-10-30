@@ -13,7 +13,7 @@ type Resource struct {
 	Description string
 	// a unique method key is defined by a combination of a path and a HTTP method.
 	methods map[string]*Method
-	Resources
+	ResourceCollection
 }
 
 // NewResource creates a new resource node.

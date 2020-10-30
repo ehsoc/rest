@@ -209,21 +209,21 @@ func TestResourceIntegration(t *testing.T) {
 	if r.Path() != "car" {
 		t.Errorf("got : %v want: %v", r.Path(), "car")
 	}
-	findNode := r.GetResources()[0]
+	findNode := r.Resources()[0]
 	if findNode.Path() != "find" {
 		t.Errorf("got : %v want: %v", findNode.Path(), "find")
 	}
-	if len(findNode.GetResources()) != 2 {
-		t.Fatalf("expecting 2 sub nodes got: %v", len(findNode.GetResources()))
+	if len(findNode.Resources()) != 2 {
+		t.Fatalf("expecting 2 sub nodes got: %v", len(findNode.Resources()))
 	}
-	directionResources := findNode.GetResources()
+	directionResources := findNode.Resources()
 	sort.Slice(directionResources, func(i, j int) bool {
 		return directionResources[i].Path() < directionResources[j].Path()
 	})
 	if directionResources[0].Path() != "left" {
-		t.Errorf("got : %v want: %v", findNode.GetResources()[0].Path(), "left")
+		t.Errorf("got : %v want: %v", findNode.Resources()[0].Path(), "left")
 	}
 	if directionResources[1].Path() != "right" {
-		t.Errorf("got : %v want: %v", findNode.GetResources()[1].Path(), "right")
+		t.Errorf("got : %v want: %v", findNode.Resources()[1].Path(), "right")
 	}
 }

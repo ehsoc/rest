@@ -1,14 +1,14 @@
 package resource
 
-// Resources encapsulate a collection of resource nodes and the methods to add new ones.
+// ResourceCollection encapsulate a collection of resource nodes and the methods to add new ones.
 // Each node name is unique, in case of conflict the new node will replace the old one silently
-type Resources struct {
+type ResourceCollection struct {
 	resources map[string]Resource
 }
 
-// GetResources returns the collection of the resource nodes.
+// Resources returns the collection of the resource nodes.
 // The order of the elements will not be consistent.
-func (rs *Resources) GetResources() []Resource {
+func (rs *ResourceCollection) Resources() []Resource {
 	rs.checkMap()
 	res := []Resource{}
 	for _, r := range rs.resources {
@@ -29,7 +29,7 @@ func (rs *Resources) GetResources() []Resource {
 //
 // 		})
 // 	})
-func (rs *Resources) Resource(name string, fn func(r *Resource)) {
+func (rs *ResourceCollection) Resource(name string, fn func(r *Resource)) {
 	rs.checkMap()
 	newResource := NewResource(name)
 	if fn != nil {
@@ -40,13 +40,13 @@ func (rs *Resources) Resource(name string, fn func(r *Resource)) {
 
 // AddResource adds a resource node to the collection of resources.
 // If other node with the same name is in the collection, it will replace it silently
-func (rs *Resources) AddResource(resource Resource) {
+func (rs *ResourceCollection) AddResource(resource Resource) {
 	rs.checkMap()
 	rs.resources[resource.path] = resource
 }
 
 // checkMap initialize the internal map if is nil
-func (rs *Resources) checkMap() {
+func (rs *ResourceCollection) checkMap() {
 	if rs.resources == nil {
 		rs.resources = make(map[string]Resource)
 	}

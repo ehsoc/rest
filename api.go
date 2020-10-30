@@ -17,7 +17,7 @@ type RestAPI struct {
 	Title       string
 	Host        string
 	BasePath    string
-	Resources
+	ResourceCollection
 }
 
 // NewRestAPI creates a new RestAPI.

@@ -211,7 +211,7 @@ func (m *Method) WithSecurity(security *Security) *Method {
 	return m
 }
 
-// GetResponses gets the response collection of the method.
+// Responses gets the response collection of the method.
 func (m *Method) Responses() []Response {
 	responses := make([]Response, 0)
 	if !m.MethodOperation.successResponse.disabled {
