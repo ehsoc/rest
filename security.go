@@ -33,36 +33,51 @@ func NewOAuth2Security(name string, securityOperation Validator, failedAuthentic
 	return NewSecurity(name, OAuth2SecurityType, securityOperation, failedAuthenticationResponse)
 }
 
+func (o OAuth2Flow) checkScopesMap() {
+	if o.Scopes == nil {
+		o.Scopes = make(map[string]string)
+	}
+}
+
 // WithImplicitOAuth2Flow adds a new oauth2 flow of implicit type with the necessary parameters
-func (s *Security) WithImplicitOAuth2Flow(tokenURL string) *Security {
-	flow := OAuth2Flow{Name: FlowImplicitType, TokenURL: tokenURL}
+func (s *Security) WithImplicitOAuth2Flow(authorizationURL string, scopes map[string]string) *Security {
+	flow := OAuth2Flow{Name: FlowImplicitType, AuthorizationURL: authorizationURL}
+	flow.Scopes = scopes
+	flow.checkScopesMap()
 	s.OAuth2Flows = append(s.OAuth2Flows, flow)
 	return s
 }
 
 // WithPasswordOAuth2Flow adds a new oauth2 flow of password type with the necessary parameters
-func (s *Security) WithPasswordOAuth2Flow(authorizationURL string) *Security {
+func (s *Security) WithPasswordOAuth2Flow(authorizationURL string, scopes map[string]string) *Security {
 	flow := OAuth2Flow{Name: FlowPasswordType, AuthorizationURL: authorizationURL}
+	flow.Scopes = scopes
+	flow.checkScopesMap()
 	s.OAuth2Flows = append(s.OAuth2Flows, flow)
 	return s
 }
 
 // WithAuthCodeOAuth2Flow adds a new oauth2 flow of authorization_code type with the necessary parameters
-func (s *Security) WithAuthCodeOAuth2Flow(authorizationURL, tokenURL string) *Security {
+func (s *Security) WithAuthCodeOAuth2Flow(authorizationURL, tokenURL string, scopes map[string]string) *Security {
 	flow := OAuth2Flow{Name: FlowAuthCodeType, AuthorizationURL: authorizationURL, TokenURL: tokenURL}
+	flow.Scopes = scopes
+	flow.checkScopesMap()
 	s.OAuth2Flows = append(s.OAuth2Flows, flow)
 	return s
 }
 
 // WithClientCredentialOAuth2Flow adds a new oauth2 flow of client_credential type with the necessary parameters
-func (s *Security) WithClientCredentialOAuth2Flow(tokenURL string) *Security {
+func (s *Security) WithClientCredentialOAuth2Flow(tokenURL string, scopes map[string]string) *Security {
 	flow := OAuth2Flow{Name: FlowClientCredentialType, TokenURL: tokenURL}
+	flow.Scopes = scopes
+	flow.checkScopesMap()
 	s.OAuth2Flows = append(s.OAuth2Flows, flow)
 	return s
 }
 
 // WithOAuth2Flow adds a new oauth2 flow
 func (s *Security) WithOAuth2Flow(flow OAuth2Flow) *Security {
+	flow.checkScopesMap()
 	s.OAuth2Flows = append(s.OAuth2Flows, flow)
 	return s
 }

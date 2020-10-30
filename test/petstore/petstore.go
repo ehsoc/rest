@@ -29,20 +29,17 @@ func GeneratePetStore() resource.RestAPI {
 	renderers.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	//POST
 	create := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
-	petAuth := resource.NewSecurity("petstore_auth", resource.OAuth2SecurityType, resource.ValidatorFunc(func(i resource.Input) error {
+	petScopes := map[string]string{"write:pets": "modify pets in your account", "read:pets": "read your pets"}
+	petAuth := resource.NewOAuth2Security("petstore_auth", resource.ValidatorFunc(func(i resource.Input) error {
 		return nil
-	}), resource.NewResponse(401)).WithOAuth2Flow(
-		resource.OAuth2Flow{
-			Name:             resource.FlowImplicitType,
-			AuthorizationURL: "localhost:5050/oauth/dialog",
-			Scopes: map[string]string{
-				"write:pets": "modify pets in your account",
-				"read:pets":  "read your pets"},
-		})
+	}), resource.NewResponse(401)).
+		WithImplicitOAuth2Flow("localhost:5050/oauth/dialog", petScopes)
+
 	pets.Post(create, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Add a new pet to the store").
 		WithSecurity(petAuth)
+
 	//PUT
 	update := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404).WithDescription("Pet not found"))
 	pets.Put(update, renderers).
