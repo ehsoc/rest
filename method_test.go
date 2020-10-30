@@ -602,7 +602,7 @@ func TestGetResponses(t *testing.T) {
 	method := resource.NewMethod(http.MethodPost, mo, renderers).
 		WithParameter(resource.NewQueryParameter("p", reflect.String).WithValidation(v, validationResponse)).
 		WithValidation(v, methodValidationResponse)
-	responses := method.GetResponses()
+	responses := method.Responses()
 	wantResponses := []resource.Response{
 		successResponse,
 		failResponse,

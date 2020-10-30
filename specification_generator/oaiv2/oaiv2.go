@@ -141,7 +141,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			}
 		}
 		//Responses
-		for _, response := range method.GetResponses() {
+		for _, response := range method.Responses() {
 			res := spec.NewResponse()
 			//Body()  returns an interfaces so can be nil
 			if response.Body() != nil {
