@@ -1,12 +1,12 @@
 package resource
 
-type Parameters struct {
+type ParameterCollection struct {
 	parameters map[ParameterType]map[string]Parameter
 }
 
 // AddParameter adds a new parameter to the collection with the unique composite key by HTTPType and Name properties.
 // It will silently override a parameter if the same key is already set.
-func (p *Parameters) AddParameter(parameter Parameter) {
+func (p *ParameterCollection) AddParameter(parameter Parameter) {
 	p.checkNilMap()
 	if _, ok := p.parameters[parameter.HTTPType]; !ok {
 		p.parameters[parameter.HTTPType] = make(map[string]Parameter)
@@ -14,15 +14,15 @@ func (p *Parameters) AddParameter(parameter Parameter) {
 	p.parameters[parameter.HTTPType][parameter.Name] = parameter
 }
 
-func (p *Parameters) checkNilMap() {
+func (p *ParameterCollection) checkNilMap() {
 	if p.parameters == nil {
 		p.parameters = make(map[ParameterType]map[string]Parameter)
 	}
 }
 
-// GetParameters gets the parameter collection.
+// Parameters gets the parameter collection.
 // The order of the slice elements will not be consistent.
-func (p *Parameters) GetParameters() []Parameter {
+func (p *ParameterCollection) Parameters() []Parameter {
 	p.checkNilMap()
 	ps := make([]Parameter, 0)
 	for _, paramType := range p.parameters {
@@ -34,7 +34,7 @@ func (p *Parameters) GetParameters() []Parameter {
 }
 
 // GetParameter gets the parameter of the given ParameterType and name, error if is not found.
-func (p *Parameters) GetParameter(paramType ParameterType, name string) (Parameter, error) {
+func (p *ParameterCollection) GetParameter(paramType ParameterType, name string) (Parameter, error) {
 	p.checkNilMap()
 	params, ok := p.parameters[paramType]
 	if !ok {

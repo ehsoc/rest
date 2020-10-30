@@ -38,7 +38,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		//URI params will go first
 		pURIKeys := make([]resource.Parameter, 0)
 		pHeaderKeys := make([]resource.Parameter, 0)
-		for _, p := range method.GetParameters() {
+		for _, p := range method.Parameters() {
 			if p.HTTPType == resource.URIParameter {
 				pURIKeys = append(pURIKeys, p)
 				continue
@@ -114,7 +114,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 				specMethod.SecuredWith(security.Name, []string{}...)
 				o.addSecurityDefinition(security.Name, secScheme)
 			case resource.ApiKeySecurityType:
-				params := security.Parameters.GetParameters()
+				params := security.Parameters()
 				if len(params) > 0 {
 					secParam := convertParameter(params[0])
 					secScheme := spec.APIKeyAuth(security.Name, secParam.In)

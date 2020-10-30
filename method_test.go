@@ -385,8 +385,8 @@ func TestAddParameter(t *testing.T) {
 	m := resource.Method{}
 	p := resource.Parameter{HTTPType: resource.URIParameter, Name: "id"}
 	m.AddParameter(p)
-	if !reflect.DeepEqual(m.GetParameters()[0], p) {
-		t.Errorf("got: %v want: %v", m.GetParameters()[0], p)
+	if !reflect.DeepEqual(m.Parameters()[0], p) {
+		t.Errorf("got: %v want: %v", m.Parameters()[0], p)
 	}
 }
 
@@ -399,15 +399,15 @@ func TestWithParameter(t *testing.T) {
 	p.HTTPType = resource.FileParameter
 	p2.HTTPType = resource.URIParameter
 	m.WithParameter(p).WithParameter(p2)
-	parameters := m.GetParameters()
+	parameters := m.Parameters()
 	sort.Slice(parameters, func(i, j int) bool {
 		return parameters[i].Name < parameters[j].Name
 	})
 	if parameters[0].Name != p.Name {
-		t.Errorf("got: %#v want: %#v", m.GetParameters()[0].Name, p.Name)
+		t.Errorf("got: %#v want: %#v", m.Parameters()[0].Name, p.Name)
 	}
 	if parameters[1].Name != p2.Name {
-		t.Errorf("got: %#v want: %#v", m.GetParameters()[1].Name, p2.Name)
+		t.Errorf("got: %#v want: %#v", m.Parameters()[1].Name, p2.Name)
 	}
 }
 
@@ -420,7 +420,7 @@ func TestChainMethods(t *testing.T) {
 	p.HTTPType = resource.FileParameter
 	p2.HTTPType = resource.URIParameter
 	m.WithParameter(p).WithParameter(p2)
-	parameters := m.GetParameters()
+	parameters := m.Parameters()
 	sort.Slice(parameters, func(i, j int) bool {
 		return parameters[i].Name < parameters[j].Name
 	})
@@ -456,7 +456,7 @@ func TestGetParameters(t *testing.T) {
 	t.Run("nil parameters", func(t *testing.T) {
 		defer assertNoPanic(t)
 		m := resource.NewMethod("POST", resource.MethodOperation{}, resource.Renderers{})
-		params := m.GetParameters()
+		params := m.Parameters()
 		if len(params) != 0 {
 			t.Errorf("got: %v want: %v", len(params), 0)
 		}

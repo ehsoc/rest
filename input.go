@@ -17,7 +17,7 @@ import (
 // RequestBodyParameter parameter is the Request Body defined for the method.
 type Input struct {
 	Request              *http.Request
-	Parameters           Parameters
+	Parameters           ParameterCollection
 	RequestBodyParameter RequestBody
 	BodyDecoder          encdec.Decoder
 }

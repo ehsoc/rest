@@ -20,7 +20,7 @@ type Method struct {
 	Negotiator
 	SecuritySchemes []*Security
 	http.Handler
-	Parameters
+	ParameterCollection
 	validation
 }
 
@@ -78,7 +78,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	if m.MethodOperation.Operation == nil {
 		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
-	input := Input{r, m.Parameters, m.RequestBody, decoder}
+	input := Input{r, m.ParameterCollection, m.RequestBody, decoder}
 	// Security
 	for _, ss := range m.SecuritySchemes {
 		err := ss.validator.Validate(input)
@@ -99,7 +99,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	// Parameter validation
-	for _, p := range m.GetParameters() {
+	for _, p := range m.Parameters() {
 		if p.Validator != nil && p.validationResponse.code != 0 {
 			err := p.Validate(input)
 			if err != nil {
@@ -223,7 +223,7 @@ func (m *Method) Responses() []Response {
 	if m.Validator != nil && !m.validationResponse.disabled {
 		responses = append(responses, m.validationResponse)
 	}
-	for _, p := range m.GetParameters() {
+	for _, p := range m.Parameters() {
 		if p.Validator != nil && !p.validationResponse.disabled {
 			responses = append(responses, p.validationResponse)
 		}

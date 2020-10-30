@@ -20,7 +20,7 @@ var testParameters = []struct {
 
 func TestGetParameter(t *testing.T) {
 	for _, tt := range testParameters {
-		params := resource.Parameters{}
+		params := resource.ParameterCollection{}
 		params.AddParameter(tt.parameter)
 		t.Run(string(tt.parameter.HTTPType), func(t *testing.T) {
 			gotParam, err := params.GetParameter(tt.parameter.HTTPType, tt.parameter.Name)
@@ -32,14 +32,14 @@ func TestGetParameter(t *testing.T) {
 
 	}
 	t.Run("parameter nil collection", func(t *testing.T) {
-		params := resource.Parameters{}
+		params := resource.ParameterCollection{}
 		_, err := params.GetParameter(resource.QueryParameter, "foo")
 		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
 			t.Errorf("got: %v want: %T", err, resource.TypeErrorParameterNotDefined{})
 		}
 	})
 	t.Run("parameter not defined (empty parameter type)", func(t *testing.T) {
-		params := resource.Parameters{}
+		params := resource.ParameterCollection{}
 		params.AddParameter(resource.NewURIParameter("", reflect.Int))
 		_, err := params.GetParameter(resource.QueryParameter, "foo")
 		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {

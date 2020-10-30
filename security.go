@@ -4,7 +4,7 @@ type Security struct {
 	Type        string
 	Name        string
 	Description string
-	Parameters
+	ParameterCollection
 	validator                    Validator
 	FailedAuthenticationResponse Response
 	OAuth2Flows                  []OAuth2Flow
