@@ -6,9 +6,9 @@ import (
 	"github.com/ehsoc/resource/httputil"
 )
 
-func ExampleParseContentType() {
+func ExampleParseMediaTypes() {
 	accept := "application/json; indent=4, application/xml"
-	result := httputil.ParseContentType(accept)
+	result := httputil.ParseMediaTypes(accept)
 	for _, mt := range result {
 		fmt.Println(mt.Name, mt.Params)
 	}

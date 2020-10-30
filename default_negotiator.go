@@ -17,7 +17,7 @@ type DefaultNegotiator struct {
 func (d DefaultNegotiator) NegotiateEncoder(r *http.Request, cts *Renderers) (string, encdec.Encoder, error) {
 	accept := r.Header.Get("Accept")
 	if strings.Trim(accept, "") != "" {
-		mediaTypes := httputil.ParseContentType(accept)
+		mediaTypes := httputil.ParseMediaTypes(accept)
 		for _, mediaType := range mediaTypes {
 			enc, err := cts.GetEncoder(mediaType.Name)
 			if err == nil {
@@ -34,7 +34,7 @@ func (d DefaultNegotiator) NegotiateDecoder(r *http.Request, cts *Renderers) (st
 	// Only if it is a non-empty and not nil Body we will require a Content-Type header
 	if r.Body != http.NoBody && r.Body != nil {
 		if strings.Trim(ct, "") != "" {
-			mediaTypes := httputil.ParseContentType(ct)
+			mediaTypes := httputil.ParseMediaTypes(ct)
 			for _, mediaType := range mediaTypes {
 				enc, err := cts.GetDecoder(mediaType.Name)
 				if err == nil {

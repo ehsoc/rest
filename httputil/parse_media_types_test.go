@@ -28,7 +28,7 @@ var negotiatorTests = []struct {
 func TestParseAccept(t *testing.T) {
 	for _, tt := range negotiatorTests {
 		t.Run("", func(t *testing.T) {
-			got := httputil.ParseContentType(tt.accept)
+			got := httputil.ParseMediaTypes(tt.accept)
 			if !reflect.DeepEqual(got, tt.renderers) {
 				t.Errorf("got:%v want:%v", got, tt.renderers)
 			}

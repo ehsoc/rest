@@ -11,6 +11,7 @@ const (
 	defaultMaxMemory = 32 << 20 // 32 MB
 )
 
+// From the std library /net/http/request.go
 // multipartByReader is a sentinel value.
 // Its presence in Request.MultipartForm indicates that parsing of the request
 // body has been handed off to a MultipartReader instead of ParseMultipartForm.
@@ -21,8 +22,8 @@ var multipartByReader = &multipart.Form{
 
 var ErrMissingFile = errors.New("httputil: no such file")
 
-//GetFormFile returns the first file content and header for the provided form key.
-//GetFormfile uses FormFile function underneth so calls ParseMultipartForm and ParseForm if necessary
+// GetFormFile returns the first file content and header for the provided form key.
+// GetFormfile uses FormFile function underneth so calls ParseMultipartForm and ParseForm if necessary
 func GetFormFile(r *http.Request, key string) (fileContent []byte, fileHeader *multipart.FileHeader, err error) {
 	f, fh, err := r.FormFile(key)
 	if err != nil {
@@ -35,7 +36,7 @@ func GetFormFile(r *http.Request, key string) (fileContent []byte, fileHeader *m
 	return nil, nil, err
 }
 
-//GetFiles returns all the files for the provided form key.
+// GetFiles returns all the files for the provided form key.
 func GetFiles(r *http.Request, key string) ([]*multipart.FileHeader, error) {
 	if r.MultipartForm == multipartByReader {
 		return nil, errors.New("httputil: multipart handled by MultipartReader")
@@ -54,7 +55,7 @@ func GetFiles(r *http.Request, key string) ([]*multipart.FileHeader, error) {
 	return nil, ErrMissingFile
 }
 
-//GetFormValues returns all the form values for the provided form key.
+// GetFormValues returns all the form values for the provided form key.
 func GetFormValues(r *http.Request, key string) ([]string, error) {
 	if r.Form == nil {
 		r.ParseMultipartForm(defaultMaxMemory)

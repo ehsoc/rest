@@ -5,9 +5,9 @@ import (
 	"strings"
 )
 
-//ParseContentType will parse a Accept header and return an array of MediaType type
-//representing the media type and options parameters
-func ParseContentType(accept string) []MediaType {
+// ParseMediaTypes will parse one or multiple media type directives (i.e Accept or Content-Type headers)
+// and return an array of MediaType representing the MIME type name and optional parameters.
+func ParseMediaTypes(accept string) []MediaType {
 	mediatypes := []MediaType{}
 	types := strings.Split(accept, ",")
 	for _, ct := range types {
