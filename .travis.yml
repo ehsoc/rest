@@ -8,12 +8,16 @@ go:
 os:
   - linux
 
+before_install:
+  - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.32.2
+
 script:
   - export GO111MODULE=on
   - go get -d -t ./...
   - go mod download
   - go vet ./...
   - go test ./...
+  - golangci-lint run
   - >
     if [[ "$TRAVIS_GO_VERSION" =~ ^1\.14\. ]] && [[ "$TRAVIS_OS_NAME" == "linux" ]];then
      go get -u golang.org/x/tools/cmd/goimports;

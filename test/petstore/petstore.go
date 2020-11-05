@@ -30,9 +30,14 @@ func GeneratePetStore() resource.RestAPI {
 	//POST
 	create := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
 	petScopes := map[string]string{"write:pets": "modify pets in your account", "read:pets": "read your pets"}
-	petAuth := resource.NewOAuth2Security("petstore_auth", resource.ValidatorFunc(func(i resource.Input) error {
-		return nil
-	}), resource.NewResponse(401)).
+	petSO := resource.SecurityOperation{
+		Authenticator: resource.AuthenticatorFunc(func(i resource.Input) resource.AuthError {
+			return nil
+		}),
+		FailedAuthenticationResponse: resource.NewResponse(401),
+		FailedAuthorizationResponse:  resource.NewResponse(403),
+	}
+	petAuth := resource.NewOAuth2Security("petstore_auth", petSO).
 		WithImplicitOAuth2Flow("localhost:5050/oauth/dialog", petScopes)
 
 	pets.Post(create, renderers).
@@ -68,9 +73,14 @@ func GeneratePetStore() resource.RestAPI {
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
 		getById := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
-		apiKeyAuth := resource.NewSecurity("api_key", resource.ApiKeySecurityType, resource.ValidatorFunc(func(i resource.Input) error {
-			return nil
-		}), resource.NewResponse(401))
+		petApiKeySO := resource.SecurityOperation{
+			Authenticator: resource.AuthenticatorFunc(func(i resource.Input) resource.AuthError {
+				return nil
+			}),
+			FailedAuthenticationResponse: resource.NewResponse(401),
+			FailedAuthorizationResponse:  resource.NewResponse(403),
+		}
+		apiKeyAuth := resource.NewSecurity("api_key", resource.ApiKeySecurityType, petApiKeySO)
 
 		apiKeyAuth.AddParameter(resource.NewHeaderParameter("api_key", reflect.String))
 
@@ -117,9 +127,14 @@ func GeneratePetStore() resource.RestAPI {
 		findByStatus := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.NewResponse(200).WithOperationResultBody([]Pet{}).WithDescription("successful operation")).WithFailResponse(resource.NewResponse(400).WithDescription("Invalid status value"))
 		statusParam := resource.NewQueryArrayParameter("status", []interface{}{"available", "pending", "sold"}).AsRequired().WithDescription("Status values that need to be considered for filter")
 		statusParam.CollectionFormat = "multi"
-		basicSecurity := resource.NewSecurity("basicSecurity", resource.BasicSecurityType, resource.ValidatorFunc(func(i resource.Input) error {
-			return nil
-		}), resource.NewResponse(401))
+		petBasicAuthSO := resource.SecurityOperation{
+			Authenticator: resource.AuthenticatorFunc(func(i resource.Input) resource.AuthError {
+				return nil
+			}),
+			FailedAuthenticationResponse: resource.NewResponse(401),
+			FailedAuthorizationResponse:  resource.NewResponse(403),
+		}
+		basicSecurity := resource.NewSecurity("basicSecurity", resource.BasicSecurityType, petBasicAuthSO)
 		r.Get(findByStatus, ct).
 			WithSummary("Finds Pets by status").
 			WithDescription("Multiple status values can be provided with comma separated strings").

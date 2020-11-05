@@ -47,3 +47,24 @@ type Errorf struct {
 func (e *Errorf) Error() string {
 	return fmt.Sprintf(e.format, e.Var)
 }
+
+type AuthError interface {
+	IsAuthorization() bool
+	Error() string
+}
+
+type TypeErrorAuthorization struct {
+	Errorf
+}
+
+func (ia TypeErrorAuthorization) IsAuthorization() bool {
+	return true
+}
+
+type TypeErrorAuthentication struct {
+	Errorf
+}
+
+func (ia TypeErrorAuthentication) IsAuthorization() bool {
+	return false
+}

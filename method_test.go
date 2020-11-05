@@ -630,49 +630,108 @@ func TestMutableResponse(t *testing.T) {
 	}
 }
 
-type SecurityOperationStub struct {
-	authenticateCalled bool
-	authorizeCalled    bool
-}
-
-func (s *SecurityOperationStub) Authorize(i resource.Input) error {
-	s.authorizeCalled = true
-	return nil
-}
-
-func (s *SecurityOperationStub) Authenticate(i resource.Input) error {
-	s.authenticateCalled = true
-	return nil
-}
-
-type SecurityValidationStub struct {
+type AuthenticatorStub struct {
 	called bool
 }
 
-func (s *SecurityValidationStub) Validate(i resource.Input) error {
+func (s *AuthenticatorStub) Authenticate(i resource.Input) resource.AuthError {
 	s.called = true
+	if i.Request.URL.Query().Get("apikey") == "" {
+		return &resource.TypeErrorAuthentication{}
+	}
+	if i.Request.URL.Query().Get("apikey") != "test" {
+		return &resource.TypeErrorAuthorization{}
+	}
+	return nil
+}
+
+type Authenticator2Stub struct {
+	called bool
+}
+
+func (s *Authenticator2Stub) Authenticate(i resource.Input) resource.AuthError {
+	s.called = true
+	if i.Request.URL.Query().Get("token") == "" {
+		return &resource.TypeErrorAuthentication{}
+	}
+	if i.Request.URL.Query().Get("token") != "test" {
+		return &resource.TypeErrorAuthorization{}
+	}
 	return nil
 }
 
 func TestSecurity(t *testing.T) {
-	t.Run("GET ", func(t *testing.T) {
+	t.Run("pass authorization", func(t *testing.T) {
 		successResponse := resource.NewResponse(200)
 		renderers := resource.NewRenderers()
 		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		failResponse := resource.NewResponse(404)
 		operation := &OperationStub{}
-		sv := &SecurityValidationStub{}
-		security := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, sv, resource.NewResponse(401))
+		auth := &AuthenticatorStub{}
+		so := resource.SecurityOperation{auth, resource.NewResponse(401), resource.NewResponse(403)}
+		security := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, so)
+		security.Enforce = true
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 		method := resource.NewMethod(http.MethodGet, mo, renderers).WithSecurity(security)
-		method.AddParameter(resource.NewQueryParameter("fail", reflect.String))
-		request, _ := http.NewRequest(http.MethodPost, "/?fail=fail", nil)
+		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		assertResponseCode(t, response, failResponse.Code())
-		assertTrue(t, sv.called)
+		assertResponseCode(t, response, successResponse.Code())
+		assertTrue(t, auth.called)
+	})
+	t.Run("two schemes one pass authorization", func(t *testing.T) {
+		successResponse := resource.NewResponse(200)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		failResponse := resource.NewResponse(404)
+		operation := &OperationStub{}
+		apiKeyAuth := &AuthenticatorStub{}
+		basicAuth := &Authenticator2Stub{}
+		apiKeySo := resource.SecurityOperation{apiKeyAuth, resource.NewResponse(401), resource.NewResponse(403)}
+		basicSo := resource.SecurityOperation{basicAuth, resource.NewResponse(401), resource.NewResponse(405)}
+		apiKeySecurity := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, apiKeySo)
+		apiKeySecurity.Enforce = true
+		basicSecurity := resource.NewSecurity("basicAuth", resource.BasicSecurityType, basicSo)
+		basicSecurity.Enforce = true
+		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
+		method := resource.NewMethod(http.MethodGet, mo, renderers).WithSecurity(apiKeySecurity).WithSecurity(basicSecurity)
+		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		if !operation.wasCall {
+			t.Errorf("Expecting operation execution.")
+		}
+		assertResponseCode(t, response, successResponse.Code())
+		assertTrue(t, apiKeyAuth.called)
+	})
+	t.Run("two schemes, one fail", func(t *testing.T) {
+		successResponse := resource.NewResponse(200)
+		renderers := resource.NewRenderers()
+		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		failResponse := resource.NewResponse(404)
+		operation := &OperationStub{}
+		apiKeyAuth := &AuthenticatorStub{}
+		basicAuth := &Authenticator2Stub{}
+		apiKeySo := resource.SecurityOperation{apiKeyAuth, resource.NewResponse(401), resource.NewResponse(403)}
+		basicSo := resource.SecurityOperation{basicAuth, resource.NewResponse(401), resource.NewResponse(405)}
+		apiKeySecurity := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, apiKeySo)
+		apiKeySecurity.Enforce = true
+		basicSecurity := resource.NewSecurity("basicAuth", resource.BasicSecurityType, basicSo)
+		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
+		basicSecurity.Enforce = true
+		method := resource.NewMethod(http.MethodGet, mo, renderers).WithSecurity(apiKeySecurity).WithSecurity(basicSecurity)
+		method.AddParameter(resource.NewQueryParameter("fail", reflect.String))
+		request, _ := http.NewRequest(http.MethodPost, "/?token=authzfail", nil)
+		response := httptest.NewRecorder()
+		method.ServeHTTP(response, request)
+		if operation.wasCall {
+			t.Errorf("Not expecting operation execution.")
+		}
+		assertResponseCode(t, response, basicSo.FailedAuthorizationResponse.Code())
+		assertTrue(t, apiKeyAuth.called)
+		assertTrue(t, basicAuth.called)
 	})
 }

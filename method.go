@@ -79,15 +79,29 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
 	input := Input{r, m.ParameterCollection, m.RequestBody, decoder}
-	// Security
-	for _, ss := range m.SecuritySchemes {
-		err := ss.validator.Validate(input)
-		if err != nil {
-			mutateResponseBody(&ss.FailedAuthenticationResponse, nil, false, err)
-			writeResponse(r.Context(), w, ss.FailedAuthenticationResponse)
+
+	// Security only if SecuritySchemeEnforcement is true
+	if len(m.SecuritySchemes) > 0 {
+		passSecurity := false
+		var securityFailedResponse Response
+		for _, ss := range m.SecuritySchemes {
+			if ss.Enforce {
+				resp, err := processSecurity(ss, input)
+				if err != nil {
+					securityFailedResponse = resp
+					continue
+				}
+			}
+			passSecurity = true
+			break
+
+		}
+		if !passSecurity {
+			writeResponse(r.Context(), w, securityFailedResponse)
 			return
 		}
 	}
+
 	// Validation
 	// Method validation
 	if m.Validator != nil {
@@ -128,6 +142,19 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	mutateResponseBody(&m.MethodOperation.successResponse, entity, success, err)
 	writeResponse(r.Context(), w, m.MethodOperation.successResponse)
+}
+
+func processSecurity(ss *Security, input Input) (Response, error) {
+	err := ss.Authenticate(input)
+	if err != nil {
+		if authErr, ok := err.(AuthError); ok {
+			if authErr.IsAuthorization() {
+				return ss.FailedAuthorizationResponse, authErr
+			}
+			return ss.FailedAuthenticationResponse, authErr
+		}
+	}
+	return Response{}, nil
 }
 
 func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {

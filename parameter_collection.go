@@ -4,6 +4,13 @@ type ParameterCollection struct {
 	parameters map[ParameterType]map[string]Parameter
 }
 
+// NewParameterCollection returns a new ParameterCollection
+func NewParameterCollection() ParameterCollection {
+	p := ParameterCollection{}
+	p.parameters = map[ParameterType]map[string]Parameter{}
+	return p
+}
+
 // AddParameter adds a new parameter to the collection with the unique composite key by HTTPType and Name properties.
 // It will silently override a parameter if the same key is already set.
 func (p *ParameterCollection) AddParameter(parameter Parameter) {

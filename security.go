@@ -1,13 +1,42 @@
 package resource
 
+// Security contains the authentication and authorization data, and methods.
 type Security struct {
 	Type        string
 	Name        string
 	Description string
 	ParameterCollection
-	validator                    Validator
+	SecurityOperation
+	Enforce     bool
+	OAuth2Flows []OAuth2Flow
+}
+
+// SecurityOperation wraps the authentication/authorization method, and the respective fail responses
+type SecurityOperation struct {
+	Authenticator
 	FailedAuthenticationResponse Response
-	OAuth2Flows                  []OAuth2Flow
+	FailedAuthorizationResponse  Response
+}
+
+// Authenticator describes the method for authentication/authorization.
+// AuthError represents either a authentication or authorization failure.
+// Authentication function should be executed first, then the authorization.
+// To indicate an authentication failure return a TypeErrorAuthentication, and
+// for an authorization failure TypeErrorAuthorization error type.
+// AuthError will be nil when both authentication and authorization are successful
+type Authenticator interface {
+	Authenticate(Input) AuthError
+}
+
+// The AuthenticatorFunc type is an adapter to allow the use of
+// ordinary functions as Authenticator. If f is a function
+// with the appropriate signature, AuthenticatorFunc(f) is a
+// Authenticator that calls f.
+type AuthenticatorFunc func(Input) AuthError
+
+// Authenticate calls f(i)
+func (f AuthenticatorFunc) Authenticate(i Input) AuthError {
+	return f(i)
 }
 
 const (
@@ -17,20 +46,23 @@ const (
 )
 
 // NewSecurity creates a new security scheme
-func NewSecurity(name string, typ string, securityOperation Validator, failedAuthenticationResponse Response) *Security {
+// This security is not enforced by default as is not recommended to turn the enforcement on in production.
+// This should serve for specification purposes only, and you should provide the security through middleware implementation.
+// If you want to enforce the security you must turn the Enforce property to true.
+func NewSecurity(name string, typ string, securityOperation SecurityOperation) *Security {
 	s := &Security{
-		Name:                         name,
-		Type:                         typ,
-		validator:                    securityOperation,
-		FailedAuthenticationResponse: failedAuthenticationResponse,
+		Name:                name,
+		Type:                typ,
+		SecurityOperation:   securityOperation,
+		ParameterCollection: NewParameterCollection(),
 	}
-	s.parameters = make(map[ParameterType]map[string]Parameter)
+
 	return s
 }
 
 // NewOAuth2Security creates a new security scheme of OAuth2SecurityType type
-func NewOAuth2Security(name string, securityOperation Validator, failedAuthenticationResponse Response) *Security {
-	return NewSecurity(name, OAuth2SecurityType, securityOperation, failedAuthenticationResponse)
+func NewOAuth2Security(name string, securityOperation SecurityOperation) *Security {
+	return NewSecurity(name, OAuth2SecurityType, securityOperation)
 }
 
 func (o OAuth2Flow) checkScopesMap() {
@@ -49,8 +81,8 @@ func (s *Security) WithImplicitOAuth2Flow(authorizationURL string, scopes map[st
 }
 
 // WithPasswordOAuth2Flow adds a new oauth2 flow of password type with the necessary parameters
-func (s *Security) WithPasswordOAuth2Flow(authorizationURL string, scopes map[string]string) *Security {
-	flow := OAuth2Flow{Name: FlowPasswordType, AuthorizationURL: authorizationURL}
+func (s *Security) WithPasswordOAuth2Flow(tokenURL string, scopes map[string]string) *Security {
+	flow := OAuth2Flow{Name: FlowPasswordType, TokenURL: tokenURL}
 	flow.Scopes = scopes
 	flow.checkScopesMap()
 	s.OAuth2Flows = append(s.OAuth2Flows, flow)
