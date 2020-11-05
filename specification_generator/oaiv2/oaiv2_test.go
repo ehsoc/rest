@@ -5,22 +5,16 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/encdec"
 	"github.com/ehsoc/resource/specification_generator/oaiv2"
 	"github.com/ehsoc/resource/test/petstore"
 	"github.com/go-openapi/spec"
 	"github.com/nsf/jsondiff"
 )
-
-func operationStub(r *http.Request, decoder encdec.Decoder) (interface{}, error) {
-	return nil, nil
-}
 
 func TestNoEmptyResources(t *testing.T) {
 	api := resource.RestAPI{}

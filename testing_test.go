@@ -6,7 +6,6 @@ import (
 )
 
 var octetMimeType = "application/octet-stream"
-var jsonMimeType = "application/json"
 
 func assertStringEqual(t *testing.T, got, want string) {
 	t.Helper()
@@ -33,13 +32,6 @@ func assertFalse(t *testing.T, got bool) {
 	t.Helper()
 	if got {
 		t.Errorf("expecting to be false, got: %v", got)
-	}
-}
-
-func assertResponseContentType(t *testing.T, response *httptest.ResponseRecorder, mimeType string) {
-	t.Helper()
-	if response.Header().Get("Content-type") != mimeType {
-		t.Errorf("got:%s want:%s", response.Header().Get("Content-type"), mimeType)
 	}
 }
 

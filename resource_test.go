@@ -9,8 +9,6 @@ import (
 	"github.com/ehsoc/resource"
 )
 
-const summary string = "this is my method"
-
 var moTest = resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404))
 
 func TestAddMethod(t *testing.T) {

@@ -16,9 +16,6 @@ type ApiResponse struct {
 	Message string `json:"message"`
 }
 
-type dummyBody struct{}
-
-var unsupportedResponse = resource.NewResponse(415)
 var notFoundResponse = resource.NewResponse(404)
 
 func GeneratePetStore() resource.RestAPI {
