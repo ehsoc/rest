@@ -25,7 +25,7 @@ type OperationStub struct {
 	wasCall     bool
 	entity      interface{}
 	Car         Car
-	JsonCarData Car
+	JSONCarData Car
 	FileData    string
 	Metadata    string
 }
@@ -48,7 +48,7 @@ func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
 		car := Car{}
 		jsonDec := encdec.JSONDecoder{}
 		jsonDec.Decode(buf, &car)
-		o.JsonCarData = car
+		o.JSONCarData = car
 	}
 	error, _ := i.GetQueryString("error")
 	if error != "" {
@@ -345,8 +345,8 @@ func TestOperations(t *testing.T) {
 		if operation.Metadata != additionalMetaData {
 			t.Errorf("got :%s want: %s", operation.Metadata, additionalMetaData)
 		}
-		if !reflect.DeepEqual(operation.JsonCarData, wantCar) {
-			t.Errorf("got :%v want: %v", operation.JsonCarData, wantCar)
+		if !reflect.DeepEqual(operation.JSONCarData, wantCar) {
+			t.Errorf("got :%v want: %v", operation.JSONCarData, wantCar)
 		}
 
 	})

@@ -38,10 +38,6 @@ func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
 	return o.Pet, true, nil
 }
 
-func GetURIFuncStub() {
-	return
-}
-
 func TestGenerateServer(t *testing.T) {
 	t.Run("get method", func(t *testing.T) {
 		gen := chigenerator.ChiGenerator{}
@@ -57,11 +53,11 @@ func TestGenerateServer(t *testing.T) {
 			uriParam := resource.NewURIParameter("petId", reflect.String)
 			r.Get(getMethodOp, renderers).WithParameter(uriParam)
 		})
-		myId := "101"
+		myID := "101"
 		api.AddResource(petResource)
 		server := gen.GenerateServer(api)
 		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), gen.GetURIParam())
-		request, _ := http.NewRequest(http.MethodGet, "/v2/pet/"+myId, nil)
+		request, _ := http.NewRequest(http.MethodGet, "/v2/pet/"+myID, nil)
 		request = request.WithContext(ctx)
 		response := httptest.NewRecorder()
 		server.ServeHTTP(response, request)
@@ -71,8 +67,8 @@ func TestGenerateServer(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("operation was not called")
 		}
-		if operation.PetID != myId {
-			t.Errorf("got: %s want: %s", operation.PetID, myId)
+		if operation.PetID != myID {
+			t.Errorf("got: %s want: %s", operation.PetID, myID)
 		}
 	})
 	t.Run("post method", func(t *testing.T) {

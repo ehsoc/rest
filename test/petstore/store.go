@@ -19,7 +19,7 @@ type Store struct {
 	InMemoryFs afero.Fs
 }
 
-var ErrorPetNotFound = errors.New("Pet not found.")
+var ErrorPetNotFound = errors.New("Pet not found")
 
 func NewStore() *Store {
 	store := Store{}
@@ -28,8 +28,8 @@ func NewStore() *Store {
 	return &store
 }
 
-func getInt64Id(stringId string) (int64, error) {
-	id, err := strconv.Atoi(stringId)
+func getInt64Id(stringID string) (int64, error) {
+	id, err := strconv.Atoi(stringID)
 	if err != nil {
 		return 0, err
 	}

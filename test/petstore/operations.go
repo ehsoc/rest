@@ -77,7 +77,7 @@ func operationUploadImage(i resource.Input) (interface{}, bool, error) {
 	return nil, true, nil
 }
 
-type XmlPetsWrapper struct {
+type XMLPetsWrapper struct {
 	XMLName xml.Name `xml:"pets"`
 	Pets    []Pet    `xml:"Pet"`
 }
@@ -97,7 +97,7 @@ func operationFindByStatus(i resource.Input) (interface{}, bool, error) {
 	}
 	//If the encoder is XML, we want to wrap it with <pets>
 	if i.Request.Context().Value(resource.ContentTypeContextKey("encoder")) == "application/xml" {
-		return XmlPetsWrapper{Pets: petsList}, true, nil
+		return XMLPetsWrapper{Pets: petsList}, true, nil
 	}
 	return petsList, true, nil
 }

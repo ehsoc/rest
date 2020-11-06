@@ -28,13 +28,6 @@ func assertTrue(t *testing.T, got bool) {
 	}
 }
 
-func assertFalse(t *testing.T, got bool) {
-	t.Helper()
-	if got {
-		t.Errorf("expecting to be false, got: %v", got)
-	}
-}
-
 func assertNoErrorFatal(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
@@ -42,24 +35,10 @@ func assertNoErrorFatal(t *testing.T, err error) {
 	}
 }
 
-func assertError(t *testing.T, err error) {
-	t.Helper()
-	if err == nil {
-		t.Fatalf("Was expecting error")
-	}
-}
-
 func assertEqualError(t *testing.T, err, want error) {
 	t.Helper()
 	if err != want {
 		t.Errorf("got:%v want:%v", err, want)
-	}
-}
-
-func assertPanicError(t *testing.T, want error) {
-	t.Helper()
-	if err := recover(); err != want {
-		t.Fatalf("got: %v want: %v", err, want)
 	}
 }
 

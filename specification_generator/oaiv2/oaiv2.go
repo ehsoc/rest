@@ -240,17 +240,17 @@ func convertParameter(parameter resource.Parameter) *spec.Parameter {
 	return specParam
 }
 
-func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.RestAPI) {
+func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restAPI resource.RestAPI) {
 	o.swagger.Swagger = "2.0"
-	o.swagger.BasePath = restApi.BasePath
-	o.swagger.Host = restApi.Host
-	o.swagger.ID = restApi.ID
+	o.swagger.BasePath = restAPI.BasePath
+	o.swagger.Host = restAPI.Host
+	o.swagger.ID = restAPI.ID
 	info := &spec.Info{}
-	info.Description = restApi.Description
-	info.Title = restApi.Title
-	info.Version = restApi.Version
+	info.Description = restAPI.Description
+	info.Title = restAPI.Title
+	info.Version = restAPI.Version
 	o.swagger.Info = info
-	for _, apiResource := range restApi.Resources() {
+	for _, apiResource := range restAPI.Resources() {
 		o.resolveResource("/", apiResource)
 	}
 	e := json.NewEncoder(w)
