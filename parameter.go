@@ -9,6 +9,7 @@ import (
 // ParameterType represents a HTTP parameter type
 type ParameterType string
 
+// Common HTTP parameter types
 const (
 	FormDataParameter ParameterType = "formData"
 	FileParameter     ParameterType = "file"

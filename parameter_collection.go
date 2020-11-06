@@ -1,5 +1,6 @@
 package resource
 
+// ParameterCollection is a collection of parameters
 type ParameterCollection struct {
 	parameters map[ParameterType]map[string]Parameter
 }

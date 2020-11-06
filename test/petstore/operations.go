@@ -39,7 +39,7 @@ func operationUpdate(i resource.Input) (interface{}, bool, error) {
 	return pet, true, nil
 }
 
-func operationGetPetById(i resource.Input) (interface{}, bool, error) {
+func operationGetPetByID(i resource.Input) (interface{}, bool, error) {
 	petID, err := i.GetURIParam("petId")
 	if err != nil {
 		log.Fatal(err)

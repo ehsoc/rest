@@ -10,7 +10,7 @@ import (
 	"github.com/ehsoc/resource/encdec"
 )
 
-type ApiResponse struct {
+type APIResponse struct {
 	Code    int    `json:"code"`
 	Type    string `json:"type"`
 	Message string `json:"message"`
@@ -62,36 +62,36 @@ func GeneratePetStore() resource.RestAPI {
 			resource.NewResponse(400).WithDescription("Invalid ID supplied"))
 
 	//Uri Parameters declaration, so it is available to all anonymous resources functions
-	petIdURIParam := resource.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return").WithExample(1)
+	petIDURIParam := resource.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return").WithExample(1)
 	//SubResource
 	//New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
 	pets.Resource("{petId}", func(r *resource.Resource) {
 		ct := resource.NewRenderers()
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
-		getById := resource.NewMethodOperation(resource.OperationFunc(operationGetPetById), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
-		petApiKeySO := resource.SecurityOperation{
+		getByID := resource.NewMethodOperation(resource.OperationFunc(operationGetPetByID), resource.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
+		petAPIKeySO := resource.SecurityOperation{
 			Authenticator: resource.AuthenticatorFunc(func(i resource.Input) resource.AuthError {
 				return nil
 			}),
 			FailedAuthenticationResponse: resource.NewResponse(401),
 			FailedAuthorizationResponse:  resource.NewResponse(403),
 		}
-		apiKeyAuth := resource.NewSecurity("api_key", resource.APIKeySecurityType, petApiKeySO)
+		apiKeyAuth := resource.NewSecurity("api_key", resource.APIKeySecurityType, petAPIKeySO)
 
 		apiKeyAuth.AddParameter(resource.NewHeaderParameter("api_key", reflect.String))
 
-		r.Get(getById, ct).
+		r.Get(getByID, ct).
 			WithSummary("Find pet by ID").
 			WithDescription("Returns a single pet").
-			WithParameter(petIdURIParam).
+			WithParameter(petIDURIParam).
 			WithSecurity(apiKeyAuth)
 		//Delete
-		deleteById := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200)).WithFailResponse(notFoundResponse)
-		r.Delete(deleteById, ct).
+		deleteByID := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200)).WithFailResponse(notFoundResponse)
+		r.Delete(deleteByID, ct).
 			WithSummary("Deletes a pet").
 			WithParameter(
-				petIdURIParam.WithDescription("Pet id to delete").
+				petIDURIParam.WithDescription("Pet id to delete").
 					WithValidation(resource.ValidatorFunc(func(i resource.Input) error {
 						petID, _ := i.GetURIParam("petId")
 						_, err := getInt64Id(petID)
@@ -103,12 +103,12 @@ func GeneratePetStore() resource.RestAPI {
 			WithParameter(resource.NewHeaderParameter("api_key", reflect.String))
 		r.Resource("uploadImage", func(r *resource.Resource) {
 			//Upload image resource under URIParameter Resource
-			uploadImage := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(ApiResponse{200, "OK", "image created"}).WithDescription("successful operation"))
+			uploadImage := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(APIResponse{200, "OK", "image created"}).WithDescription("successful operation"))
 			ct := resource.NewRenderers()
 			ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 			ct.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 			r.Post(uploadImage, ct).
-				WithParameter(petIdURIParam.WithDescription("ID of pet to update")).
+				WithParameter(petIDURIParam.WithDescription("ID of pet to update")).
 				WithParameter(resource.NewFormDataParameter("additionalMetadata", reflect.String, encdec.JSONDecoder{}).WithDescription("Additional data to pass to server")).
 				WithParameter(resource.NewFileParameter("file").WithDescription("file to upload")).
 				WithParameter(resource.NewFormDataParameter("jsonPetData", reflect.Struct, encdec.JSONDecoder{}).WithDescription("json format data").WithBody(Pet{})).

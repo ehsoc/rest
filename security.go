@@ -127,8 +127,12 @@ type OAuth2Flow struct {
 }
 
 const (
-	FlowAuthCodeType         = "authorization_code"
-	FlowPasswordType         = "password"
+	// FlowAuthCodeType is the `authorization` code flow or grant type in a OAuth2 security scheme
+	FlowAuthCodeType = "authorization_code"
+	// FlowPasswordType is the `password` flow or grant type in a OAuth2 security scheme
+	FlowPasswordType = "password"
+	// FlowClientCredentialType is the `client credentials` flow or grant type in a OAuth2 security scheme
 	FlowClientCredentialType = "client_credentials"
-	FlowImplicitType         = "implicit"
+	// FlowImplicitType is the `implicit` flow or grant type in a OAuth2 security scheme
+	FlowImplicitType = "implicit"
 )
