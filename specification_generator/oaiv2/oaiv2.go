@@ -240,17 +240,17 @@ func convertParameter(parameter resource.Parameter) *spec.Parameter {
 	return specParam
 }
 
-func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.RestAPI) {
+func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restAPI resource.RestAPI) {
 	o.swagger.Swagger = "2.0"
-	o.swagger.BasePath = restApi.BasePath
-	o.swagger.Host = restApi.Host
-	o.swagger.ID = restApi.ID
+	o.swagger.BasePath = restAPI.BasePath
+	o.swagger.Host = restAPI.Host
+	o.swagger.ID = restAPI.ID
 	info := &spec.Info{}
-	info.Description = restApi.Description
-	info.Title = restApi.Title
-	info.Version = restApi.Version
+	info.Description = restAPI.Description
+	info.Title = restAPI.Title
+	info.Version = restAPI.Version
 	o.swagger.Info = info
-	for _, apiResource := range restApi.Resources() {
+	for _, apiResource := range restAPI.Resources() {
 		o.resolveResource("/", apiResource)
 	}
 	e := json.NewEncoder(w)
@@ -300,12 +300,11 @@ func (o *OpenAPIV2SpecGenerator) addSecurityDefinition(name string, schema *spec
 
 func (o *OpenAPIV2SpecGenerator) toSchema(v interface{}) *spec.Schema {
 	val := getValue(v)
-	schema := &spec.Schema{}
 	switch val.Kind() {
 	case reflect.Array, reflect.Slice:
 		if val.Type().Elem().Kind() == reflect.Struct {
 		}
-		schema = spec.ArrayProperty(o.toSchema(reflect.New(val.Type().Elem()).Interface()))
+		return spec.ArrayProperty(o.toSchema(reflect.New(val.Type().Elem()).Interface()))
 	case reflect.Struct:
 		structName := val.Type().Name()
 		refSchema := &spec.Schema{}
@@ -316,11 +315,11 @@ func (o *OpenAPIV2SpecGenerator) toSchema(v interface{}) *spec.Schema {
 			refSchema.SetProperty(getFieldName(field), *o.toSchema(val.Field(i).Interface()))
 		}
 		o.addDefinition(structName, refSchema)
-		schema = spec.RefSchema("#/definitions/" + structName)
+		return spec.RefSchema("#/definitions/" + structName)
 	default:
-		schema, _ = simpleTypesToSchema(val.Kind())
+		schema, _ := simpleTypesToSchema(val.Kind())
+		return schema
 	}
-	return schema
 }
 
 func simpleTypesToSchema(kind reflect.Kind) (*spec.Schema, error) {
