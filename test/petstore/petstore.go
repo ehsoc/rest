@@ -19,12 +19,12 @@ type APIResponse struct {
 var notFoundResponse = resource.NewResponse(404)
 
 func GeneratePetStore() resource.RestAPI {
-	//Resource /pet
+	// Resource /pet
 	pets := resource.NewResource("pet")
 	renderers := resource.NewRenderers()
 	renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	renderers.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
-	//POST
+	// POST
 	create := resource.NewMethodOperation(resource.OperationFunc(operationCreate), resource.NewResponse(201)).WithFailResponse(resource.NewResponse(400))
 	petScopes := map[string]string{"write:pets": "modify pets in your account", "read:pets": "read your pets"}
 	petSO := resource.SecurityOperation{
@@ -42,7 +42,7 @@ func GeneratePetStore() resource.RestAPI {
 		WithSummary("Add a new pet to the store").
 		WithSecurity(petAuth)
 
-	//PUT
+	// PUT
 	update := resource.NewMethodOperation(resource.OperationFunc(operationUpdate), resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404).WithDescription("Pet not found"))
 	pets.Put(update, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
@@ -61,10 +61,10 @@ func GeneratePetStore() resource.RestAPI {
 		}),
 			resource.NewResponse(400).WithDescription("Invalid ID supplied"))
 
-	//Uri Parameters declaration, so it is available to all anonymous resources functions
+	// Uri Parameters declaration, so it is available to all anonymous resources functions
 	petIDURIParam := resource.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return").WithExample(1)
-	//SubResource
-	//New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
+	// SubResource
+	// New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
 	pets.Resource("{petId}", func(r *resource.Resource) {
 		ct := resource.NewRenderers()
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
@@ -86,7 +86,7 @@ func GeneratePetStore() resource.RestAPI {
 			WithDescription("Returns a single pet").
 			WithParameter(petIDURIParam).
 			WithSecurity(apiKeyAuth)
-		//Delete
+		// Delete
 		deleteByID := resource.NewMethodOperation(resource.OperationFunc(operationDeletePet), resource.NewResponse(200)).WithFailResponse(notFoundResponse)
 		r.Delete(deleteByID, ct).
 			WithSummary("Deletes a pet").
@@ -102,7 +102,7 @@ func GeneratePetStore() resource.RestAPI {
 					}), resource.NewResponse(400).WithDescription("Invalid ID supplied"))).
 			WithParameter(resource.NewHeaderParameter("api_key", reflect.String))
 		r.Resource("uploadImage", func(r *resource.Resource) {
-			//Upload image resource under URIParameter Resource
+			// Upload image resource under URIParameter Resource
 			uploadImage := resource.NewMethodOperation(resource.OperationFunc(operationUploadImage), resource.NewResponse(200).WithBody(APIResponse{200, "OK", "image created"}).WithDescription("successful operation"))
 			ct := resource.NewRenderers()
 			ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
@@ -115,12 +115,12 @@ func GeneratePetStore() resource.RestAPI {
 				WithSummary("uploads an image")
 		})
 	})
-	//Resource /pet/findByStatus
+	// Resource /pet/findByStatus
 	pets.Resource("findByStatus", func(r *resource.Resource) {
 		ct := resource.NewRenderers()
 		ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoderDecoder{}, false)
-		//GET
+		// GET
 		findByStatus := resource.NewMethodOperation(resource.OperationFunc(operationFindByStatus), resource.NewResponse(200).WithOperationResultBody([]Pet{}).WithDescription("successful operation")).WithFailResponse(resource.NewResponse(400).WithDescription("Invalid status value"))
 		statusParam := resource.NewQueryArrayParameter("status", []interface{}{"available", "pending", "sold"}).AsRequired().WithDescription("Status values that need to be considered for filter")
 		statusParam.CollectionFormat = "multi"

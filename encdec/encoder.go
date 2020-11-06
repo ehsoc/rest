@@ -14,7 +14,7 @@ type Encoder interface {
 // Encoder that calls f.
 type EncoderFunc func(w io.Writer, v interface{}) error
 
-//Encode calls e(w,v)
+// Encode calls e(w,v)
 func (e EncoderFunc) Encode(w io.Writer, v interface{}) error {
 	return e(w, v)
 }

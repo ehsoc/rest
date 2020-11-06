@@ -14,7 +14,7 @@ type Decoder interface {
 // Decoder that calls f.
 type DecoderFunc func(r io.Reader, v interface{}) error
 
-//Decode calls e(w,v)
+// Decode calls e(w,v)
 func (e DecoderFunc) Decode(r io.Reader, v interface{}) error {
 	return e(r, v)
 }

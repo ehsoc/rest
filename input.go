@@ -123,7 +123,7 @@ func (i Input) GetFormFile(key string) ([]byte, *multipart.FileHeader, error) {
 
 // GetBody gets the request body, error if is not defined.
 func (i Input) GetBody() (io.ReadCloser, error) {
-	//Check param is defined
+	// Check param is defined
 	if i.RequestBodyParameter.Body == nil {
 		return nil, ErrorRequestBodyNotDefined
 	}

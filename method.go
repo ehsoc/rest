@@ -185,7 +185,7 @@ func (m *Method) GetEncoderMediaTypes() []string {
 	for m := range m.renderers.encoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
-	//Sorting map keys for order consistency
+	// Sorting map keys for order consistency
 	sort.Strings(mediaTypes)
 	return mediaTypes
 }
@@ -196,7 +196,7 @@ func (m *Method) GetDecoderMediaTypes() []string {
 	for m := range m.renderers.decoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
-	//Sorting map keys for consistency
+	// Sorting map keys for consistency
 	sort.Strings(mediaTypes)
 	return mediaTypes
 }

@@ -48,7 +48,7 @@ func operationGetPetByID(i resource.Input) (interface{}, bool, error) {
 	pet, err := PetStore.Get(petID)
 	if err != nil {
 		if err == ErrorPetNotFound {
-			//not found but is not an error
+			// not found but is not an error
 			return pet, false, nil
 		}
 		return pet, false, err
@@ -95,7 +95,7 @@ func operationFindByStatus(i resource.Input) (interface{}, bool, error) {
 	if err != nil {
 		return nil, false, err
 	}
-	//If the encoder is XML, we want to wrap it with <pets>
+	// If the encoder is XML, we want to wrap it with <pets>
 	if i.Request.Context().Value(resource.ContentTypeContextKey("encoder")) == "application/xml" {
 		return XMLPetsWrapper{Pets: petsList}, true, nil
 	}
