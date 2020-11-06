@@ -155,6 +155,9 @@ func TestGenerateAPISpec(t *testing.T) {
 func assertJSONStructEqual(t *testing.T, got, want interface{}) {
 	t.Helper()
 	gotJSON, err := json.MarshalIndent(got, " ", "  ")
+	if err != nil {
+		t.Fatalf("Not expecting error: %v", err)
+	}
 	wantJSON, err := json.MarshalIndent(want, " ", "  ")
 	if err != nil {
 		t.Fatalf("Not expecting error: %v", err)
