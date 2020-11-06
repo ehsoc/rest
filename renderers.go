@@ -23,42 +23,42 @@ func NewRenderers() Renderers {
 
 // Add adds a EncoderDecoder.
 // isDefault parameter will set the default encoder and decoder.
-func (h *Renderers) Add(MIMEtype string, ed encdec.EncoderDecoder, isDefault bool) {
-	h.AddEncoder(MIMEtype, ed, isDefault)
-	h.AddDecoder(MIMEtype, ed, isDefault)
+func (h *Renderers) Add(mimeType string, ed encdec.EncoderDecoder, isDefault bool) {
+	h.AddEncoder(mimeType, ed, isDefault)
+	h.AddDecoder(mimeType, ed, isDefault)
 }
 
 // AddEncoder adds a encoder.
 // isDefault parameter sets this encoder as default.
-func (h *Renderers) AddEncoder(MIMEtype string, encoder encdec.Encoder, isDefault bool) {
+func (h *Renderers) AddEncoder(mimeType string, encoder encdec.Encoder, isDefault bool) {
 	h.checkNilEncoderMap()
-	h.encoderContentTypes[MIMEtype] = encoder
+	h.encoderContentTypes[mimeType] = encoder
 	if isDefault {
-		h.defaultEncoder = MIMEtype
+		h.defaultEncoder = mimeType
 	}
 }
 
 // AddDecoder adds a decoder.
 // isDefault parameter will set this decoder as default.
-func (h *Renderers) AddDecoder(MIMEtype string, decoder encdec.Decoder, isDefault bool) {
+func (h *Renderers) AddDecoder(mimeType string, decoder encdec.Decoder, isDefault bool) {
 	h.checkNilDecoderMap()
-	h.decoderContentTypes[MIMEtype] = decoder
+	h.decoderContentTypes[mimeType] = decoder
 	if isDefault {
-		h.defaultDecoder = MIMEtype
+		h.defaultDecoder = mimeType
 	}
 }
 
-// GetEncoder gets the encoder with the provided MIMEtype as key
-func (h *Renderers) GetEncoder(MIMEtype string) (encdec.Encoder, error) {
-	if ed, ok := h.encoderContentTypes[MIMEtype]; ok {
+// GetEncoder gets the encoder with the provided mimeType as key
+func (h *Renderers) GetEncoder(mimeType string) (encdec.Encoder, error) {
+	if ed, ok := h.encoderContentTypes[mimeType]; ok {
 		return ed, nil
 	}
 	return nil, ErrorNoDefaultContentTypeIsSet
 }
 
-// GetDecoder gets the decoder with the provided MIMEtype as key
-func (h *Renderers) GetDecoder(MIMEtype string) (encdec.Decoder, error) {
-	if ed, ok := h.decoderContentTypes[MIMEtype]; ok {
+// GetDecoder gets the decoder with the provided mimeType as key
+func (h *Renderers) GetDecoder(mimeType string) (encdec.Decoder, error) {
+	if ed, ok := h.decoderContentTypes[mimeType]; ok {
 		return ed, nil
 	}
 	return nil, ErrorNoDefaultContentTypeIsSet

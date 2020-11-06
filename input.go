@@ -26,7 +26,7 @@ type Input struct {
 // If the InputContextKey("uriparamfunc") context value is not set will return an error.
 // If the URI parameter is not set, will return an error.
 func (i Input) GetURIParam(key string) (string, error) {
-	//Check param is defined
+	// Check param is defined
 	_, err := i.Parameters.GetParameter(URIParameter, key)
 	if err != nil {
 		return "", err
@@ -42,7 +42,7 @@ func (i Input) GetURIParam(key string) (string, error) {
 // GetHeader gets the request query slice associated to the given key.
 // If the parameter is not defined it will return an error.
 func (i Input) GetHeader(key string) (string, error) {
-	//Check param is defined
+	// Check param is defined
 	_, err := i.Parameters.GetParameter(HeaderParameter, key)
 	if err != nil {
 		return "", err
@@ -53,7 +53,7 @@ func (i Input) GetHeader(key string) (string, error) {
 // GetQuery gets the request query slice associated to the given key.
 // If the parameter is not defined, will return an error.
 func (i Input) GetQuery(key string) ([]string, error) {
-	//Check param is defined
+	// Check param is defined
 	_, err := i.Parameters.GetParameter(QueryParameter, key)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (i Input) GetQuery(key string) ([]string, error) {
 // If the parameter is not defined, will return error.
 // To access multiple values, use GetQuery
 func (i Input) GetQueryString(key string) (string, error) {
-	//Check if parameter is defined
+	// Check if parameter is defined
 	_, err := i.Parameters.GetParameter(QueryParameter, key)
 	if err != nil {
 		return "", err
@@ -78,7 +78,7 @@ func (i Input) GetQueryString(key string) (string, error) {
 // FormValue calls FormValue from the standard library.
 // If the parameter is not defined, will return error.
 func (i Input) GetFormValue(key string) (string, error) {
-	//Check param is defined
+	// Check param is defined
 	_, err := i.Parameters.GetParameter(FormDataParameter, key)
 	if err != nil {
 		return "", err
@@ -90,7 +90,7 @@ func (i Input) GetFormValue(key string) (string, error) {
 // If the parameter is not defined will return error.
 // Will also return an error if any error is found getting the values.
 func (i Input) GetFormValues(key string) ([]string, error) {
-	//Check param is defined
+	// Check param is defined
 	_, err := i.Parameters.GetParameter(FormDataParameter, key)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,7 @@ func (i Input) GetFormValues(key string) ([]string, error) {
 // If the parameter is not defined will return error, as well any other error will be returned if a problem
 // is find getting the files.
 func (i Input) GetFormFiles(key string) ([]*multipart.FileHeader, error) {
-	//Check param is defined
+	// Check param is defined
 	_, err := i.Parameters.GetParameter(FileParameter, key)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (i Input) GetFormFiles(key string) ([]*multipart.FileHeader, error) {
 // GetFormFile gets the first file content and header for the provided form key.
 // If the parameter is not defined, will return error.
 func (i Input) GetFormFile(key string) ([]byte, *multipart.FileHeader, error) {
-	//Check param is defined
+	// Check param is defined
 	_, err := i.Parameters.GetParameter(FileParameter, key)
 	if err != nil {
 		return nil, nil, err

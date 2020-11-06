@@ -13,6 +13,7 @@ linters:
     - unconvert
     - megacheck
     - varcheck
+    - gocritic
 issues:
   exclude-rules:
     - linters:

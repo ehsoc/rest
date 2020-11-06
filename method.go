@@ -25,9 +25,9 @@ type Method struct {
 }
 
 // NewMethod returns a Method instance
-func NewMethod(HTTPMethod string, methodOperation MethodOperation, renderers Renderers) *Method {
+func NewMethod(httpMethod string, methodOperation MethodOperation, renderers Renderers) *Method {
 	m := Method{}
-	m.HTTPMethod = HTTPMethod
+	m.HTTPMethod = httpMethod
 	m.MethodOperation = methodOperation
 	m.renderers = renderers
 	m.Negotiator = DefaultNegotiator{}
