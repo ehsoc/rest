@@ -7,9 +7,6 @@ import (
 
 // ErrorNoDefaultContentTypeIsSet error when no default renderer is set
 var ErrorNoDefaultContentTypeIsSet = errors.New("no default renderer is set")
-
-// ErrorResourceMethodCollition error
-var ErrorResourceMethodCollition = errors.New("method is already define for this resource")
 var ErrorResourceURIParamNoParamFound = errors.New("path must include a parameter name in brackets, like {myParamId}")
 var ErrorResourceURIParamMoreThanOne = errors.New("path just must include one parameter name in brackets")
 var ErrorRequestBodyNotDefined = errors.New("resource: a request body was not defined")

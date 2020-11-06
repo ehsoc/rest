@@ -38,12 +38,22 @@ func TestAddMethod(t *testing.T) {
 		r := resource.NewResource("pet")
 		r.Get(resource.MethodOperation{}, resource.Renderers{})
 	})
-	t.Run("error on existing method", func(t *testing.T) {
-		defer assertPanicError(t, resource.ErrorResourceMethodCollition)
+	t.Run("override existing method", func(t *testing.T) {
+		description := "second get"
 		r := resource.NewResource("")
-		r.Get(resource.MethodOperation{}, resource.Renderers{})
+		r.Get(resource.MethodOperation{}, resource.Renderers{}).WithDescription("first get")
 		r.Post(resource.MethodOperation{}, resource.Renderers{})
-		r.Get(resource.MethodOperation{}, resource.Renderers{})
+		r.Get(resource.MethodOperation{}, resource.Renderers{}).WithDescription(description)
+		if len(r.Methods()) != 2 {
+			t.Fatalf("expecting 2 methods, got: %v", len(r.Methods()))
+		}
+		for _, m := range r.Methods() {
+			if m.HTTPMethod == "GET" {
+				if m.Description != "second get" {
+					t.Errorf("got: %v want: %v", m.Description, description)
+				}
+			}
+		}
 	})
 }
 

@@ -17,7 +17,8 @@ type Resource struct {
 }
 
 // NewResource creates a new resource node.
-// name parameter should not contain a slash, because resource represents a unique node and name is the name of the node path
+// `name` parameter should not contain a slash.
+// Use brackets to indicate a URI Parameter node name, example: {pathNodeName}
 func NewResource(name string) Resource {
 	if strings.ContainsAny(name, "/") {
 		panic(&TypeErrorResourceSlashesNotAllowed{errorf{messageErrResourceSlashesNotAllowed, name}})
@@ -108,13 +109,11 @@ func (rs *Resource) Path() string {
 	return rs.path
 }
 
-// AddMethod adds a new method to the method collection
+// AddMethod adds a new method to the method collection.
+// If the same HTTPMethod (POST, GET, etc) is already in the collection, will be replace it silently.
 func (rs *Resource) AddMethod(method *Method) {
 	rs.checkNilMethods()
-	if _, ok := rs.methods[method.HTTPMethod]; ok {
-		panic(ErrorResourceMethodCollition)
-	}
-	rs.methods[method.HTTPMethod] = method
+	rs.methods[strings.ToUpper(method.HTTPMethod)] = method
 }
 
 func (rs *Resource) checkNilMethods() {
