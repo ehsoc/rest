@@ -172,7 +172,6 @@ func TestOperations(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("Expecting operation execution.")
 		}
-		//assertResponseCode(t, response, failResponse.Code())
 	})
 	t.Run("GET Operation Failed with query parameter trigger", func(t *testing.T) {
 		successResponse := resource.NewResponse(http.StatusCreated)

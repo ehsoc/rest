@@ -82,10 +82,10 @@ func TestGenerateAPISpec(t *testing.T) {
 		t.Fatalf("Path not found")
 	}
 	assertJSONStructEqual(t, gotGetPetIDPath.Get, wantGetPetIDPath.Get)
-	//Delete
+	// Delete
 	assertJSONStructEqual(t, gotGetPetIDPath.Delete, wantGetPetIDPath.Delete)
 
-	//Upload Image
+	// Upload Image
 	gotUploadImagePath, ok := gotSwagger.Paths.Paths["/pet/{petId}/uploadImage"]
 	if !ok {
 		t.Fatalf("Path not found")
@@ -96,7 +96,7 @@ func TestGenerateAPISpec(t *testing.T) {
 	}
 	assertJSONStructEqual(t, gotUploadImagePath.Post, wantUploadImagePath.Post)
 
-	//Find by status
+	// Find by status
 	gotFindByStatusPath, ok := gotSwagger.Paths.Paths["/pet/findByStatus"]
 	if !ok {
 		t.Fatalf("Path not found")
@@ -105,7 +105,6 @@ func TestGenerateAPISpec(t *testing.T) {
 	if !ok {
 		t.Fatalf("Path not found")
 	}
-	//fmt.Printf("%#v", gotFindByStatusPath)
 	assertJSONStructEqual(t, gotFindByStatusPath.Get, wantFindByStatusPath.Get)
 
 	t.Run("security definitions apiKey", func(t *testing.T) {

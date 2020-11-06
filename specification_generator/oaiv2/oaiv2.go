@@ -32,10 +32,10 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			param.Description = method.RequestBody.Description
 			specMethod.AddParam(param)
 		}
-		//Parameters
-		//Sorting parameters map for a consistent order in Marshaling
+		// Parameters
+		// Sorting parameters map for a consistent order in Marshaling
 		pKeys := make([]resource.Parameter, 0)
-		//URI params will go first
+		// URI params will go first
 		pURIKeys := make([]resource.Parameter, 0)
 		pHeaderKeys := make([]resource.Parameter, 0)
 		for _, p := range method.Parameters() {
@@ -58,7 +58,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		sort.Slice(pKeys, func(i, j int) bool {
 			return pKeys[i].Name < pKeys[j].Name
 		})
-		//Append two slices, uri params and the rest
+		// Append two slices, uri params and the rest
 		pHeaderKeys = append(pHeaderKeys, pURIKeys...)
 		pKeys = append(pHeaderKeys, pKeys...)
 		for _, parameter := range pKeys {
@@ -88,7 +88,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 				typedParam(specParam, parameter.Type)
 			case resource.FormDataParameter:
 				specParam = spec.FormDataParam(parameter.Name)
-				//In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
+				// In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
 				if parameter.Body != nil {
 					parameter.Type = reflect.String
 				}
@@ -98,7 +98,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			}
 			specParam.Description = parameter.Description
 			specParam.Required = parameter.Required
-			//Example on parameters is not allowed, so a extension is set.
+			// Example on parameters is not allowed, so a extension is set.
 			if parameter.Example != nil {
 				specParam.AddExtension("x-example", parameter.Example)
 			}
@@ -106,7 +106,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		}
 		specMethod.Consumes = method.GetDecoderMediaTypes()
 		specMethod.Produces = method.GetEncoderMediaTypes()
-		//Security
+		// Security
 		for _, security := range method.SecuritySchemes {
 			switch security.Type {
 			case resource.BasicSecurityType:
@@ -123,7 +123,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 				}
 			case resource.OAuth2SecurityType:
 				if security.OAuth2Flows != nil {
-					//OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow
+					// OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow
 					for k, flow := range security.OAuth2Flows {
 						secScheme := getOAuth2SecScheme(flow)
 						if k != 0 {
@@ -140,15 +140,14 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 				}
 			}
 		}
-		//Responses
+		// Responses
 		for _, response := range method.Responses() {
 			res := spec.NewResponse()
-			//Body()  returns an interfaces so can be nil
+			// Body() returns an interfaces so can be nil
 			if response.Body() != nil {
-				//res.Schema = o.toRef(response.Body)
 				res.Schema = o.toSchema(response.Body())
 			}
-			//If response.Description is empty we will set a default response base on the status code
+			// If response.Description is empty we will set a default response base on the status code
 			if response.Description() != "" {
 				res.Description = response.Description()
 			} else {
@@ -176,7 +175,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 	}
 
 	newBasePath := path.Join(basePath, apiResource.Path())
-	//Only Paths with methods should be in the Paths map
+	// Only Paths with methods should be in the Paths map
 	if len(apiResource.Methods()) > 0 {
 		o.swagger.Paths.Paths[newBasePath] = pathItem
 	}
@@ -223,7 +222,7 @@ func convertParameter(parameter resource.Parameter) *spec.Parameter {
 		typedParam(specParam, parameter.Type)
 	case resource.FormDataParameter:
 		specParam = spec.FormDataParam(parameter.Name)
-		//In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
+		// In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
 		if parameter.Body != nil {
 			parameter.Type = reflect.String
 		}
@@ -233,7 +232,7 @@ func convertParameter(parameter resource.Parameter) *spec.Parameter {
 	}
 	specParam.Description = parameter.Description
 	specParam.Required = parameter.Required
-	//Example on parameters is not allowed, so a extension is set.
+	// Example on parameters is not allowed, so a extension is set.
 	if parameter.Example != nil {
 		specParam.AddExtension("x-example", parameter.Example)
 	}

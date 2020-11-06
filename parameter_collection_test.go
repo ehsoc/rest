@@ -60,7 +60,7 @@ func TestWithBody(t *testing.T) {
 		car := Car{}
 		p := resource.NewFormDataParameter("car", reflect.Struct, encdec.JSONDecoder{})
 		p.WithBody(car)
-		//WithBody shouldn't change p properties
+		// WithBody shouldn't change p properties
 		if p.Body != nil {
 			t.Errorf("got: %v want: %v", p.Body, nil)
 		}

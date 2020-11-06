@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/afero"
 )
 
-//The objective of this package is to provide a CRUD store a non-persistent store in memory for integration tests.
+// Store provides a CRUD non-persistent store in memory for integration tests.
 type Store struct {
 	store      map[int64]Pet
 	idCount    int64

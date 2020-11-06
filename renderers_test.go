@@ -101,7 +101,7 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 		renderers := resource.NewRenderers()
 		renderers.Add("random/json", e, false)
 		renderers.Add("r/xml", e, true)
-		//The last overwrites all
+		// The last overwrites all
 		renderers.Add(wantMIMEType, e, true)
 		renderers.Add("r/tson", e, false)
 		renderers.Add("r/ttext", e, false)
