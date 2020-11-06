@@ -302,8 +302,6 @@ func (o *OpenAPIV2SpecGenerator) toSchema(v interface{}) *spec.Schema {
 	val := getValue(v)
 	switch val.Kind() {
 	case reflect.Array, reflect.Slice:
-		if val.Type().Elem().Kind() == reflect.Struct {
-		}
 		return spec.ArrayProperty(o.toSchema(reflect.New(val.Type().Elem()).Interface()))
 	case reflect.Struct:
 		structName := val.Type().Name()
