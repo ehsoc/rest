@@ -36,8 +36,8 @@ func getInt64Id(stringId string) (int64, error) {
 	return int64(id), nil
 }
 
-func (s *Store) Get(petId string) (Pet, error) {
-	id, err := getInt64Id(petId)
+func (s *Store) Get(petID string) (Pet, error) {
+	id, err := getInt64Id(petID)
 	if err != nil {
 		return Pet{}, err
 	}
@@ -58,12 +58,12 @@ func (s *Store) Create(pet Pet) (Pet, error) {
 	return pet, nil
 }
 
-func (s *Store) Update(petId string, pet Pet) (Pet, error) {
-	id, err := getInt64Id(petId)
+func (s *Store) Update(petID string, pet Pet) (Pet, error) {
+	id, err := getInt64Id(petID)
 	if err != nil {
 		return Pet{}, err
 	}
-	petFound, err := s.Get(petId)
+	petFound, err := s.Get(petID)
 	if err != nil {
 		return petFound, err
 	}
@@ -73,8 +73,8 @@ func (s *Store) Update(petId string, pet Pet) (Pet, error) {
 	return pet, nil
 }
 
-func (s *Store) Delete(petId string) error {
-	id, err := getInt64Id(petId)
+func (s *Store) Delete(petID string) error {
+	id, err := getInt64Id(petID)
 	if err != nil {
 		return err
 	}
@@ -95,15 +95,15 @@ func (s *Store) List() ([]Pet, error) {
 	return list, nil
 }
 
-func (s *Store) UploadPhoto(petId string, fileContent []byte) error {
-	id, err := getInt64Id(petId)
+func (s *Store) UploadPhoto(petID string, fileContent []byte) error {
+	id, err := getInt64Id(petID)
 	if err != nil {
 		return err
 	}
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if pet, ok := s.store[id]; ok {
-		url := fmt.Sprintf("files/%s%d", petId, time.Now().UnixNano())
+		url := fmt.Sprintf("files/%s%d", petID, time.Now().UnixNano())
 		err := afero.WriteFile(s.InMemoryFs, url, fileContent, 0655)
 		if err != nil {
 			return err

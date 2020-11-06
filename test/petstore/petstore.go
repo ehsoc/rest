@@ -93,8 +93,8 @@ func GeneratePetStore() resource.RestAPI {
 			WithParameter(
 				petIdURIParam.WithDescription("Pet id to delete").
 					WithValidation(resource.ValidatorFunc(func(i resource.Input) error {
-						petId, _ := i.GetURIParam("petId")
-						_, err := getInt64Id(petId)
+						petID, _ := i.GetURIParam("petId")
+						_, err := getInt64Id(petID)
 						if err != nil {
 							return err
 						}

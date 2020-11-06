@@ -40,8 +40,11 @@ func (f AuthenticatorFunc) Authenticate(i Input) AuthError {
 }
 
 const (
-	BasicSecurityType  = "basic"
+	// BasicSecurityType is the basic authentication security scheme
+	BasicSecurityType = "basic"
+	// APIKeySecurityType is the API Key authentication security scheme
 	APIKeySecurityType = "apiKey"
+	// OAuth2SecurityType is the OAuth2 authentication security scheme
 	OAuth2SecurityType = "oauth2"
 )
 

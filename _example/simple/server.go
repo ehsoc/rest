@@ -48,9 +48,9 @@ func GenerateServer() http.Handler {
 	root.Version = "v1"
 	root.Title = "My simple car API"
 	root.Resource("car", func(r *res.Resource) {
-		carIdParam := res.NewURIParameter("carId", reflect.String)
+		carIDParam := res.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *res.Resource) {
-			r.Get(getCar, rds).WithParameter(carIdParam)
+			r.Get(getCar, rds).WithParameter(carIDParam)
 		})
 	})
 	server := root.GenerateServer(chigenerator.ChiGenerator{})

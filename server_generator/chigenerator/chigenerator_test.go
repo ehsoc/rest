@@ -18,13 +18,13 @@ import (
 type OperationStub struct {
 	wasCall bool
 	Pet     petstore.Pet
-	PetId   string
+	PetID   string
 }
 
 func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
 	o.wasCall = true
-	petId, _ := i.GetURIParam("petId")
-	o.PetId = petId
+	petID, _ := i.GetURIParam("petId")
+	o.PetID = petID
 	pet := petstore.Pet{}
 	body, _ := i.GetBody()
 	if body != nil && body != http.NoBody {
@@ -71,8 +71,8 @@ func TestGenerateServer(t *testing.T) {
 		if !operation.wasCall {
 			t.Errorf("operation was not called")
 		}
-		if operation.PetId != myId {
-			t.Errorf("got: %s want: %s", operation.PetId, myId)
+		if operation.PetID != myId {
+			t.Errorf("got: %s want: %s", operation.PetID, myId)
 		}
 	})
 	t.Run("post method", func(t *testing.T) {

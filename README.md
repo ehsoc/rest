@@ -151,9 +151,9 @@ root.BasePath = "/v1"
 root.Version = "v1"
 root.Title = "My simple car API"
 root.Resource("car", func(r *res.Resource) {
-	carIdParam := res.NewURIParameter("carId", reflect.String)
+	carIDParam := res.NewURIParameter("carId", reflect.String)
 	r.Resource("{carId}", func(r *res.Resource) {
-		r.Get(getCar, ct).WithParameter(carIdParam)
+		r.Get(getCar, ct).WithParameter(carIDParam)
 	})
 })
 server := root.GenerateServer(chigenerator.ChiGenerator{})

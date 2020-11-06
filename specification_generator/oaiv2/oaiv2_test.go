@@ -22,9 +22,9 @@ func TestNoEmptyResources(t *testing.T) {
 	api.Version = "v1"
 	api.Title = "My simple car API"
 	api.Resource("car", func(r *resource.Resource) {
-		carIdParam := resource.NewURIParameter("carId", reflect.String)
+		carIDParam := resource.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *resource.Resource) {
-			r.Get(resource.MethodOperation{}, resource.Renderers{}).WithParameter(carIdParam)
+			r.Get(resource.MethodOperation{}, resource.Renderers{}).WithParameter(carIDParam)
 		})
 	})
 	gen := oaiv2.OpenAPIV2SpecGenerator{}
@@ -70,8 +70,8 @@ func TestGenerateAPISpec(t *testing.T) {
 	if !ok {
 		t.Fatalf("Path not found")
 	}
-	assertJsonStructEqual(t, gotPetPath.Post, wantPetPath.Post)
-	assertJsonStructEqual(t, gotPetPath.Put, wantPetPath.Put)
+	assertJSONStructEqual(t, gotPetPath.Post, wantPetPath.Post)
+	assertJSONStructEqual(t, gotPetPath.Put, wantPetPath.Put)
 
 	gotGetPetIDPath, ok := gotSwagger.Paths.Paths["/pet/{petId}"]
 	if !ok {
@@ -81,9 +81,9 @@ func TestGenerateAPISpec(t *testing.T) {
 	if !ok {
 		t.Fatalf("Path not found")
 	}
-	assertJsonStructEqual(t, gotGetPetIDPath.Get, wantGetPetIDPath.Get)
+	assertJSONStructEqual(t, gotGetPetIDPath.Get, wantGetPetIDPath.Get)
 	//Delete
-	assertJsonStructEqual(t, gotGetPetIDPath.Delete, wantGetPetIDPath.Delete)
+	assertJSONStructEqual(t, gotGetPetIDPath.Delete, wantGetPetIDPath.Delete)
 
 	//Upload Image
 	gotUploadImagePath, ok := gotSwagger.Paths.Paths["/pet/{petId}/uploadImage"]
@@ -94,7 +94,7 @@ func TestGenerateAPISpec(t *testing.T) {
 	if !ok {
 		t.Fatalf("Path not found")
 	}
-	assertJsonStructEqual(t, gotUploadImagePath.Post, wantUploadImagePath.Post)
+	assertJSONStructEqual(t, gotUploadImagePath.Post, wantUploadImagePath.Post)
 
 	//Find by status
 	gotFindByStatusPath, ok := gotSwagger.Paths.Paths["/pet/findByStatus"]
@@ -106,7 +106,7 @@ func TestGenerateAPISpec(t *testing.T) {
 		t.Fatalf("Path not found")
 	}
 	//fmt.Printf("%#v", gotFindByStatusPath)
-	assertJsonStructEqual(t, gotFindByStatusPath.Get, wantFindByStatusPath.Get)
+	assertJSONStructEqual(t, gotFindByStatusPath.Get, wantFindByStatusPath.Get)
 
 	t.Run("security definitions apiKey", func(t *testing.T) {
 		if gotSwagger.SecurityDefinitions == nil {
@@ -120,7 +120,7 @@ func TestGenerateAPISpec(t *testing.T) {
 		if !ok {
 			t.Fatal("expecting api_key in test fixture")
 		}
-		assertJsonStructEqual(t, gotAPIKeySchema, wantAPIKeySchema)
+		assertJSONStructEqual(t, gotAPIKeySchema, wantAPIKeySchema)
 	})
 	t.Run("security definitions oauth2", func(t *testing.T) {
 		if gotSwagger.SecurityDefinitions == nil {
@@ -134,7 +134,7 @@ func TestGenerateAPISpec(t *testing.T) {
 		if !ok {
 			t.Fatal("expecting petstore_auth in test fixture")
 		}
-		assertJsonStructEqual(t, gotOAuth2Schema, wantOAuth2Schema)
+		assertJSONStructEqual(t, gotOAuth2Schema, wantOAuth2Schema)
 	})
 	t.Run("security definitions basic", func(t *testing.T) {
 		if gotSwagger.SecurityDefinitions == nil {
@@ -148,22 +148,22 @@ func TestGenerateAPISpec(t *testing.T) {
 		if !ok {
 			t.Fatal("expecting basicSecurity in test fixture")
 		}
-		assertJsonStructEqual(t, gotSecuritySchema, wantSecuritySchema)
+		assertJSONStructEqual(t, gotSecuritySchema, wantSecuritySchema)
 	})
 }
 
-func assertJsonStructEqual(t *testing.T, got, want interface{}) {
+func assertJSONStructEqual(t *testing.T, got, want interface{}) {
 	t.Helper()
-	gotJson, err := json.MarshalIndent(got, " ", "  ")
+	gotJSON, err := json.MarshalIndent(got, " ", "  ")
 	wantJSON, err := json.MarshalIndent(want, " ", "  ")
 	if err != nil {
 		t.Fatalf("Not expecting error: %v", err)
 	}
 
-	if !reflect.DeepEqual(gotJson, wantJSON) {
+	if !reflect.DeepEqual(gotJSON, wantJSON) {
 		opts := jsondiff.DefaultConsoleOptions()
 		opts.PrintTypes = false
-		_, result := jsondiff.Compare(gotJson, wantJSON, &opts)
+		_, result := jsondiff.Compare(gotJSON, wantJSON, &opts)
 		t.Errorf("Expecting equal, diff: %s", result)
 	}
 }

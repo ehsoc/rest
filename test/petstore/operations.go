@@ -40,12 +40,12 @@ func operationUpdate(i resource.Input) (interface{}, bool, error) {
 }
 
 func operationGetPetById(i resource.Input) (interface{}, bool, error) {
-	petId, err := i.GetURIParam("petId")
+	petID, err := i.GetURIParam("petId")
 	if err != nil {
 		log.Fatal(err)
 		return nil, false, err
 	}
-	pet, err := PetStore.Get(petId)
+	pet, err := PetStore.Get(petID)
 	if err != nil {
 		if err == ErrorPetNotFound {
 			//not found but is not an error
@@ -57,9 +57,9 @@ func operationGetPetById(i resource.Input) (interface{}, bool, error) {
 }
 
 func operationDeletePet(i resource.Input) (interface{}, bool, error) {
-	petId, _ := i.GetURIParam("petId")
-	log.Println("Deleting pet id:", petId)
-	err := PetStore.Delete(petId)
+	petID, _ := i.GetURIParam("petId")
+	log.Println("Deleting pet id:", petID)
+	err := PetStore.Delete(petID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -67,10 +67,10 @@ func operationDeletePet(i resource.Input) (interface{}, bool, error) {
 }
 
 func operationUploadImage(i resource.Input) (interface{}, bool, error) {
-	petId, _ := i.GetURIParam("petId")
-	log.Println("Uploading image pet id:", petId)
+	petID, _ := i.GetURIParam("petId")
+	log.Println("Uploading image pet id:", petID)
 	fb, _, _ := i.GetFormFile("file")
-	err := PetStore.UploadPhoto(petId, fb)
+	err := PetStore.UploadPhoto(petID, fb)
 	if err != nil {
 		return nil, false, err
 	}
