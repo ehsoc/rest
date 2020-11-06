@@ -240,17 +240,17 @@ func convertParameter(parameter resource.Parameter) *spec.Parameter {
 	return specParam
 }
 
-func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restAPI resource.RestAPI) {
+func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restApi resource.RestAPI) {
 	o.swagger.Swagger = "2.0"
-	o.swagger.BasePath = restAPI.BasePath
-	o.swagger.Host = restAPI.Host
-	o.swagger.ID = restAPI.ID
+	o.swagger.BasePath = restApi.BasePath
+	o.swagger.Host = restApi.Host
+	o.swagger.ID = restApi.ID
 	info := &spec.Info{}
-	info.Description = restAPI.Description
-	info.Title = restAPI.Title
-	info.Version = restAPI.Version
+	info.Description = restApi.Description
+	info.Title = restApi.Title
+	info.Version = restApi.Version
 	o.swagger.Info = info
-	for _, apiResource := range restAPI.Resources() {
+	for _, apiResource := range restApi.Resources() {
 		o.resolveResource("/", apiResource)
 	}
 	e := json.NewEncoder(w)
@@ -259,27 +259,29 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restAPI resource.R
 }
 
 func getOAuth2SecScheme(flow resource.OAuth2Flow) *spec.SecurityScheme {
-	secScheme := &spec.SecurityScheme{}
+	secScheme := getBaseFlow(flow)
+	secScheme.Scopes = flow.Scopes
+	return secScheme
+}
+
+func getBaseFlow(flow resource.OAuth2Flow) *spec.SecurityScheme {
 	switch flow.Name {
 	case resource.FlowImplicitType:
-		secScheme = spec.OAuth2Implicit(flow.AuthorizationURL)
+		return spec.OAuth2Implicit(flow.AuthorizationURL)
 	case resource.FlowPasswordType:
-		secScheme = spec.OAuth2Password(flow.TokenURL)
+		return spec.OAuth2Password(flow.TokenURL)
 	case resource.FlowAuthCodeType:
-		secScheme = spec.OAuth2AccessToken(flow.AuthorizationURL, flow.TokenURL)
+		return spec.OAuth2AccessToken(flow.AuthorizationURL, flow.TokenURL)
 	case resource.FlowClientCredentialType:
-		secScheme = spec.OAuth2Application(flow.TokenURL)
+		return spec.OAuth2Application(flow.TokenURL)
 	default:
-		secScheme = &spec.SecurityScheme{SecuritySchemeProps: spec.SecuritySchemeProps{
+		return &spec.SecurityScheme{SecuritySchemeProps: spec.SecuritySchemeProps{
 			Type:             "oauth2",
 			Flow:             flow.Name,
 			TokenURL:         flow.TokenURL,
 			AuthorizationURL: flow.AuthorizationURL,
 		}}
 	}
-
-	secScheme.Scopes = flow.Scopes
-	return secScheme
 }
 
 func (o *OpenAPIV2SpecGenerator) addDefinition(name string, schema *spec.Schema) {
