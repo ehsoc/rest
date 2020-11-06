@@ -1,0 +1,15 @@
+fast: true
+linters:
+  disable-all: true
+  enable:
+    - govet
+    - golint
+    - goimports
+    - deadcode
+    - typecheck
+    - ineffassign
+    - misspell
+    - nakedret
+    - unconvert
+    - megacheck
+    - varcheck
