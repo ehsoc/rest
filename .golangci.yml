@@ -13,3 +13,8 @@ linters:
     - unconvert
     - megacheck
     - varcheck
+issues:
+  exclude-rules:
+    - linters:
+        - golint
+      text: 'name .* stutters'
