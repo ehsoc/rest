@@ -108,7 +108,7 @@ func (s *Store) UploadPhoto(petID string, fileContent []byte) error {
 		if err != nil {
 			return err
 		}
-		pet.PhotoUrls = append(s.store[id].PhotoUrls, url)
+		pet.PhotoUrls = append(pet.PhotoUrls, url)
 		s.store[id] = pet
 	}
 	return nil
