@@ -34,7 +34,7 @@ func (i Input) GetURIParam(key string) (string, error) {
 	getURIValue := i.Request.Context().Value(InputContextKey("uriparamfunc"))
 	getURIParamFunc, ok := getURIValue.(func(r *http.Request, key string) string)
 	if !ok {
-		return "", &TypeErrorGetURIParamFunctionNotDefined{Errorf{MessageErrGetURIParamFunctionNotDefined, key}}
+		return "", &TypeErrorGetURIParamFunctionNotDefined{errorf{messageErrGetURIParamFunctionNotDefined, key}}
 	}
 	return getURIParamFunc(i.Request, key), nil
 }

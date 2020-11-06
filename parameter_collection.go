@@ -45,13 +45,13 @@ func (p *ParameterCollection) GetParameter(paramType ParameterType, name string)
 	p.checkNilMap()
 	params, ok := p.parameters[paramType]
 	if !ok {
-		return Parameter{}, &TypeErrorParameterNotDefined{Errorf{MessageErrParameterNotDefined, name}}
+		return Parameter{}, &TypeErrorParameterNotDefined{errorf{messageErrParameterNotDefined, name}}
 	}
 	if params == nil {
-		return Parameter{}, &TypeErrorParameterNotDefined{Errorf{MessageErrParameterNotDefined, name}}
+		return Parameter{}, &TypeErrorParameterNotDefined{errorf{messageErrParameterNotDefined, name}}
 	}
 	if parameter, ok := params[name]; ok {
 		return parameter, nil
 	}
-	return Parameter{}, &TypeErrorParameterNotDefined{Errorf{MessageErrParameterNotDefined, name}}
+	return Parameter{}, &TypeErrorParameterNotDefined{errorf{messageErrParameterNotDefined, name}}
 }

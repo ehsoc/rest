@@ -669,7 +669,7 @@ func TestSecurity(t *testing.T) {
 		operation := &OperationStub{}
 		auth := &AuthenticatorStub{}
 		so := resource.SecurityOperation{auth, resource.NewResponse(401), resource.NewResponse(403)}
-		security := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, so)
+		security := resource.NewSecurity("apiKey", resource.APIKeySecurityType, so)
 		security.Enforce = true
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 		method := resource.NewMethod(http.MethodGet, mo, renderers).WithSecurity(security)
@@ -692,7 +692,7 @@ func TestSecurity(t *testing.T) {
 		basicAuth := &Authenticator2Stub{}
 		apiKeySo := resource.SecurityOperation{apiKeyAuth, resource.NewResponse(401), resource.NewResponse(403)}
 		basicSo := resource.SecurityOperation{basicAuth, resource.NewResponse(401), resource.NewResponse(405)}
-		apiKeySecurity := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, apiKeySo)
+		apiKeySecurity := resource.NewSecurity("apiKey", resource.APIKeySecurityType, apiKeySo)
 		apiKeySecurity.Enforce = true
 		basicSecurity := resource.NewSecurity("basicAuth", resource.BasicSecurityType, basicSo)
 		basicSecurity.Enforce = true
@@ -717,7 +717,7 @@ func TestSecurity(t *testing.T) {
 		basicAuth := &Authenticator2Stub{}
 		apiKeySo := resource.SecurityOperation{apiKeyAuth, resource.NewResponse(401), resource.NewResponse(403)}
 		basicSo := resource.SecurityOperation{basicAuth, resource.NewResponse(401), resource.NewResponse(405)}
-		apiKeySecurity := resource.NewSecurity("apiKey", resource.ApiKeySecurityType, apiKeySo)
+		apiKeySecurity := resource.NewSecurity("apiKey", resource.APIKeySecurityType, apiKeySo)
 		apiKeySecurity.Enforce = true
 		basicSecurity := resource.NewSecurity("basicAuth", resource.BasicSecurityType, basicSo)
 		mo := resource.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)

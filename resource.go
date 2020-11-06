@@ -20,7 +20,7 @@ type Resource struct {
 // name parameter should not contain a slash, because resource represents a unique node and name is the name of the node path
 func NewResource(name string) Resource {
 	if strings.ContainsAny(name, "/") {
-		panic(&TypeErrorResourceSlashesNotAllowed{Errorf{MessageErrResourceSlashesNotAllowed, name}})
+		panic(&TypeErrorResourceSlashesNotAllowed{errorf{messageErrResourceSlashesNotAllowed, name}})
 	}
 	name = strings.TrimSpace(name)
 	r := Resource{}

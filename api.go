@@ -8,8 +8,8 @@ import (
 )
 
 // RestAPI is the root of a REST API abstraction.
-// It is responsable for specification generation (GenerateSpec function), and
-// Server handler generation (GenerateServer function)
+// The two main responsabilities are generate specification generation (GenerateSpec function), and
+// Server handler generation (GenerateServer function).
 type RestAPI struct {
 	ID          string
 	Version     string

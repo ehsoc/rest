@@ -55,8 +55,8 @@ func TestGenerateAPISpec(t *testing.T) {
 	gotSwagger := spec.Swagger{}
 	decoder.Decode(&gotSwagger)
 	wantSwagger := spec.Swagger{}
-	petJson := getPetJson()
-	err := json.Unmarshal(petJson, &wantSwagger)
+	petJSON := getPetJSON()
+	err := json.Unmarshal(petJSON, &wantSwagger)
 	assertNoErrorFatal(t, err)
 
 	if gotSwagger.BasePath != wantSwagger.BasePath {
@@ -112,15 +112,15 @@ func TestGenerateAPISpec(t *testing.T) {
 		if gotSwagger.SecurityDefinitions == nil {
 			t.Fatal("SecurityDefinitions in nil")
 		}
-		gotApiKeySchema, ok := gotSwagger.SecurityDefinitions["api_key"]
+		gotAPIKeySchema, ok := gotSwagger.SecurityDefinitions["api_key"]
 		if !ok {
 			t.Fatal("expecting api_key in generated spec")
 		}
-		wantApiKeySchema, ok := wantSwagger.SecurityDefinitions["api_key"]
+		wantAPIKeySchema, ok := wantSwagger.SecurityDefinitions["api_key"]
 		if !ok {
 			t.Fatal("expecting api_key in test fixture")
 		}
-		assertJsonStructEqual(t, gotApiKeySchema, wantApiKeySchema)
+		assertJsonStructEqual(t, gotAPIKeySchema, wantAPIKeySchema)
 	})
 	t.Run("security definitions oauth2", func(t *testing.T) {
 		if gotSwagger.SecurityDefinitions == nil {
@@ -155,20 +155,20 @@ func TestGenerateAPISpec(t *testing.T) {
 func assertJsonStructEqual(t *testing.T, got, want interface{}) {
 	t.Helper()
 	gotJson, err := json.MarshalIndent(got, " ", "  ")
-	wantJson, err := json.MarshalIndent(want, " ", "  ")
+	wantJSON, err := json.MarshalIndent(want, " ", "  ")
 	if err != nil {
 		t.Fatalf("Not expecting error: %v", err)
 	}
 
-	if !reflect.DeepEqual(gotJson, wantJson) {
+	if !reflect.DeepEqual(gotJson, wantJSON) {
 		opts := jsondiff.DefaultConsoleOptions()
 		opts.PrintTypes = false
-		_, result := jsondiff.Compare(gotJson, wantJson, &opts)
+		_, result := jsondiff.Compare(gotJson, wantJSON, &opts)
 		t.Errorf("Expecting equal, diff: %s", result)
 	}
 }
 
-func getPetJson() []byte {
+func getPetJSON() []byte {
 	jsonFile, err := os.Open("../../test/fixtures/petstore_oav2.json")
 	if err != nil {
 		log.Println(err)

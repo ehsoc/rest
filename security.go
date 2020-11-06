@@ -41,7 +41,7 @@ func (f AuthenticatorFunc) Authenticate(i Input) AuthError {
 
 const (
 	BasicSecurityType  = "basic"
-	ApiKeySecurityType = "apiKey"
+	APIKeySecurityType = "apiKey"
 	OAuth2SecurityType = "oauth2"
 )
 
@@ -114,6 +114,7 @@ func (s *Security) WithOAuth2Flow(flow OAuth2Flow) *Security {
 	return s
 }
 
+// OAuth2Flow contains the OAuth2 flow or grant information.
 type OAuth2Flow struct {
 	Name             string
 	AuthorizationURL string

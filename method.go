@@ -134,7 +134,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if !success {
 		if m.MethodOperation.failResponse.disabled {
-			panic(&TypeErrorFailResponseNotDefined{Errorf{MessageErrFailResponseNotDefined, r.URL.Path + " " + m.HTTPMethod}})
+			panic(&TypeErrorFailResponseNotDefined{errorf{messageErrFailResponseNotDefined, r.URL.Path + " " + m.HTTPMethod}})
 		}
 		mutateResponseBody(&m.MethodOperation.failResponse, entity, success, err)
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
@@ -148,7 +148,7 @@ func processSecurity(ss *Security, input Input) (Response, error) {
 	err := ss.Authenticate(input)
 	if err != nil {
 		if authErr, ok := err.(AuthError); ok {
-			if authErr.IsAuthorization() {
+			if authErr.isAuthorization() {
 				return ss.FailedAuthorizationResponse, authErr
 			}
 			return ss.FailedAuthenticationResponse, authErr

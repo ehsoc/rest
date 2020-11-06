@@ -77,7 +77,7 @@ func GeneratePetStore() resource.RestAPI {
 			FailedAuthenticationResponse: resource.NewResponse(401),
 			FailedAuthorizationResponse:  resource.NewResponse(403),
 		}
-		apiKeyAuth := resource.NewSecurity("api_key", resource.ApiKeySecurityType, petApiKeySO)
+		apiKeyAuth := resource.NewSecurity("api_key", resource.APIKeySecurityType, petApiKeySO)
 
 		apiKeyAuth.AddParameter(resource.NewHeaderParameter("api_key", reflect.String))
 
