@@ -12,7 +12,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ehsoc/resource"
+	"github.com/ehsoc/rest"
 	"github.com/go-openapi/spec"
 )
 
@@ -20,7 +20,7 @@ type OpenAPIV2SpecGenerator struct {
 	swagger spec.Swagger
 }
 
-func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource resource.Resource) {
+func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource rest.Resource) {
 	pathItem := spec.PathItem{}
 	for _, method := range apiResource.Methods() {
 		specMethod := spec.NewOperation("")
@@ -34,16 +34,16 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		}
 		// Parameters
 		// Sorting parameters map for a consistent order in Marshaling
-		pKeys := make([]resource.Parameter, 0)
+		pKeys := make([]rest.Parameter, 0)
 		// URI params will go first
-		pURIKeys := make([]resource.Parameter, 0)
-		pHeaderKeys := make([]resource.Parameter, 0)
+		pURIKeys := make([]rest.Parameter, 0)
+		pHeaderKeys := make([]rest.Parameter, 0)
 		for _, p := range method.Parameters() {
-			if p.HTTPType == resource.URIParameter {
+			if p.HTTPType == rest.URIParameter {
 				pURIKeys = append(pURIKeys, p)
 				continue
 			}
-			if p.HTTPType == resource.HeaderParameter {
+			if p.HTTPType == rest.HeaderParameter {
 				pHeaderKeys = append(pHeaderKeys, p)
 				continue
 			}
@@ -64,7 +64,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		for _, parameter := range pKeys {
 			specParam := &spec.Parameter{}
 			switch parameter.HTTPType {
-			case resource.QueryParameter:
+			case rest.QueryParameter:
 				specParam = spec.QueryParam(parameter.Name)
 				if parameter.Type == reflect.Array {
 					specParam.Type = "array"
@@ -80,20 +80,20 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 				} else {
 					typedParam(specParam, parameter.Type)
 				}
-			case resource.URIParameter:
+			case rest.URIParameter:
 				specParam = spec.PathParam(parameter.Name)
 				typedParam(specParam, parameter.Type)
-			case resource.HeaderParameter:
+			case rest.HeaderParameter:
 				specParam = spec.HeaderParam(parameter.Name)
 				typedParam(specParam, parameter.Type)
-			case resource.FormDataParameter:
+			case rest.FormDataParameter:
 				specParam = spec.FormDataParam(parameter.Name)
 				// In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
 				if parameter.Body != nil {
 					parameter.Type = reflect.String
 				}
 				typedParam(specParam, parameter.Type)
-			case resource.FileParameter:
+			case rest.FileParameter:
 				specParam = spec.FileParam(parameter.Name)
 			}
 			specParam.Description = parameter.Description
@@ -109,11 +109,11 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		// Security
 		for _, security := range method.SecuritySchemes {
 			switch security.Type {
-			case resource.BasicSecurityType:
+			case rest.BasicSecurityType:
 				secScheme := spec.BasicAuth()
 				specMethod.SecuredWith(security.Name, []string{}...)
 				o.addSecurityDefinition(security.Name, secScheme)
-			case resource.APIKeySecurityType:
+			case rest.APIKeySecurityType:
 				params := security.Parameters()
 				if len(params) > 0 {
 					secParam := convertParameter(params[0])
@@ -121,7 +121,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 					specMethod.SecuredWith(secScheme.Name, []string{}...)
 					o.addSecurityDefinition(secScheme.Name, secScheme)
 				}
-			case resource.OAuth2SecurityType:
+			case rest.OAuth2SecurityType:
 				if security.OAuth2Flows != nil {
 					// OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow
 					for k, flow := range security.OAuth2Flows {
@@ -194,10 +194,10 @@ func typedParam(param *spec.Parameter, tpe reflect.Kind) {
 	}
 }
 
-func convertParameter(parameter resource.Parameter) *spec.Parameter {
+func convertParameter(parameter rest.Parameter) *spec.Parameter {
 	specParam := &spec.Parameter{}
 	switch parameter.HTTPType {
-	case resource.QueryParameter:
+	case rest.QueryParameter:
 		specParam = spec.QueryParam(parameter.Name)
 		if parameter.Type == reflect.Array {
 			specParam.Type = "array"
@@ -213,20 +213,20 @@ func convertParameter(parameter resource.Parameter) *spec.Parameter {
 		} else {
 			typedParam(specParam, parameter.Type)
 		}
-	case resource.URIParameter:
+	case rest.URIParameter:
 		specParam = spec.PathParam(parameter.Name)
 		typedParam(specParam, parameter.Type)
-	case resource.HeaderParameter:
+	case rest.HeaderParameter:
 		specParam = spec.HeaderParam(parameter.Name)
 		typedParam(specParam, parameter.Type)
-	case resource.FormDataParameter:
+	case rest.FormDataParameter:
 		specParam = spec.FormDataParam(parameter.Name)
 		// In case of multipart-form with schema type. This is not supported by OAI V2, this is a workaround.
 		if parameter.Body != nil {
 			parameter.Type = reflect.String
 		}
 		typedParam(specParam, parameter.Type)
-	case resource.FileParameter:
+	case rest.FileParameter:
 		specParam = spec.FileParam(parameter.Name)
 	}
 	specParam.Description = parameter.Description
@@ -238,17 +238,17 @@ func convertParameter(parameter resource.Parameter) *spec.Parameter {
 	return specParam
 }
 
-func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restAPI resource.RestAPI) {
+func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, api rest.API) {
 	o.swagger.Swagger = "2.0"
-	o.swagger.BasePath = restAPI.BasePath
-	o.swagger.Host = restAPI.Host
-	o.swagger.ID = restAPI.ID
+	o.swagger.BasePath = api.BasePath
+	o.swagger.Host = api.Host
+	o.swagger.ID = api.ID
 	info := &spec.Info{}
-	info.Description = restAPI.Description
-	info.Title = restAPI.Title
-	info.Version = restAPI.Version
+	info.Description = api.Description
+	info.Title = api.Title
+	info.Version = api.Version
 	o.swagger.Info = info
-	for _, apiResource := range restAPI.Resources() {
+	for _, apiResource := range api.Resources() {
 		o.resolveResource("/", apiResource)
 	}
 	e := json.NewEncoder(w)
@@ -256,21 +256,21 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, restAPI resource.R
 	e.Encode(o.swagger)
 }
 
-func getOAuth2SecScheme(flow resource.OAuth2Flow) *spec.SecurityScheme {
+func getOAuth2SecScheme(flow rest.OAuth2Flow) *spec.SecurityScheme {
 	secScheme := getBaseFlow(flow)
 	secScheme.Scopes = flow.Scopes
 	return secScheme
 }
 
-func getBaseFlow(flow resource.OAuth2Flow) *spec.SecurityScheme {
+func getBaseFlow(flow rest.OAuth2Flow) *spec.SecurityScheme {
 	switch flow.Name {
-	case resource.FlowImplicitType:
+	case rest.FlowImplicitType:
 		return spec.OAuth2Implicit(flow.AuthorizationURL)
-	case resource.FlowPasswordType:
+	case rest.FlowPasswordType:
 		return spec.OAuth2Password(flow.TokenURL)
-	case resource.FlowAuthCodeType:
+	case rest.FlowAuthCodeType:
 		return spec.OAuth2AccessToken(flow.AuthorizationURL, flow.TokenURL)
-	case resource.FlowClientCredentialType:
+	case rest.FlowClientCredentialType:
 		return spec.OAuth2Application(flow.TokenURL)
 	default:
 		return &spec.SecurityScheme{SecuritySchemeProps: spec.SecuritySchemeProps{

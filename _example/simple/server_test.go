@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource/_example/simple"
+	"github.com/ehsoc/rest/_example/simple"
 )
 
 func TestSimpleServer(t *testing.T) {

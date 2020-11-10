@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // Operation defines a resource operation.
 // Execute method will execute the operation.

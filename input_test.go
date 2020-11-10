@@ -1,4 +1,4 @@
-package resource_test
+package rest_test
 
 import (
 	"bytes"
@@ -9,17 +9,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/encdec"
 )
 
 func TestGetQuery(t *testing.T) {
 	t.Run("get query", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/?foo=1&foo=2", nil)
-		p := resource.NewQueryArrayParameter("foo", nil)
-		parameters := resource.ParameterCollection{}
+		p := rest.NewQueryArrayParameter("foo", nil)
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		querySlice, err := input.GetQuery("foo")
 		assertNoErrorFatal(t, err)
 		if len(querySlice) != 2 {
@@ -28,13 +28,13 @@ func TestGetQuery(t *testing.T) {
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/?foo=1&foo=2", nil)
-		p := resource.NewQueryArrayParameter("bar", nil)
-		parameters := resource.ParameterCollection{}
+		p := rest.NewQueryArrayParameter("bar", nil)
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetQuery("foo")
-		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &resource.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
 		}
 	})
 }
@@ -42,23 +42,23 @@ func TestGetQuery(t *testing.T) {
 func TestGetHeader(t *testing.T) {
 	t.Run("get header", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
-		p := resource.NewHeaderParameter("foo", reflect.String)
-		parameters := resource.ParameterCollection{}
+		p := rest.NewHeaderParameter("foo", reflect.String)
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
 		want := "myHeaderValue"
 		r.Header.Set(p.Name, want)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		got, err := input.GetHeader(p.Name)
 		assertNoErrorFatal(t, err)
 		assertStringEqual(t, got, want)
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
-		parameters := resource.ParameterCollection{}
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		parameters := rest.ParameterCollection{}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetHeader("foo")
-		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &resource.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
 		}
 	})
 }
@@ -70,13 +70,13 @@ func GetURIParamStub(r *http.Request, key string) string {
 func TestGetURIParam(t *testing.T) {
 	t.Run("get uri", func(t *testing.T) {
 		// I set up the get function on InputContextKey("uriparamfunc") key in the context.
-		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), GetURIParamStub)
+		ctx := context.WithValue(context.Background(), rest.InputContextKey("uriparamfunc"), GetURIParamStub)
 		r, _ := http.NewRequest("POST", "/", nil)
 		r = r.WithContext(ctx)
-		p := resource.NewURIParameter("myId", reflect.String)
-		parameters := resource.ParameterCollection{}
+		p := rest.NewURIParameter("myId", reflect.String)
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		uriValue, err := input.GetURIParam("myId")
 		assertNoErrorFatal(t, err)
 		wantURIValue := "myIdValue"
@@ -86,27 +86,27 @@ func TestGetURIParam(t *testing.T) {
 	})
 	t.Run("get uri parameter function not defined", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
-		p := resource.NewURIParameter("myId", reflect.String)
-		parameters := resource.ParameterCollection{}
+		p := rest.NewURIParameter("myId", reflect.String)
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetURIParam("myId")
-		if _, ok := err.(*resource.TypeErrorGetURIParamFunctionNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &resource.TypeErrorGetURIParamFunctionNotDefined{})
+		if _, ok := err.(*rest.TypeErrorGetURIParamFunctionNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.TypeErrorGetURIParamFunctionNotDefined{})
 		}
 	})
 	t.Run("get uri parameter not defined", func(t *testing.T) {
 		// I set up the get function on InputContextKey("uriparamfunc") key in the context.
-		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), GetURIParamStub)
+		ctx := context.WithValue(context.Background(), rest.InputContextKey("uriparamfunc"), GetURIParamStub)
 		r, _ := http.NewRequest("POST", "/", nil)
 		r = r.WithContext(ctx)
-		p := resource.NewURIParameter("myId", reflect.String)
-		parameters := resource.ParameterCollection{}
+		p := rest.NewURIParameter("myId", reflect.String)
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetURIParam("foo")
-		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &resource.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
 		}
 	})
 }
@@ -118,7 +118,7 @@ func TestGetBody(t *testing.T) {
 		buf := new(bytes.Buffer)
 		json.NewEncoder(buf).Encode(car)
 		r, _ := http.NewRequest("POST", "/", buf)
-		input := resource.Input{r, resource.ParameterCollection{}, resource.RequestBody{"", Car{}, true}, nil}
+		input := rest.Input{r, rest.ParameterCollection{}, rest.RequestBody{"", Car{}, true}, nil}
 		body, err := input.GetBody()
 		assertNoErrorFatal(t, err)
 		json.NewDecoder(body).Decode(&gotCar)
@@ -131,9 +131,9 @@ func TestGetBody(t *testing.T) {
 		buf := new(bytes.Buffer)
 		json.NewEncoder(buf).Encode(car)
 		r, _ := http.NewRequest("POST", "/", buf)
-		input := resource.Input{r, resource.ParameterCollection{}, resource.RequestBody{}, nil}
+		input := rest.Input{r, rest.ParameterCollection{}, rest.RequestBody{}, nil}
 		_, err := input.GetBody()
-		assertEqualError(t, err, resource.ErrorRequestBodyNotDefined)
+		assertEqualError(t, err, rest.ErrorRequestBodyNotDefined)
 	})
 }
 
@@ -150,10 +150,10 @@ func TestGetFormFiles(t *testing.T) {
 		w.Close()
 		r, _ := http.NewRequest("POST", "/", buf)
 		r.Header.Set("Content-Type", w.FormDataContentType())
-		p := resource.NewFileParameter("file")
-		parameters := resource.ParameterCollection{}
+		p := rest.NewFileParameter("file")
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		files, err := input.GetFormFiles("file")
 		assertNoErrorFatal(t, err)
 		if len(files) != 2 {
@@ -168,13 +168,13 @@ func TestGetFormFiles(t *testing.T) {
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
-		p := resource.NewFileParameter("file")
-		parameters := resource.ParameterCollection{}
+		p := rest.NewFileParameter("file")
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, _, err := input.GetFormFile("foo")
-		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &resource.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
 		}
 	})
 }
@@ -189,10 +189,10 @@ func TestGetFormFile(t *testing.T) {
 		w.Close()
 		r, _ := http.NewRequest("POST", "/", buf)
 		r.Header.Set("Content-Type", w.FormDataContentType())
-		p := resource.NewFileParameter("file")
-		parameters := resource.ParameterCollection{}
+		p := rest.NewFileParameter("file")
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		file, _, err := input.GetFormFile("file")
 		assertNoErrorFatal(t, err)
 		if string(file) != fileData {
@@ -201,13 +201,13 @@ func TestGetFormFile(t *testing.T) {
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
-		p := resource.NewFileParameter("file")
-		parameters := resource.ParameterCollection{}
+		p := rest.NewFileParameter("file")
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, _, err := input.GetFormFile("foo")
-		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &resource.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
 		}
 	})
 }
@@ -227,10 +227,10 @@ func TestGetFormValues(t *testing.T) {
 		r, _ := http.NewRequest(http.MethodPost, "/", b)
 		r.Header.Set("Content-Type", w.FormDataContentType())
 
-		p := resource.NewFormDataParameter(key, reflect.String, encdec.TextDecoder{})
-		parameters := resource.ParameterCollection{}
+		p := rest.NewFormDataParameter(key, reflect.String, encdec.TextDecoder{})
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		values, err := input.GetFormValues(key)
 		if err != nil {
 			t.Fatalf("was not expecting an error")
@@ -247,13 +247,13 @@ func TestGetFormValues(t *testing.T) {
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
-		p := resource.NewFileParameter("file")
-		parameters := resource.ParameterCollection{}
+		p := rest.NewFileParameter("file")
+		parameters := rest.ParameterCollection{}
 		parameters.AddParameter(p)
-		input := resource.Input{r, parameters, resource.RequestBody{}, nil}
+		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, _, err := input.GetFormFile("foo")
-		if _, ok := err.(*resource.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &resource.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
 		}
 	})
 }

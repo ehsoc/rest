@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // RequestBody represents a request body parameter
 type RequestBody struct {

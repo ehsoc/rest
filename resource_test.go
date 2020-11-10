@@ -1,4 +1,4 @@
-package resource_test
+package rest_test
 
 import (
 	"net/http"
@@ -6,16 +6,16 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/ehsoc/resource"
+	"github.com/ehsoc/rest"
 )
 
-var moTest = resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(200)).WithFailResponse(resource.NewResponse(404))
+var moTest = rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(404))
 
 func TestAddMethod(t *testing.T) {
-	renderers := resource.NewRenderers()
+	renderers := rest.NewRenderers()
 	t.Run("get method", func(t *testing.T) {
-		r := resource.NewResource("pet")
-		m := resource.NewMethod("GET", moTest, renderers)
+		r := rest.NewResource("pet")
+		m := rest.NewMethod("GET", moTest, renderers)
 		r.AddMethod(m)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -30,20 +30,20 @@ func TestAddMethod(t *testing.T) {
 	})
 	t.Run("methods map nil", func(t *testing.T) {
 		defer assertNoPanic(t)
-		r := resource.Resource{}
-		r.Get(resource.MethodOperation{}, resource.Renderers{})
+		r := rest.Resource{}
+		r.Get(rest.MethodOperation{}, rest.Renderers{})
 	})
 	t.Run("methods map nil with constructor", func(t *testing.T) {
 		defer assertNoPanic(t)
-		r := resource.NewResource("pet")
-		r.Get(resource.MethodOperation{}, resource.Renderers{})
+		r := rest.NewResource("pet")
+		r.Get(rest.MethodOperation{}, rest.Renderers{})
 	})
 	t.Run("override existing method", func(t *testing.T) {
 		description := "second get"
-		r := resource.NewResource("")
-		r.Get(resource.MethodOperation{}, resource.Renderers{}).WithDescription("first get")
-		r.Post(resource.MethodOperation{}, resource.Renderers{})
-		r.Get(resource.MethodOperation{}, resource.Renderers{}).WithDescription(description)
+		r := rest.NewResource("")
+		r.Get(rest.MethodOperation{}, rest.Renderers{}).WithDescription("first get")
+		r.Post(rest.MethodOperation{}, rest.Renderers{})
+		r.Get(rest.MethodOperation{}, rest.Renderers{}).WithDescription(description)
 		if len(r.Methods()) != 2 {
 			t.Fatalf("expecting 2 methods, got: %v", len(r.Methods()))
 		}
@@ -58,9 +58,9 @@ func TestAddMethod(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	renderers := resource.NewRenderers()
+	renderers := rest.NewRenderers()
 	t.Run("get method", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Get(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -74,7 +74,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("post method", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Post(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -88,7 +88,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("options put", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Put(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -102,7 +102,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("options patch", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Patch(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -116,7 +116,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("delete method", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Delete(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -130,7 +130,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("options method", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Options(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -144,7 +144,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("connect method", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Connect(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -158,7 +158,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("head method", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Head(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -172,7 +172,7 @@ func TestGet(t *testing.T) {
 		}
 	})
 	t.Run("trace method", func(t *testing.T) {
-		r := resource.NewResource("pet")
+		r := rest.NewResource("pet")
 		r.Trace(moTest, renderers)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -190,28 +190,28 @@ func TestGet(t *testing.T) {
 func TestNewResource(t *testing.T) {
 	t.Run("new resource", func(t *testing.T) {
 		name := "pet"
-		resource.NewResource(name)
+		rest.NewResource(name)
 		defer assertNoPanic(t)
 	})
 	t.Run("new resource with slash", func(t *testing.T) {
 		defer func() {
 			if err := recover(); err != nil {
-				if _, ok := err.(*resource.TypeErrorResourceSlashesNotAllowed); !ok {
-					t.Fatalf("got: %T want: %T", err, resource.TypeErrorResourceSlashesNotAllowed{})
+				if _, ok := err.(*rest.TypeErrorResourceSlashesNotAllowed); !ok {
+					t.Fatalf("got: %T want: %T", err, rest.TypeErrorResourceSlashesNotAllowed{})
 				}
 			}
 		}()
 		name := "/pet"
-		resource.NewResource(name)
+		rest.NewResource(name)
 	})
 }
 
 func TestResourceIntegration(t *testing.T) {
-	r := resource.NewResource("car")
-	r.Resource("find", func(r *resource.Resource) {
-		r.Resource("left", func(r *resource.Resource) {
+	r := rest.NewResource("car")
+	r.Resource("find", func(r *rest.Resource) {
+		r.Resource("left", func(r *rest.Resource) {
 		})
-		r.Resource("right", func(r *resource.Resource) {
+		r.Resource("right", func(r *rest.Resource) {
 		})
 	})
 	if r.Path() != "car" {

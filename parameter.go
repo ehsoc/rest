@@ -1,9 +1,9 @@
-package resource
+package rest
 
 import (
 	"reflect"
 
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest/encdec"
 )
 
 // ParameterType represents a HTTP parameter type

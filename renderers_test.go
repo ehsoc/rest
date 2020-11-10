@@ -1,12 +1,12 @@
-package resource_test
+package rest_test
 
 import (
 	"bytes"
 	"io"
 	"testing"
 
-	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/encdec"
 )
 
 type EncodeDecoderSpy struct {
@@ -27,7 +27,7 @@ func (e *EncodeDecoderSpy) Decode(r io.Reader, v interface{}) error {
 func TestAdd(t *testing.T) {
 	t.Run("nil maps", func(t *testing.T) {
 		defer assertNoPanic(t)
-		renderers := resource.Renderers{}
+		renderers := rest.Renderers{}
 		renderers.Add("", encdec.JSONEncoderDecoder{}, true)
 	})
 }
@@ -36,7 +36,7 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	t.Run("getting an existent key on encoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantMIMEType := "test/message"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add(wantMIMEType, e, false)
 		encoder, err := renderers.GetEncoder(wantMIMEType)
 		if err != nil {
@@ -49,7 +49,7 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	t.Run("getting a non existent key on encoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantMIMEType := "test/message"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add(wantMIMEType, e, false)
 		_, err := renderers.GetEncoder("randomkey")
 		if err == nil {
@@ -59,7 +59,7 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	t.Run("getting an existent key on decoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantMIMEType := "test/message"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add(wantMIMEType, e, false)
 		encoderDecoder, err := renderers.GetDecoder(wantMIMEType)
 		if err != nil {
@@ -74,7 +74,7 @@ func TestEncoderDecoderSelector(t *testing.T) {
 	t.Run("getting a non existent key on decoder", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantMIMEType := "test/message"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add(wantMIMEType, e, false)
 		_, err := renderers.GetDecoder("randomkey")
 		if err == nil {
@@ -87,7 +87,7 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 	t.Run("no default encdec", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantMIMEType := "test/message"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add(wantMIMEType, e, false)
 		_, _, err := renderers.GetDefaultEncoder()
 		if err == nil {
@@ -97,7 +97,7 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 	t.Run("get default encdec", func(t *testing.T) {
 		e := &EncodeDecoderSpy{}
 		wantMIMEType := "test/message"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add("random/json", e, false)
 		renderers.Add("r/xml", e, true)
 		// The last overwrites all

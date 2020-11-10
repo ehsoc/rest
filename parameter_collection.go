@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // ParameterCollection is a collection of parameters
 type ParameterCollection struct {

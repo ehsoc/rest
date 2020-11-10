@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/ehsoc/resource/_example/simple"
+	"github.com/ehsoc/rest/_example/simple"
 )
 
 func main() {

@@ -1,7 +1,7 @@
-package resource
+package rest
 
 import (
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest/encdec"
 )
 
 // Renderers contains all available MIME types,

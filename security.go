@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // Security contains the authentication and authorization data, and methods.
 type Security struct {

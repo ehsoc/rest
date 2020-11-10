@@ -1,12 +1,12 @@
-package resource
+package rest
 
 import (
 	"errors"
 	"net/http"
 	"strings"
 
-	"github.com/ehsoc/resource/encdec"
-	"github.com/ehsoc/resource/httputil"
+	"github.com/ehsoc/rest/encdec"
+	"github.com/ehsoc/rest/httputil"
 )
 
 // DefaultNegotiator is an implementation of a Negotiator

@@ -1,4 +1,4 @@
-package resource_test
+package rest_test
 
 import (
 	"bytes"
@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/encdec"
 )
 
 var testNegotiateEncoder = []struct {
@@ -29,7 +29,7 @@ func TestNegotiateEncoder(t *testing.T) {
 
 	for _, tt := range testNegotiateEncoder {
 		t.Run("", func(t *testing.T) {
-			n := resource.DefaultNegotiator{}
+			n := rest.DefaultNegotiator{}
 			request, _ := http.NewRequest(http.MethodPost, "/", nil)
 			request.Header.Set("Accept", tt.accept)
 			got, _, _ := n.NegotiateEncoder(request, &cts)
@@ -39,7 +39,7 @@ func TestNegotiateEncoder(t *testing.T) {
 		})
 	}
 	t.Run("no default renderer", func(t *testing.T) {
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		ctsnd := mustGetCTSNoDefault()
 		_, _, err := n.NegotiateEncoder(request, &ctsnd)
@@ -48,9 +48,9 @@ func TestNegotiateEncoder(t *testing.T) {
 		}
 	})
 	t.Run("no renderer registered", func(t *testing.T) {
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		void := resource.NewRenderers()
+		void := rest.NewRenderers()
 		_, _, err := n.NegotiateEncoder(request, &void)
 		if err == nil {
 			t.Errorf("Was expecting an error")
@@ -58,16 +58,16 @@ func TestNegotiateEncoder(t *testing.T) {
 	})
 }
 
-func mustGetCTS() resource.Renderers {
-	cts := resource.NewRenderers()
+func mustGetCTS() rest.Renderers {
+	cts := rest.NewRenderers()
 	cts.Add(octetMimeType, &EncodeDecoderSpy{}, false)
 	cts.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	cts.Add("application/xml", &EncodeDecoderSpy{}, false)
 	return cts
 }
 
-func mustGetCTSNoDefault() resource.Renderers {
-	cts := resource.NewRenderers()
+func mustGetCTSNoDefault() rest.Renderers {
+	cts := rest.NewRenderers()
 	cts.Add(octetMimeType, &EncodeDecoderSpy{}, false)
 	cts.Add("application/json", encdec.JSONEncoderDecoder{}, false)
 	cts.Add("application/xml", &EncodeDecoderSpy{}, false)
@@ -79,7 +79,7 @@ func TestNegotiateDecoder(t *testing.T) {
 
 	t.Run("with body, no renderer, nodefault renderer", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
 		ctsnd := mustGetCTSNoDefault()
 		_, _, err := n.NegotiateDecoder(request, &ctsnd)
@@ -89,7 +89,7 @@ func TestNegotiateDecoder(t *testing.T) {
 	})
 	t.Run("with body, no renderer", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
 		_, _, err := n.NegotiateDecoder(request, &cts)
 		if err == nil {
@@ -97,7 +97,7 @@ func TestNegotiateDecoder(t *testing.T) {
 		}
 	})
 	t.Run("no body, no renderer", func(t *testing.T) {
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		_, _, err := n.NegotiateDecoder(request, &cts)
 		if err != nil {
@@ -106,7 +106,7 @@ func TestNegotiateDecoder(t *testing.T) {
 	})
 	t.Run("with body, with unavailable renderer", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
 		request.Header.Set("Content-type", "unavailable/type")
 		_, _, err := n.NegotiateDecoder(request, &cts)
@@ -116,7 +116,7 @@ func TestNegotiateDecoder(t *testing.T) {
 	})
 	t.Run("with body, with multiple unavailable renderer", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
 		request.Header.Set("Content-type", "unavailable/type, text/xml, text/yaml")
 		_, _, err := n.NegotiateDecoder(request, &cts)
@@ -125,7 +125,7 @@ func TestNegotiateDecoder(t *testing.T) {
 		}
 	})
 	t.Run("with body, with blank renderer", func(t *testing.T) {
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		body := bytes.NewBufferString("Not empty body")
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
 		request.Header.Set("Content-type", "")
@@ -136,7 +136,7 @@ func TestNegotiateDecoder(t *testing.T) {
 	})
 	t.Run("with body, with multiple unavailable renderer and one available", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
-		n := resource.DefaultNegotiator{}
+		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
 		wantMIMETypeName := "application/xml"
 		request.Header.Set("Content-type", "unavailable/type, application/xml, text/yaml")

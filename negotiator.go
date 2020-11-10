@@ -1,9 +1,9 @@
-package resource
+package rest
 
 import (
 	"net/http"
 
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest/encdec"
 )
 
 // Negotiator interface describe the necessary methods to process the HTTP content negotiation logic.

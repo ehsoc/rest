@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // CollectionParam is a subset of properties for array query parameters
 type CollectionParam struct {

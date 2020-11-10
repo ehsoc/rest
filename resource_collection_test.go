@@ -1,16 +1,16 @@
-package resource_test
+package rest_test
 
 import (
 	"reflect"
 	"sort"
 	"testing"
 
-	"github.com/ehsoc/resource"
+	"github.com/ehsoc/rest"
 )
 
 func TestGetResources(t *testing.T) {
-	r := resource.ResourceCollection{}
-	r.Resource("car", func(r *resource.Resource) {
+	r := rest.ResourceCollection{}
+	r.Resource("car", func(r *rest.Resource) {
 		r.Resource("fiat", nil)
 		r.Resource("citroen", nil)
 		r.Resource("ford", nil)
@@ -29,11 +29,11 @@ func TestGetResources(t *testing.T) {
 }
 
 func TestResource(t *testing.T) {
-	collection := resource.ResourceCollection{}
-	collection.Resource("find", func(r *resource.Resource) {
-		r.Resource("left", func(r *resource.Resource) {
+	collection := rest.ResourceCollection{}
+	collection.Resource("find", func(r *rest.Resource) {
+		r.Resource("left", func(r *rest.Resource) {
 		})
-		r.Resource("right", func(r *resource.Resource) {
+		r.Resource("right", func(r *rest.Resource) {
 		})
 	})
 	findNode := collection.Resources()[0]
@@ -55,10 +55,10 @@ func TestResource(t *testing.T) {
 	}
 }
 func TestAddResource(t *testing.T) {
-	collection := resource.ResourceCollection{}
-	findNode := resource.NewResource("find")
-	leftNode := resource.NewResource("left")
-	rightNode := resource.NewResource("right")
+	collection := rest.ResourceCollection{}
+	findNode := rest.NewResource("find")
+	leftNode := rest.NewResource("left")
+	rightNode := rest.NewResource("right")
 	findNode.AddResource(rightNode)
 	findNode.AddResource(leftNode)
 	collection.AddResource(findNode)

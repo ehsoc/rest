@@ -1,4 +1,4 @@
-package resource
+package rest
 
 import (
 	"context"
@@ -7,10 +7,10 @@ import (
 	"net/http"
 )
 
-// RestAPI is the root of a REST API abstraction.
+// API is the root of a REST API abstraction.
 // The two main responsibilities are generate specification generation (GenerateSpec function), and
 // Server handler generation (GenerateServer function).
-type RestAPI struct {
+type API struct {
 	ID          string
 	Version     string
 	Description string
@@ -20,20 +20,20 @@ type RestAPI struct {
 	ResourceCollection
 }
 
-// NewRestAPI creates a new RestAPI.
+// NewAPI creates a new API.
 // host parameter should not be an URL, but the server host name
-func NewRestAPI(basePath, host, title, version string) RestAPI {
-	return RestAPI{BasePath: basePath, Host: host, Title: title, Version: version}
+func NewAPI(basePath, host, title, version string) API {
+	return API{BasePath: basePath, Host: host, Title: title, Version: version}
 }
 
 // GenerateSpec will generate the API specification using APISpecGenerator interface implementation (specGenerator),
 // and will write into a io.Writer implementation (writer)
-func (r RestAPI) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) {
+func (r API) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) {
 	specGenerator.GenerateAPISpec(writer, r)
 }
 
 // GenerateServer generates a http.Handler using a ServerGenerator implementation (serverGenerator)
-func (r RestAPI) GenerateServer(serverGenerator ServerGenerator) http.Handler {
+func (r API) GenerateServer(serverGenerator ServerGenerator) http.Handler {
 	resourcesCheck(r.resources)
 	server := serverGenerator.GenerateServer(r)
 

@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest/encdec"
 )
 
 func TestXMLEncoder(t *testing.T) {

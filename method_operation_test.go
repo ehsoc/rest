@@ -1,11 +1,11 @@
-package resource_test
+package rest_test
 
 import (
 	"testing"
 
-	"github.com/ehsoc/resource"
+	"github.com/ehsoc/rest"
 )
 
 func TestNewMethodOperation(t *testing.T) {
-	resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(0))
+	rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(0))
 }

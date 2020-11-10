@@ -1,33 +1,33 @@
-# resource
-Resource is an experimental Web Resource abstraction for composing REST APIs in Go (Golang).
+# rest
+Rest is an experimental Web Resource abstraction for composing REST APIs in Go (Golang).
  
 - **Rapid prototyping**.
 - **Web Server generation (http.Handler)**
 - **REST API Specification generation (Open-API v2)**
 
 ## Base components:
-- RestAPI (Like a Resource, but it is the root resource node)
+- API (Like a Resource, but it is the root resource node)
 - Resource. Each resource is a node in a URL path.
 
 **Code example:**
 
 ```go
-api := resource.RestAPI{}
+api := rest.API{}
 api.BasePath = "/v2"
 api.Host = "localhost"
 
-api.Resource("car", func(r *resource.Resource) {
-	r.Resource("findMatch", func(r *resource.Resource) {
+api.Resource("car", func(r *rest.Resource) {
+	r.Resource("findMatch", func(r *rest.Resource) {
 	})
-	r.Resource("{carId}", func(r *resource.Resource) {
+	r.Resource("{carId}", func(r *rest.Resource) {
 	})
 })
 
-api.Resource("ping", func(r *resource.Resource) {
+api.Resource("ping", func(r *rest.Resource) {
 })
 
-api.Resource("user", func(r *resource.Resource) {
-	r.Resource("signOut", func(r *resource.Resource) {
+api.Resource("user", func(r *rest.Resource) {
+	r.Resource("signOut", func(r *rest.Resource) {
 	})
 })
 	
@@ -37,7 +37,7 @@ api.Resource("user", func(r *resource.Resource) {
 
 ```
                                      +-----------+
-                                     |  RestAPI  |
+                                     |  API  |
                           +----------+   "/2"    +-----------+
                           |          |           |           |
                           |          +-----+-----+           |
@@ -57,9 +57,9 @@ api.Resource("user", func(r *resource.Resource) {
 ```
 
 
-## RestAPI methods:
-- GenerateServer(restAPI RestAPI) http.Handler
-- GenerateAPISpec(w io.Writer, restAPI RestAPI)
+## API methods:
+- GenerateServer(API API) http.Handler
+- GenerateAPISpec(w io.Writer, API API)
 
 ## Resource
 - Methods: A collection of HTTP methods (`Method`)
@@ -146,7 +146,7 @@ getCar := res.NewMethodOperation(res.OperationFunc(getCarOperation), successResp
 ct := res.NewRenderers()
 ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
-root := res.RestAPI{}
+root := res.API{}
 root.BasePath = "/v1"
 root.Version = "v1"
 root.Title = "My simple car API"

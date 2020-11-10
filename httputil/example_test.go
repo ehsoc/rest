@@ -3,7 +3,7 @@ package httputil_test
 import (
 	"fmt"
 
-	"github.com/ehsoc/resource/httputil"
+	"github.com/ehsoc/rest/httputil"
 )
 
 func ExampleParseMediaTypes() {

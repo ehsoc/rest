@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // Validator type implementation will provide a method that validates the given Input.
 type Validator interface {

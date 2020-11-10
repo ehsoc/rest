@@ -5,12 +5,12 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/ehsoc/resource"
+	"github.com/ehsoc/rest"
 )
 
 var PetStore = NewStore()
 
-func operationCreate(i resource.Input) (interface{}, bool, error) {
+func operationCreate(i rest.Input) (interface{}, bool, error) {
 	pet := Pet{}
 	body, _ := i.GetBody()
 	err := i.BodyDecoder.Decode(body, &pet)
@@ -24,7 +24,7 @@ func operationCreate(i resource.Input) (interface{}, bool, error) {
 	return pet, true, nil
 }
 
-func operationUpdate(i resource.Input) (interface{}, bool, error) {
+func operationUpdate(i rest.Input) (interface{}, bool, error) {
 	pet := Pet{}
 	body, _ := i.GetBody()
 	err := i.BodyDecoder.Decode(body, &pet)
@@ -39,7 +39,7 @@ func operationUpdate(i resource.Input) (interface{}, bool, error) {
 	return pet, true, nil
 }
 
-func operationGetPetByID(i resource.Input) (interface{}, bool, error) {
+func operationGetPetByID(i rest.Input) (interface{}, bool, error) {
 	petID, err := i.GetURIParam("petId")
 	if err != nil {
 		log.Fatal(err)
@@ -56,7 +56,7 @@ func operationGetPetByID(i resource.Input) (interface{}, bool, error) {
 	return pet, true, nil
 }
 
-func operationDeletePet(i resource.Input) (interface{}, bool, error) {
+func operationDeletePet(i rest.Input) (interface{}, bool, error) {
 	petID, _ := i.GetURIParam("petId")
 	log.Println("Deleting pet id:", petID)
 	err := PetStore.Delete(petID)
@@ -66,7 +66,7 @@ func operationDeletePet(i resource.Input) (interface{}, bool, error) {
 	return nil, true, nil
 }
 
-func operationUploadImage(i resource.Input) (interface{}, bool, error) {
+func operationUploadImage(i rest.Input) (interface{}, bool, error) {
 	petID, _ := i.GetURIParam("petId")
 	log.Println("Uploading image pet id:", petID)
 	fb, _, _ := i.GetFormFile("file")
@@ -82,7 +82,7 @@ type XMLPetsWrapper struct {
 	Pets    []Pet    `xml:"Pet"`
 }
 
-func operationFindByStatus(i resource.Input) (interface{}, bool, error) {
+func operationFindByStatus(i rest.Input) (interface{}, bool, error) {
 	status, err := i.GetQuery("status")
 	if err != nil {
 		return nil, false, err
@@ -96,7 +96,7 @@ func operationFindByStatus(i resource.Input) (interface{}, bool, error) {
 		return nil, false, err
 	}
 	// If the encoder is XML, we want to wrap it with <pets>
-	if i.Request.Context().Value(resource.ContentTypeContextKey("encoder")) == "application/xml" {
+	if i.Request.Context().Value(rest.ContentTypeContextKey("encoder")) == "application/xml" {
 		return XMLPetsWrapper{Pets: petsList}, true, nil
 	}
 	return petsList, true, nil

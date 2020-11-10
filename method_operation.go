@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // MethodOperation contains the operation, and its responses in case of success or failure.
 // Operation Execute method will return a body (interface{}), success (bool), and err (error).

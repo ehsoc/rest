@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource/httputil"
+	"github.com/ehsoc/rest/httputil"
 )
 
 var negotiatorTests = []struct {

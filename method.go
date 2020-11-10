@@ -1,4 +1,4 @@
-package resource
+package rest
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/ehsoc/resource/encdec"
+	"github.com/ehsoc/rest/encdec"
 )
 
-// Method represents a http operation that is performed on a resource.
+// Method represents a http operation that is performed on a rest.
 type Method struct {
 	HTTPMethod      string
 	Summary         string

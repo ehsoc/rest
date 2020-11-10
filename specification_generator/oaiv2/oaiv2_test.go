@@ -9,22 +9,22 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/specification_generator/oaiv2"
-	"github.com/ehsoc/resource/test/petstore"
+	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/specification_generator/oaiv2"
+	"github.com/ehsoc/rest/test/petstore"
 	"github.com/go-openapi/spec"
 	"github.com/nsf/jsondiff"
 )
 
 func TestNoEmptyResources(t *testing.T) {
-	api := resource.RestAPI{}
+	api := rest.API{}
 	api.BasePath = "/v1"
 	api.Version = "v1"
 	api.Title = "My simple car API"
-	api.Resource("car", func(r *resource.Resource) {
-		carIDParam := resource.NewURIParameter("carId", reflect.String)
-		r.Resource("{carId}", func(r *resource.Resource) {
-			r.Get(resource.MethodOperation{}, resource.Renderers{}).WithParameter(carIDParam)
+	api.Resource("car", func(r *rest.Resource) {
+		carIDParam := rest.NewURIParameter("carId", reflect.String)
+		r.Resource("{carId}", func(r *rest.Resource) {
+			r.Get(rest.MethodOperation{}, rest.Renderers{}).WithParameter(carIDParam)
 		})
 	})
 	gen := oaiv2.OpenAPIV2SpecGenerator{}

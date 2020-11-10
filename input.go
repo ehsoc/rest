@@ -1,12 +1,12 @@
-package resource
+package rest
 
 import (
 	"io"
 	"mime/multipart"
 	"net/http"
 
-	"github.com/ehsoc/resource/encdec"
-	"github.com/ehsoc/resource/httputil"
+	"github.com/ehsoc/rest/encdec"
+	"github.com/ehsoc/rest/httputil"
 )
 
 // Input type is the main parameter of the Execute method of an Operation interface implementation.

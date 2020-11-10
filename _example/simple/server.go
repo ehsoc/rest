@@ -7,10 +7,10 @@ import (
 	"os"
 	"reflect"
 
-	res "github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/encdec"
-	"github.com/ehsoc/resource/server_generator/chigenerator"
-	"github.com/ehsoc/resource/specification_generator/oaiv2"
+	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/encdec"
+	"github.com/ehsoc/rest/server_generator/chigenerator"
+	"github.com/ehsoc/rest/specification_generator/oaiv2"
 )
 
 type Car struct {
@@ -19,7 +19,7 @@ type Car struct {
 }
 
 func GenerateServer() http.Handler {
-	getCarOperation := func(i res.Input) (body interface{}, success bool, err error) {
+	getCarOperation := func(i rest.Input) (body interface{}, success bool, err error) {
 		carId, err := i.GetURIParam("carId")
 		if err != nil {
 			log.Println("error getting parameter: ", err)
@@ -36,20 +36,21 @@ func GenerateServer() http.Handler {
 		//Car found, success true, error nil. This will trigger a response code 200
 		return Car{carId, "Foo"}, true, nil
 	}
-	successResponse := res.NewResponse(200).WithOperationResultBody(Car{})
-	failResponse := res.NewResponse(404)
-	getCar := res.NewMethodOperation(res.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
+	successResponse := rest.NewResponse(200).WithOperationResultBody(Car{})
+	failResponse := rest.NewResponse(404)
+	getCar := rest.NewMethodOperation(rest.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
 
-	rds := res.NewRenderers()
+	rds := rest.NewRenderers()
 	rds.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
-	root := res.RestAPI{}
+	root := rest.API{}
 	root.BasePath = "/v1"
 	root.Version = "v1"
 	root.Title = "My simple car API"
-	root.Resource("car", func(r *res.Resource) {
-		carIDParam := res.NewURIParameter("carId", reflect.String)
-		r.Resource("{carId}", func(r *res.Resource) {
+	root.Resource("car", func(r *rest.Resource) {
+		carIDParam := rest.NewURIParameter("carId", reflect.String)
+		carIDParam := parameter.NewURI("carId", reflect.String)
+		r.Resource("{carId}", func(r *rest.Resource) {
 			r.Get(getCar, rds).WithParameter(carIDParam)
 		})
 	})

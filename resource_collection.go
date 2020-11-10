@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // ResourceCollection encapsulate a collection of resource nodes and the methods to add new ones.
 // Each node name is unique, in case of conflict the new node will replace the old one silently
@@ -21,12 +21,12 @@ func (rs *ResourceCollection) Resources() []Resource {
 // Resource creates a new resource node and append resources defined in fn function to the collection of resources to the new resource node.
 // The usage for the method is as follows:
 //
-//	r := resource.NewResource("root")
-// 	r.Resource("parent", func(r *resource.Resource) {
-// 		r.Resource("child1", func(r *resource.Resource) {
+//	r := rest.NewResource("root")
+// 	r.Resource("parent", func(r *rest.Resource) {
+// 		r.Resource("child1", func(r *rest.Resource) {
 //
 // 		})
-// 	r.Resource("child2", func(r *resource.Resource) {
+// 	r.Resource("child2", func(r *rest.Resource) {
 //
 // 		})
 // 	})

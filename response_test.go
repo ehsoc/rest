@@ -1,17 +1,17 @@
-package resource_test
+package rest_test
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource"
+	"github.com/ehsoc/rest"
 )
 
 func TestNewResponse(t *testing.T) {
 	car := Car{ID: 1}
 	description := "This description"
 	t.Run("chain methods", func(t *testing.T) {
-		r := resource.NewResponse(200).WithBody(car).WithDescription(description)
+		r := rest.NewResponse(200).WithBody(car).WithDescription(description)
 		if r.Body() == nil {
 			t.Errorf("was not expecting a nil Body")
 		}
@@ -23,7 +23,7 @@ func TestNewResponse(t *testing.T) {
 		}
 	})
 	t.Run("chain methods should not work outside a chain", func(t *testing.T) {
-		r := resource.NewResponse(200)
+		r := rest.NewResponse(200)
 		if r.Body() != nil {
 			t.Errorf("was expecting a nil Body")
 		}
@@ -57,7 +57,7 @@ func (mr *MutableBodyStub) Mutate(v interface{}, success bool, err error) {
 func TestMutateResponseBody(t *testing.T) {
 	want := &MutableBodyStub{500, myError, errorMessage}
 	mutableResponseBody := &MutableBodyStub{}
-	resp := resource.NewResponse(500).WithMutableBody(mutableResponseBody)
+	resp := rest.NewResponse(500).WithMutableBody(mutableResponseBody)
 	noChange := resp.Body()
 	if !reflect.DeepEqual(noChange, mutableResponseBody) {
 		t.Errorf("got: %#v \nwant: %#v", noChange, mutableResponseBody)
@@ -70,7 +70,7 @@ func TestMutateResponseBody(t *testing.T) {
 }
 
 func TestWithOperationResultBody(t *testing.T) {
-	resp := resource.NewResponse(200).WithOperationResultBody(Car{})
+	resp := rest.NewResponse(200).WithOperationResultBody(Car{})
 	want := Car{}
 	got := resp.Body()
 	if !reflect.DeepEqual(got, want) {

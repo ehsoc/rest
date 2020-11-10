@@ -1,4 +1,4 @@
-package resource
+package rest
 
 // Response represents a HTTP response.
 // MutableResponseBody is an interface that represents the Http body response,

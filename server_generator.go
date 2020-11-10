@@ -1,4 +1,4 @@
-package resource
+package rest
 
 import (
 	"net/http"
@@ -6,6 +6,6 @@ import (
 
 // ServerGenerator interface describes the methods for generating the server and how to get the URI parameter.
 type ServerGenerator interface {
-	GenerateServer(restAPI RestAPI) http.Handler
+	GenerateServer(API API) http.Handler
 	GetURIParam() func(r *http.Request, key string) string
 }

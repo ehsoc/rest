@@ -9,10 +9,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/ehsoc/resource"
-	"github.com/ehsoc/resource/encdec"
-	"github.com/ehsoc/resource/server_generator/chigenerator"
-	"github.com/ehsoc/resource/test/petstore"
+	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/encdec"
+	"github.com/ehsoc/rest/server_generator/chigenerator"
+	"github.com/ehsoc/rest/test/petstore"
 )
 
 type OperationStub struct {
@@ -21,7 +21,7 @@ type OperationStub struct {
 	PetID   string
 }
 
-func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
+func (o *OperationStub) Execute(i rest.Input) (interface{}, bool, error) {
 	o.wasCall = true
 	petID, _ := i.GetURIParam("petId")
 	o.PetID = petID
@@ -41,22 +41,22 @@ func (o *OperationStub) Execute(i resource.Input) (interface{}, bool, error) {
 func TestGenerateServer(t *testing.T) {
 	t.Run("get method", func(t *testing.T) {
 		gen := chigenerator.ChiGenerator{}
-		api := resource.RestAPI{}
+		api := rest.API{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		getMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(200)).WithFailResponse(resource.NewResponse(http.StatusNotFound))
-		petResource := resource.NewResource("pet")
-		petResource.Resource("{petId}", func(r *resource.Resource) {
-			uriParam := resource.NewURIParameter("petId", reflect.String)
+		getMethodOp := rest.NewMethodOperation(operation, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(http.StatusNotFound))
+		petResource := rest.NewResource("pet")
+		petResource.Resource("{petId}", func(r *rest.Resource) {
+			uriParam := rest.NewURIParameter("petId", reflect.String)
 			r.Get(getMethodOp, renderers).WithParameter(uriParam)
 		})
 		myID := "101"
 		api.AddResource(petResource)
 		server := gen.GenerateServer(api)
-		ctx := context.WithValue(context.Background(), resource.InputContextKey("uriparamfunc"), gen.GetURIParam())
+		ctx := context.WithValue(context.Background(), rest.InputContextKey("uriparamfunc"), gen.GetURIParam())
 		request, _ := http.NewRequest(http.MethodGet, "/v2/pet/"+myID, nil)
 		request = request.WithContext(ctx)
 		response := httptest.NewRecorder()
@@ -73,16 +73,16 @@ func TestGenerateServer(t *testing.T) {
 	})
 	t.Run("post method", func(t *testing.T) {
 		gen := chigenerator.ChiGenerator{}
-		api := resource.RestAPI{}
+		api := rest.API{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		renderers := resource.NewRenderers()
+		renderers := rest.NewRenderers()
 		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
-		postMethodOp := resource.NewMethodOperation(operation, resource.NewResponse(http.StatusCreated).WithBody(petstore.Pet{})).WithFailResponse(resource.NewResponse(http.StatusBadRequest))
-		postMethod := resource.NewMethod(http.MethodPost, postMethodOp, renderers)
-		petResource := resource.NewResource("pet")
-		postMethod.RequestBody = resource.RequestBody{Description: "", Body: petstore.Pet{}}
+		postMethodOp := rest.NewMethodOperation(operation, rest.NewResponse(http.StatusCreated).WithBody(petstore.Pet{})).WithFailResponse(rest.NewResponse(http.StatusBadRequest))
+		postMethod := rest.NewMethod(http.MethodPost, postMethodOp, renderers)
+		petResource := rest.NewResource("pet")
+		postMethod.RequestBody = rest.RequestBody{Description: "", Body: petstore.Pet{}}
 		petResource.AddMethod(postMethod)
 
 		api.AddResource(petResource)
@@ -120,23 +120,23 @@ var testRoutes = []struct {
 }
 
 func TestNestedRoutes(t *testing.T) {
-	mo := resource.NewMethodOperation(&OperationStub{}, resource.NewResponse(http.StatusOK)).WithFailResponse(resource.NewResponse(500))
-	ct := resource.NewRenderers()
+	mo := rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(http.StatusOK)).WithFailResponse(rest.NewResponse(500))
+	ct := rest.NewRenderers()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-	rootResource := resource.NewResource("1")
-	rootResource.Resource("2", func(r *resource.Resource) {
-		r.Resource("3", func(r *resource.Resource) {
+	rootResource := rest.NewResource("1")
+	rootResource.Resource("2", func(r *rest.Resource) {
+		r.Resource("3", func(r *rest.Resource) {
 			r.Get(mo, ct)
-			r.Resource("4", func(r *resource.Resource) {
-				r.Resource("5", func(r *resource.Resource) {
-					r.Resource("1", func(r *resource.Resource) {
+			r.Resource("4", func(r *rest.Resource) {
+				r.Resource("5", func(r *rest.Resource) {
+					r.Resource("1", func(r *rest.Resource) {
 						r.Get(mo, ct)
 					})
 				})
 			})
 		})
 	})
-	api := resource.RestAPI{}
+	api := rest.API{}
 	api.BasePath = "/v1"
 	api.AddResource(rootResource)
 	server := api.GenerateServer(chigenerator.ChiGenerator{})

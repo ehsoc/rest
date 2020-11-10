@@ -1,4 +1,4 @@
-module github.com/ehsoc/resource
+module github.com/ehsoc/rest
 
 go 1.14
 
