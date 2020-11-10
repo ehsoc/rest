@@ -12,15 +12,15 @@ import (
 
 func TestSimpleServer(t *testing.T) {
 	t.Run("get car", func(t *testing.T) {
-		carId := "101"
+		carID := "101"
 		s := simple.GenerateServer()
 		testServer := httptest.NewServer(s)
 		cli := http.Client{}
-		res, _ := cli.Get(testServer.URL + "/v1/car/" + carId)
+		res, _ := cli.Get(testServer.URL + "/v1/car/" + carID)
 		if res.StatusCode != 200 {
 			t.Errorf("got: %d want:%d", res.StatusCode, 200)
 		}
-		wantCar := simple.Car{carId, "Foo"}
+		wantCar := simple.Car{carID, "Foo"}
 		gotCar := simple.Car{}
 		json.NewDecoder(res.Body).Decode(&gotCar)
 		if !reflect.DeepEqual(gotCar, wantCar) {
@@ -28,15 +28,15 @@ func TestSimpleServer(t *testing.T) {
 		}
 	})
 	t.Run("car not found", func(t *testing.T) {
-		carId := "2"
+		carID := "2"
 		s := simple.GenerateServer()
 		testServer := httptest.NewServer(s)
 		cli := http.Client{}
-		res, _ := cli.Get(testServer.URL + "/v1/car/" + carId)
+		res, _ := cli.Get(testServer.URL + "/v1/car/" + carID)
 		if res.StatusCode != 404 {
 			t.Errorf("got: %d want:%d", res.StatusCode, 404)
 		}
-		wantCar := simple.Car{carId, "Foo"}
+		wantCar := simple.Car{carID, "Foo"}
 		gotCar := simple.Car{}
 		json.NewDecoder(res.Body).Decode(&gotCar)
 		if reflect.DeepEqual(gotCar, wantCar) {
@@ -44,15 +44,15 @@ func TestSimpleServer(t *testing.T) {
 		}
 	})
 	t.Run("car not found", func(t *testing.T) {
-		carId := "error"
+		carID := "error"
 		s := simple.GenerateServer()
 		testServer := httptest.NewServer(s)
 		cli := http.Client{}
-		res, _ := cli.Get(testServer.URL + "/v1/car/" + carId)
+		res, _ := cli.Get(testServer.URL + "/v1/car/" + carID)
 		if res.StatusCode != 500 {
 			t.Errorf("got: %d want:%d", res.StatusCode, 500)
 		}
-		wantCar := simple.Car{carId, "Foo"}
+		wantCar := simple.Car{carID, "Foo"}
 		gotCar := simple.Car{}
 		json.NewDecoder(res.Body).Decode(&gotCar)
 		if reflect.DeepEqual(gotCar, wantCar) {

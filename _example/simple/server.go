@@ -14,27 +14,27 @@ import (
 )
 
 type Car struct {
-	Id    string
+	ID    string
 	Brand string
 }
 
 func GenerateServer() http.Handler {
 	getCarOperation := func(i rest.Input) (body interface{}, success bool, err error) {
-		carId, err := i.GetURIParam("carId")
+		carID, err := i.GetURIParam("carID")
 		if err != nil {
 			log.Println("error getting parameter: ", err)
 			return Car{}, false, err
 		}
-		if carId == "error" {
-			//Internal error trying to get the car. This will trigger a response code 500
+		if carID == "error" {
+			// Internal error trying to get the car. This will trigger a response code 500
 			return nil, false, errors.New("Internal error")
 		}
-		if carId != "101" {
-			//Car not found, success is false, no error. This will trigger a response code 404
+		if carID != "101" {
+			// Car not found, success is false, no error. This will trigger a response code 404
 			return nil, false, nil
 		}
-		//Car found, success true, error nil. This will trigger a response code 200
-		return Car{carId, "Foo"}, true, nil
+		// Car found, success true, error nil. This will trigger a response code 200
+		return Car{carID, "Foo"}, true, nil
 	}
 	successResponse := rest.NewResponse(200).WithOperationResultBody(Car{})
 	failResponse := rest.NewResponse(404)
@@ -43,18 +43,17 @@ func GenerateServer() http.Handler {
 	rds := rest.NewRenderers()
 	rds.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
-	root := rest.API{}
-	root.BasePath = "/v1"
-	root.Version = "v1"
-	root.Title = "My simple car API"
-	root.Resource("car", func(r *rest.Resource) {
-		carIDParam := rest.NewURIParameter("carId", reflect.String)
-		carIDParam := parameter.NewURI("carId", reflect.String)
-		r.Resource("{carId}", func(r *rest.Resource) {
+	api := rest.API{}
+	api.BasePath = "/v1"
+	api.Version = "v1"
+	api.Title = "My simple car API"
+	api.Resource("car", func(r *rest.Resource) {
+		carIDParam := rest.NewURIParameter("carID", reflect.String)
+		r.Resource("{carID}", func(r *rest.Resource) {
 			r.Get(getCar, rds).WithParameter(carIDParam)
 		})
 	})
-	server := root.GenerateServer(chigenerator.ChiGenerator{})
-	root.GenerateSpec(os.Stdout, &oaiv2.OpenAPIV2SpecGenerator{})
+	server := api.GenerateServer(chigenerator.ChiGenerator{})
+	api.GenerateSpec(os.Stdout, &oaiv2.OpenAPIV2SpecGenerator{})
 	return server
 }
