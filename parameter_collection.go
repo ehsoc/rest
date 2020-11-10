@@ -33,6 +33,7 @@ func (p *ParameterCollection) checkNilMap() {
 func (p *ParameterCollection) Parameters() []Parameter {
 	p.checkNilMap()
 	ps := make([]Parameter, 0)
+
 	for _, paramType := range p.parameters {
 		for _, param := range paramType {
 			ps = append(ps, param)
@@ -45,6 +46,7 @@ func (p *ParameterCollection) Parameters() []Parameter {
 func (p *ParameterCollection) GetParameter(paramType ParameterType, name string) (Parameter, error) {
 	p.checkNilMap()
 	params, ok := p.parameters[paramType]
+
 	if !ok {
 		return Parameter{}, &TypeErrorParameterNotDefined{errorf{messageErrParameterNotDefined, name}}
 	}

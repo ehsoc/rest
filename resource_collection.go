@@ -11,6 +11,7 @@ type ResourceCollection struct {
 func (rs *ResourceCollection) Resources() []Resource {
 	rs.checkMap()
 	res := []Resource{}
+
 	for _, r := range rs.resources {
 		res = append(res, r)
 	}

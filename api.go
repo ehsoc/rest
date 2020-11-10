@@ -36,6 +36,7 @@ func (r RestAPI) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) 
 func (r RestAPI) GenerateServer(serverGenerator ServerGenerator) http.Handler {
 	resourcesCheck(r.resources)
 	server := serverGenerator.GenerateServer(r)
+
 	return inputGetFunctionsMiddleware(serverGenerator.GetURIParam(), server)
 }
 
@@ -54,6 +55,7 @@ func resourcesCheck(res map[string]Resource) {
 				parameterOperationCheck(m, resource.path)
 			}
 		}
+
 		resourcesCheck(resource.resources)
 	}
 }

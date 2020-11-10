@@ -347,7 +347,6 @@ func TestOperations(t *testing.T) {
 		if !reflect.DeepEqual(operation.JSONCarData, wantCar) {
 			t.Errorf("got :%v want: %v", operation.JSONCarData, wantCar)
 		}
-
 	})
 
 	t.Run("GET id return entity on Body response only encoder", func(t *testing.T) {

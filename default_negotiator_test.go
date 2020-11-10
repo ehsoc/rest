@@ -26,6 +26,7 @@ var testNegotiateEncoder = []struct {
 
 func TestNegotiateEncoder(t *testing.T) {
 	cts := mustGetCTS()
+
 	for _, tt := range testNegotiateEncoder {
 		t.Run("", func(t *testing.T) {
 			n := resource.DefaultNegotiator{}
@@ -75,6 +76,7 @@ func mustGetCTSNoDefault() resource.Renderers {
 
 func TestNegotiateDecoder(t *testing.T) {
 	cts := mustGetCTS()
+
 	t.Run("with body, no renderer, nodefault renderer", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
 		n := resource.DefaultNegotiator{}
@@ -150,5 +152,4 @@ func TestNegotiateDecoder(t *testing.T) {
 			t.Errorf("got:%v want%v", dec, wantDecoder)
 		}
 	})
-
 }

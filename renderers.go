@@ -17,7 +17,9 @@ type Renderers struct {
 // NewRenderers will create a new Renderers instance
 func NewRenderers() Renderers {
 	var encoderContentTypes = make(map[string]encdec.Encoder)
+
 	var decoderContentTypes = make(map[string]encdec.Decoder)
+
 	return Renderers{encoderContentTypes, decoderContentTypes, "", "", NewResponse(415)}
 }
 
@@ -33,6 +35,7 @@ func (h *Renderers) Add(mimeType string, ed encdec.EncoderDecoder, isDefault boo
 func (h *Renderers) AddEncoder(mimeType string, encoder encdec.Encoder, isDefault bool) {
 	h.checkNilEncoderMap()
 	h.encoderContentTypes[mimeType] = encoder
+
 	if isDefault {
 		h.defaultEncoder = mimeType
 	}
@@ -43,6 +46,7 @@ func (h *Renderers) AddEncoder(mimeType string, encoder encdec.Encoder, isDefaul
 func (h *Renderers) AddDecoder(mimeType string, decoder encdec.Decoder, isDefault bool) {
 	h.checkNilDecoderMap()
 	h.decoderContentTypes[mimeType] = decoder
+
 	if isDefault {
 		h.defaultDecoder = mimeType
 	}

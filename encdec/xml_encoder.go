@@ -12,5 +12,6 @@ type XMLEncoder struct{}
 func (x XMLEncoder) Encode(w io.Writer, v interface{}) error {
 	w.Write([]byte(xml.Header))
 	encoder := xml.NewEncoder(w)
+
 	return encoder.Encode(v)
 }

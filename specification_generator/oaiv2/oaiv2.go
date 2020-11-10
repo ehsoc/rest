@@ -167,7 +167,6 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		case http.MethodDelete:
 			pathItem.Delete = specMethod
 		}
-
 	}
 	if o.swagger.Paths == nil {
 		o.swagger.Paths = &spec.Paths{}

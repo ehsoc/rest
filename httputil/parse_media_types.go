@@ -10,9 +10,11 @@ import (
 func ParseMediaTypes(accept string) []MediaType {
 	mediatypes := []MediaType{}
 	types := strings.Split(accept, ",")
+
 	for _, ct := range types {
 		name, params, _ := mime.ParseMediaType(ct)
 		mediatypes = append(mediatypes, MediaType{name, params})
 	}
+
 	return mediatypes
 }

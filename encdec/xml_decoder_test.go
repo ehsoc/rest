@@ -14,8 +14,11 @@ func TestXMLDecoder(t *testing.T) {
 	gotCar := Car{}
 	buf := bytes.NewBuffer([]byte(""))
 	xml.NewEncoder(buf).Encode(car)
+
 	decoder := encdec.XMLDecoder{}
+
 	decoder.Decode(buf, &gotCar)
+
 	if !reflect.DeepEqual(gotCar, car) {
 		t.Errorf("got:%v want:%v", gotCar, car)
 	}

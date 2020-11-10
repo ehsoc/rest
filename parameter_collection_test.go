@@ -29,7 +29,6 @@ func TestGetParameter(t *testing.T) {
 				t.Errorf("got: %v want: %v", gotParam, tt.parameter)
 			}
 		})
-
 	}
 	t.Run("parameter nil collection", func(t *testing.T) {
 		params := resource.ParameterCollection{}

@@ -15,13 +15,18 @@ func (t TextDecoder) Decode(r io.Reader, v interface{}) error {
 	if rv.Kind() != reflect.Ptr || rv.IsNil() {
 		return ErrorTextDecoderNoValidPointer
 	}
+
 	if rv.Elem().Type().Kind() != reflect.String {
 		return ErrorTextDecoderNoString
 	}
+
 	b, err := ioutil.ReadAll(r)
+
 	if err != nil {
 		return err
 	}
+
 	rv.Elem().SetString(string(b))
+
 	return nil
 }

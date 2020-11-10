@@ -30,9 +30,11 @@ func GetFormFile(r *http.Request, key string) (fileContent []byte, fileHeader *m
 		return nil, nil, err
 	}
 	defer f.Close()
+
 	if b, err := ioutil.ReadAll(f); err == nil {
 		return b, fh, nil
 	}
+
 	return nil, nil, err
 }
 
@@ -41,17 +43,20 @@ func GetFiles(r *http.Request, key string) ([]*multipart.FileHeader, error) {
 	if r.MultipartForm == multipartByReader {
 		return nil, errors.New("httputil: multipart handled by MultipartReader")
 	}
+
 	if r.MultipartForm == nil {
 		err := r.ParseMultipartForm(defaultMaxMemory)
 		if err != nil {
 			return nil, err
 		}
 	}
+
 	if r.MultipartForm != nil && r.MultipartForm.File != nil {
 		if files := r.MultipartForm.File[key]; len(files) > 0 {
 			return files, nil
 		}
 	}
+
 	return nil, ErrMissingFile
 }
 
@@ -60,8 +65,10 @@ func GetFormValues(r *http.Request, key string) ([]string, error) {
 	if r.Form == nil {
 		r.ParseMultipartForm(defaultMaxMemory)
 	}
+
 	if vs := r.Form[key]; len(vs) > 0 {
 		return vs, nil
 	}
+
 	return nil, nil
 }

@@ -135,7 +135,6 @@ func TestNestedRoutes(t *testing.T) {
 				})
 			})
 		})
-
 	})
 	api := resource.RestAPI{}
 	api.BasePath = "/v1"
@@ -151,7 +150,5 @@ func TestNestedRoutes(t *testing.T) {
 				t.Errorf("got: %v want: %v", response.Code, test.wantCode)
 			}
 		})
-
 	}
-
 }

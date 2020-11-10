@@ -14,6 +14,9 @@ linters:
     - megacheck
     - varcheck
     - gocritic
+    - structcheck
+    - whitespace
+    - maligned
 issues:
   exclude-rules:
     - linters:

@@ -165,7 +165,6 @@ func TestGetFormFiles(t *testing.T) {
 		if files[1].Filename != "MyFileName2.jpg" {
 			t.Errorf("got: %v want: %v", files[1].Filename, "MyFileName2.jpg")
 		}
-
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
@@ -199,7 +198,6 @@ func TestGetFormFile(t *testing.T) {
 		if string(file) != fileData {
 			t.Errorf("got: %v want: %v", string(file), fileData)
 		}
-
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)
@@ -246,7 +244,6 @@ func TestGetFormValues(t *testing.T) {
 		if values[1] != additionalMetaData2 {
 			t.Errorf("got: %v want: %v", values[1], additionalMetaData2)
 		}
-
 	})
 	t.Run("parameter not found", func(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/", nil)

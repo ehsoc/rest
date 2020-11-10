@@ -37,7 +37,6 @@ func TestNewResponse(t *testing.T) {
 			t.Errorf("got: %v want: %v", r.Description(), wantDesc)
 		}
 	})
-
 }
 
 type MutableBodyStub struct {

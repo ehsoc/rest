@@ -33,7 +33,6 @@ func TestGetFile(t *testing.T) {
 			t.Fatalf("expecting error")
 		}
 	})
-
 }
 
 var testGetFiles = []struct {
@@ -70,15 +69,16 @@ func TestGetFiles(t *testing.T) {
 			t.Fatalf("expecting error")
 		}
 	})
-
 }
 
 func assertMultipartFileEqual(t *testing.T, fileName, fileContent string, fc []byte, fh *multipart.FileHeader) {
 	t.Helper()
+
 	gotFileContent := string(fc)
 	if gotFileContent != fileContent {
 		t.Errorf("got: %v want: %v", gotFileContent, fileContent)
 	}
+
 	if fh.Filename != fileName {
 		t.Errorf("got: %v want: %v", fh.Filename, fileName)
 	}
@@ -96,9 +96,11 @@ func newMultiformRequest() *http.Request {
 	fileW.Write([]byte(file1Content))
 	fileW, _ = w.CreateFormFile("file", file2Name)
 	fileW.Write([]byte(file2Content))
+
 	additionalMetaData := "My Additional Metadata"
 	fieldW, _ := w.CreateFormField("additionalMetadata")
 	fieldW.Write([]byte(additionalMetaData))
+
 	mediaHeader := textproto.MIMEHeader{}
 	mediaHeader.Set("Content-Type", "application/json; charset=UTF-8")
 	mediaHeader.Set("Content-Disposition", "form-data; name=\"jsonPetData\"")
@@ -107,8 +109,10 @@ func newMultiformRequest() *http.Request {
 	wantCar := Body{}
 	encoder.Encode(jsonPetDataW, wantCar)
 	w.Close()
+
 	request, _ := http.NewRequest(http.MethodPost, "/", b)
 	request.Header.Set("Content-Type", w.FormDataContentType())
+
 	return request
 }
 
@@ -119,22 +123,28 @@ func TestGetFormValues(t *testing.T) {
 	additionalMetaData := "My Additional Metadata"
 	fieldW, _ := w.CreateFormField(key)
 	fieldW.Write([]byte(additionalMetaData))
+
 	additionalMetaData2 := "My Additional Metadata2"
 	field2W, _ := w.CreateFormField(key)
 	field2W.Write([]byte(additionalMetaData2))
 	w.Close()
+
 	request, _ := http.NewRequest(http.MethodPost, "/", b)
 	request.Header.Set("Content-Type", w.FormDataContentType())
 	values, err := httputil.GetFormValues(request, key)
+
 	if err != nil {
 		t.Fatalf("was not expecting an error")
 	}
+
 	if len(values) != 2 {
 		t.Errorf("expecting 2 elements")
 	}
+
 	if values[0] != additionalMetaData {
 		t.Errorf("got: %v want: %v", values[0], additionalMetaData)
 	}
+
 	if values[1] != additionalMetaData2 {
 		t.Errorf("got: %v want: %v", values[1], additionalMetaData2)
 	}

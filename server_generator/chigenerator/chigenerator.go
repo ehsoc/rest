@@ -20,6 +20,7 @@ func (c ChiGenerator) GenerateServer(api resource.RestAPI) http.Handler {
 			}
 		})
 	}
+
 	return router
 }
 

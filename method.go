@@ -66,6 +66,7 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 		w.WriteHeader(response.Code())
 		return
 	}
+
 	write(w, encoder, response)
 }
 
@@ -83,7 +84,9 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	// Security only if SecuritySchemeEnforcement is true
 	if len(m.SecuritySchemes) > 0 {
 		passSecurity := false
+
 		var securityFailedResponse Response
+
 		for _, ss := range m.SecuritySchemes {
 			if ss.Enforce {
 				resp, err := processSecurity(ss, input)
@@ -93,8 +96,8 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			passSecurity = true
-			break
 
+			break
 		}
 		if !passSecurity {
 			writeResponse(r.Context(), w, securityFailedResponse)
@@ -136,10 +139,12 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		if m.MethodOperation.failResponse.disabled {
 			panic(&TypeErrorFailResponseNotDefined{errorf{messageErrFailResponseNotDefined, r.URL.Path + " " + m.HTTPMethod}})
 		}
+
 		mutateResponseBody(&m.MethodOperation.failResponse, entity, success, err)
 		writeResponse(r.Context(), w, m.MethodOperation.failResponse)
 		return
 	}
+
 	mutateResponseBody(&m.MethodOperation.successResponse, entity, success, err)
 	writeResponse(r.Context(), w, m.MethodOperation.successResponse)
 }
@@ -163,6 +168,7 @@ func writeResponse(ctx context.Context, w http.ResponseWriter, resp Response) {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
+
 	write(w, encoder, resp)
 }
 
@@ -250,6 +256,7 @@ func (m *Method) Responses() []Response {
 	if m.Validator != nil && !m.validationResponse.disabled {
 		responses = append(responses, m.validationResponse)
 	}
+
 	for _, p := range m.Parameters() {
 		if p.Validator != nil && !p.validationResponse.disabled {
 			responses = append(responses, p.validationResponse)

@@ -81,7 +81,6 @@ func TestEncoderDecoderSelector(t *testing.T) {
 			t.Errorf("Was expecting error.")
 		}
 	})
-
 }
 
 func TestGetDefaultEncoderDecoder(t *testing.T) {
@@ -113,5 +112,4 @@ func TestGetDefaultEncoderDecoder(t *testing.T) {
 			t.Errorf("got:%s want:%s", got, wantMIMEType)
 		}
 	})
-
 }

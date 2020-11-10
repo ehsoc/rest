@@ -102,12 +102,14 @@ func (s *Store) UploadPhoto(petID string, fileContent []byte) error {
 	}
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+
 	if pet, ok := s.store[id]; ok {
 		url := fmt.Sprintf("files/%s%d", petID, time.Now().UnixNano())
 		err := afero.WriteFile(s.InMemoryFs, url, fileContent, 0655)
 		if err != nil {
 			return err
 		}
+
 		pet.PhotoUrls = append(pet.PhotoUrls, url)
 		s.store[id] = pet
 	}
