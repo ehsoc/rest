@@ -15,7 +15,7 @@ type GenStub struct {
 	getURIVal string
 }
 
-func (g *GenStub) GenerateAPISpec(w io.Writer, r rest.API) {
+func (g *GenStub) GenerateAPISpec(w io.Writer, api rest.API) {
 	g.called = true
 }
 

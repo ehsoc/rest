@@ -28,14 +28,14 @@ func NewAPI(basePath, host, title, version string) API {
 
 // GenerateSpec will generate the API specification using APISpecGenerator interface implementation (specGenerator),
 // and will write into a io.Writer implementation (writer)
-func (r API) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) {
-	specGenerator.GenerateAPISpec(writer, r)
+func (a API) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) {
+	specGenerator.GenerateAPISpec(writer, a)
 }
 
 // GenerateServer generates a http.Handler using a ServerGenerator implementation (serverGenerator)
-func (r API) GenerateServer(serverGenerator ServerGenerator) http.Handler {
-	resourcesCheck(r.resources)
-	server := serverGenerator.GenerateServer(r)
+func (a API) GenerateServer(serverGenerator ServerGenerator) http.Handler {
+	resourcesCheck(a.resources)
+	server := serverGenerator.GenerateServer(a)
 
 	return inputGetFunctionsMiddleware(serverGenerator.GetURIParam(), server)
 }

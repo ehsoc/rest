@@ -37,7 +37,7 @@ api.Resource("user", func(r *rest.Resource) {
 
 ```
                                      +-----------+
-                                     |  API  |
+                                     |  API      |
                           +----------+   "/2"    +-----------+
                           |          |           |           |
                           |          +-----+-----+           |
@@ -58,8 +58,8 @@ api.Resource("user", func(r *rest.Resource) {
 
 
 ## API methods:
-- GenerateServer(API API) http.Handler
-- GenerateAPISpec(w io.Writer, API API)
+- GenerateServer(a API) http.Handler
+- GenerateAPISpec(w io.Writer, api API)
 
 ## Resource
 - Methods: A collection of HTTP methods (`Method`)
