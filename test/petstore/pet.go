@@ -1,5 +1,7 @@
 package petstore
 
+import "time"
+
 type Pet struct {
 	// id
 	ID int64 `json:"id,omitempty"`
@@ -14,6 +16,8 @@ type Pet struct {
 	Status string `json:"status,omitempty"`
 	// tags
 	Tags []Tag `json:"tags" xml:"tag"`
+	// created_at
+	CreatedAt time.Time `json:"created_at" xml:"created_at"`
 }
 
 // Tag tag

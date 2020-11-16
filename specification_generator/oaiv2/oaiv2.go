@@ -11,6 +11,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/ehsoc/rest"
 	"github.com/go-openapi/spec"
@@ -63,6 +64,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		pKeys = append(pHeaderKeys, pKeys...)
 		for _, parameter := range pKeys {
 			specParam := &spec.Parameter{}
+
 			switch parameter.HTTPType {
 			case rest.QueryParameter:
 				specParam = spec.QueryParam(parameter.Name)
@@ -72,6 +74,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 					if parameter.EnumValues != nil && len(parameter.EnumValues) > 0 {
 						specParam.Items.WithEnum(parameter.EnumValues...).WithDefault(parameter.EnumValues[0])
 						specParam.CollectionFormat = parameter.CollectionFormat
+
 						ssch := o.toSchema(parameter.EnumValues[0])
 						if len(ssch.SchemaProps.Type) > 0 {
 							specParam.Items.Type = ssch.SchemaProps.Type[0]
@@ -96,12 +99,14 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 			case rest.FileParameter:
 				specParam = spec.FileParam(parameter.Name)
 			}
+
 			specParam.Description = parameter.Description
 			specParam.Required = parameter.Required
 			// Example on parameters is not allowed, so a extension is set.
 			if parameter.Example != nil {
 				specParam.AddExtension("x-example", parameter.Example)
 			}
+
 			specMethod.AddParam(specParam)
 		}
 		specMethod.Consumes = method.GetDecoderMediaTypes()
@@ -186,9 +191,11 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 
 func typedParam(param *spec.Parameter, tpe reflect.Kind) {
 	schema, err := simpleTypesToSchema(tpe)
+
 	if err != nil {
 		log.Println("Warning on processing parameter", param.Name, ":", err)
 	}
+
 	if schema != nil && len(schema.Type[0]) > 0 {
 		param.Typed(schema.Type[0], schema.Format)
 	}
@@ -235,6 +242,7 @@ func convertParameter(parameter rest.Parameter) *spec.Parameter {
 	if parameter.Example != nil {
 		specParam.AddExtension("x-example", parameter.Example)
 	}
+
 	return specParam
 }
 
@@ -259,6 +267,7 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, api rest.API) {
 func getOAuth2SecScheme(flow rest.OAuth2Flow) *spec.SecurityScheme {
 	secScheme := getBaseFlow(flow)
 	secScheme.Scopes = flow.Scopes
+
 	return secScheme
 }
 
@@ -302,15 +311,23 @@ func (o *OpenAPIV2SpecGenerator) toSchema(v interface{}) *spec.Schema {
 	case reflect.Array, reflect.Slice:
 		return spec.ArrayProperty(o.toSchema(reflect.New(val.Type().Elem()).Interface()))
 	case reflect.Struct:
+		if _, ok := v.(time.Time); ok {
+			return spec.DateTimeProperty()
+		}
 		structName := val.Type().Name()
 		refSchema := &spec.Schema{}
 		refSchema = refSchema.Typed("object", "")
 		refSchema.Description = fmt.Sprintf("A %s object.", structName)
+
 		for i := 0; i < val.NumField(); i++ {
-			field := val.Type().Field(i)
-			refSchema.SetProperty(getFieldName(field), *o.toSchema(val.Field(i).Interface()))
+			// Avoiding panic on unexported fields
+			if val.Field(i).CanInterface() {
+				field := val.Type().Field(i)
+				refSchema.SetProperty(getFieldName(field), *o.toSchema(val.Field(i).Interface()))
+			}
 		}
 		o.addDefinition(structName, refSchema)
+
 		return spec.RefSchema("#/definitions/" + structName)
 	default:
 		schema, _ := simpleTypesToSchema(val.Kind())
@@ -320,6 +337,7 @@ func (o *OpenAPIV2SpecGenerator) toSchema(v interface{}) *spec.Schema {
 
 func simpleTypesToSchema(kind reflect.Kind) (*spec.Schema, error) {
 	schema := &spec.Schema{}
+
 	switch kind {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32:
 		schema = spec.Int32Property()
@@ -336,17 +354,21 @@ func simpleTypesToSchema(kind reflect.Kind) (*spec.Schema, error) {
 	case reflect.Array, reflect.Slice, reflect.Struct:
 		return nil, errors.New("kind is a complex type, use toSchema function instead")
 	}
+
 	return schema, nil
 }
 
 func getFieldName(field reflect.StructField) string {
 	fieldName := field.Name
+
 	if jsonTag := field.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
 		if commaIdx := strings.Index(jsonTag, ","); commaIdx > 0 {
 			return jsonTag[:commaIdx]
 		}
+
 		return jsonTag
 	}
+
 	return fieldName
 }
 

@@ -8,6 +8,7 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/ehsoc/rest"
 	"github.com/ehsoc/rest/specification_generator/oaiv2"
@@ -27,6 +28,7 @@ func TestNoEmptyResources(t *testing.T) {
 			r.Get(rest.MethodOperation{}, rest.Renderers{}).WithParameter(carIDParam)
 		})
 	})
+
 	gen := oaiv2.OpenAPIV2SpecGenerator{}
 	generatedSpec := new(bytes.Buffer)
 	decoder := json.NewDecoder(generatedSpec)
@@ -43,6 +45,34 @@ func TestNoEmptyResources(t *testing.T) {
 	_, ok := gotSwagger.Paths.Paths[wantPath]
 	if !ok {
 		t.Errorf("want: %v", wantPath)
+	}
+}
+
+type TestStruct struct {
+	CreatedAt time.Time `json:"created_at"`
+}
+
+func TestDateTime(t *testing.T) {
+	api := rest.API{}
+	api.Resource("test", func(r *rest.Resource) {
+		mo := rest.NewMethodOperation(rest.OperationFunc(func(i rest.Input) (body interface{}, success bool, err error) {
+			return nil, true, nil
+		}), rest.NewResponse(200).WithBody(TestStruct{}))
+		r.Post(mo, rest.NewRenderers())
+	})
+	generatedSpec := new(bytes.Buffer)
+	decoder := json.NewDecoder(generatedSpec)
+	gen := oaiv2.OpenAPIV2SpecGenerator{}
+	gen.GenerateAPISpec(generatedSpec, api)
+	gotSwagger := spec.Swagger{}
+	decoder.Decode(&gotSwagger)
+
+	if !gotSwagger.Definitions["TestStruct"].Properties["created_at"].Type.Contains("string") {
+		t.Errorf("Expecting type string")
+	}
+
+	if gotSwagger.Definitions["TestStruct"].Properties["created_at"].Format != "date-time" {
+		t.Errorf("got: %v want: %v", gotSwagger.Definitions["TestStruct"].Properties["created_at"].Format, "date-time")
 	}
 }
 
