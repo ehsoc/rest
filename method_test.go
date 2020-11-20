@@ -523,7 +523,7 @@ func TestMethodWithValidation(t *testing.T) {
 	t.Run("pass validation", func(t *testing.T) {
 		v := &MethodValidatorSpy{}
 		m := rest.NewMethod("GET", rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(404)), mustGetCTS()).
-			WithValidation(v, rest.NewResponse(400)).
+			WithValidation(rest.Validation{v, rest.NewResponse(400)}).
 			WithParameter(rest.NewQueryParameter("requiredparam", reflect.String))
 		req, _ := http.NewRequest("GET", "/?requiredparam=something", nil)
 		resp := httptest.NewRecorder()
@@ -539,7 +539,7 @@ func TestMethodWithValidation(t *testing.T) {
 	t.Run("don't pass validation", func(t *testing.T) {
 		v := &MethodValidatorSpy{}
 		m := rest.NewMethod("GET", rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(404)), mustGetCTS()).
-			WithValidation(v, rest.NewResponse(400))
+			WithValidation(rest.Validation{v, rest.NewResponse(400)})
 		req, _ := http.NewRequest("GET", "/", nil)
 		resp := httptest.NewRecorder()
 		m.ServeHTTP(resp, req)
@@ -556,7 +556,7 @@ func TestMethodWithValidation(t *testing.T) {
 func TestParameterValidation(t *testing.T) {
 	t.Run("pass validation", func(t *testing.T) {
 		v := &MethodValidatorSpy{}
-		param := rest.NewQueryParameter("requiredparam", reflect.String).WithValidation(v, rest.NewResponse(415))
+		param := rest.NewQueryParameter("requiredparam", reflect.String).WithValidation(rest.Validation{v, rest.NewResponse(415)})
 		m := rest.NewMethod("GET", rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(500)), mustGetCTS()).
 			WithParameter(param)
 		req, _ := http.NewRequest("GET", "/?requiredparam=something", nil)
@@ -572,7 +572,7 @@ func TestParameterValidation(t *testing.T) {
 	})
 	t.Run("don't pass validation", func(t *testing.T) {
 		v := &MethodValidatorSpy{}
-		param := rest.NewQueryParameter("requiredparam", reflect.String).WithValidation(v, rest.NewResponse(415))
+		param := rest.NewQueryParameter("requiredparam", reflect.String).WithValidation(rest.Validation{v, rest.NewResponse(415)})
 		m := rest.NewMethod("GET", rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(500)), mustGetCTS()).
 			WithParameter(param)
 		req, _ := http.NewRequest("GET", "/", nil)
@@ -598,8 +598,8 @@ func TestGetResponses(t *testing.T) {
 	validationResponse := rest.NewResponse(405)
 	methodValidationResponse := rest.NewResponse(400)
 	method := rest.NewMethod(http.MethodPost, mo, renderers).
-		WithParameter(rest.NewQueryParameter("p", reflect.String).WithValidation(v, validationResponse)).
-		WithValidation(v, methodValidationResponse)
+		WithParameter(rest.NewQueryParameter("p", reflect.String).WithValidation(rest.Validation{v, validationResponse})).
+		WithValidation(rest.Validation{v, methodValidationResponse})
 	responses := method.Responses()
 	wantResponses := []rest.Response{
 		successResponse,

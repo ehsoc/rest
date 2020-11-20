@@ -21,7 +21,7 @@ type Method struct {
 	SecuritySchemes []*Security
 	http.Handler
 	ParameterCollection
-	validation
+	validation Validation
 }
 
 // NewMethod returns a Method instance
@@ -107,21 +107,21 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Validation
 	// Method validation
-	if m.Validator != nil {
-		err := m.Validate(input)
+	if m.validation.Validator != nil {
+		err := m.validation.Validate(input)
 		if err != nil {
-			mutateResponseBody(&m.validationResponse, nil, false, err)
-			writeResponse(r.Context(), w, m.validationResponse)
+			mutateResponseBody(&m.validation.Response, nil, false, err)
+			writeResponse(r.Context(), w, m.validation.Response)
 			return
 		}
 	}
 	// Parameter validation
 	for _, p := range m.Parameters() {
-		if p.Validator != nil && p.validationResponse.code != 0 {
-			err := p.Validate(input)
+		if p.validation.Validator != nil && p.validation.Response.code != 0 {
+			err := p.validation.Validate(input)
 			if err != nil {
-				mutateResponseBody(&p.validationResponse, nil, false, err)
-				writeResponse(r.Context(), w, p.validationResponse)
+				mutateResponseBody(&p.validation.Response, nil, false, err)
+				writeResponse(r.Context(), w, p.validation.Response)
 				return
 			}
 		}
@@ -233,8 +233,8 @@ func (m *Method) WithRequestBody(description string, body interface{}) *Method {
 }
 
 // WithValidation sets the validation operation and the response in case of validation error.
-func (m *Method) WithValidation(validator Validator, failedValidationResponse Response) *Method {
-	m.validation = validation{validator, failedValidationResponse}
+func (m *Method) WithValidation(v Validation) *Method {
+	m.validation = v
 	return m
 }
 
@@ -253,13 +253,13 @@ func (m *Method) Responses() []Response {
 	if !m.MethodOperation.failResponse.disabled {
 		responses = append(responses, m.MethodOperation.failResponse)
 	}
-	if m.Validator != nil && !m.validationResponse.disabled {
-		responses = append(responses, m.validationResponse)
+	if m.validation.Validator != nil && !m.validation.Response.disabled {
+		responses = append(responses, m.validation.Response)
 	}
 
 	for _, p := range m.Parameters() {
-		if p.Validator != nil && !p.validationResponse.disabled {
-			responses = append(responses, p.validationResponse)
+		if p.validation.Validator != nil && !p.validation.Response.disabled {
+			responses = append(responses, p.validation.Response)
 		}
 	}
 	return responses

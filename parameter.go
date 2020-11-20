@@ -28,38 +28,38 @@ type Parameter struct {
 	Decoder     encdec.Decoder
 	Required    bool
 	CollectionParam
-	validation
-	Example interface{}
+	validation Validation
+	Example    interface{}
 }
 
 // NewURIParameter creates a URIParameter Parameter. Required property is true by default
 func NewURIParameter(name string, tpe reflect.Kind) Parameter {
-	return Parameter{"", name, URIParameter, tpe, nil, nil, true, CollectionParam{}, validation{}, nil}
+	return Parameter{"", name, URIParameter, tpe, nil, nil, true, CollectionParam{}, Validation{}, nil}
 }
 
 // NewHeaderParameter creates a HeaderParameter Parameter. Required property is false by default
 func NewHeaderParameter(name string, tpe reflect.Kind) Parameter {
-	return Parameter{"", name, HeaderParameter, tpe, nil, nil, false, CollectionParam{}, validation{}, nil}
+	return Parameter{"", name, HeaderParameter, tpe, nil, nil, false, CollectionParam{}, Validation{}, nil}
 }
 
 // NewQueryParameter creates a QueryParameter Parameter. Required property is false by default
 func NewQueryParameter(name string, tpe reflect.Kind) Parameter {
-	return Parameter{"", name, QueryParameter, tpe, nil, nil, false, CollectionParam{}, validation{}, nil}
+	return Parameter{"", name, QueryParameter, tpe, nil, nil, false, CollectionParam{}, Validation{}, nil}
 }
 
 // NewQueryArrayParameter creates a QueryParameter Parameter. Required property is false by default
 func NewQueryArrayParameter(name string, enumValues []interface{}) Parameter {
-	return Parameter{"", name, QueryParameter, reflect.Array, nil, nil, false, CollectionParam{"", enumValues}, validation{}, nil}
+	return Parameter{"", name, QueryParameter, reflect.Array, nil, nil, false, CollectionParam{"", enumValues}, Validation{}, nil}
 }
 
 // NewFormDataParameter creates a FormDataParameter Parameter. Required property is false by default
 func NewFormDataParameter(name string, tpe reflect.Kind, decoder encdec.Decoder) Parameter {
-	return Parameter{"", name, FormDataParameter, tpe, nil, decoder, false, CollectionParam{}, validation{}, nil}
+	return Parameter{"", name, FormDataParameter, tpe, nil, decoder, false, CollectionParam{}, Validation{}, nil}
 }
 
 // NewFileParameter creates a FileParameter Parameter. Required property is false by default
 func NewFileParameter(name string) Parameter {
-	return Parameter{"", name, FileParameter, reflect.String, nil, nil, false, CollectionParam{}, validation{}, nil}
+	return Parameter{"", name, FileParameter, reflect.String, nil, nil, false, CollectionParam{}, Validation{}, nil}
 }
 
 // WithDescription sets the description property
@@ -93,7 +93,7 @@ func (p Parameter) WithExample(example interface{}) Parameter {
 }
 
 // WithValidation sets the validation property
-func (p Parameter) WithValidation(validator Validator, validationFailedResponse Response) Parameter {
-	p.validation = validation{validator, validationFailedResponse}
+func (p Parameter) WithValidation(v Validation) Parameter {
+	p.validation = v
 	return p
 }

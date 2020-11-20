@@ -47,19 +47,20 @@ func GeneratePetStore() rest.API {
 	pets.Put(update, renderers).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Update an existing pet").
-		WithValidation(rest.ValidatorFunc(func(input rest.Input) error {
-			pet := Pet{}
-			body, _ := input.GetBody()
-			respBody := new(bytes.Buffer)
-			cBody := io.TeeReader(body, respBody)
-			err := input.BodyDecoder.Decode(cBody, &pet)
-			if err != nil {
-				return err
-			}
-			input.Request.Body = ioutil.NopCloser(respBody)
-			return nil
-		}),
-			rest.NewResponse(400).WithDescription("Invalid ID supplied"))
+		WithValidation(rest.Validation{
+			Validator: rest.ValidatorFunc(func(input rest.Input) error {
+				pet := Pet{}
+				body, _ := input.GetBody()
+				respBody := new(bytes.Buffer)
+				cBody := io.TeeReader(body, respBody)
+				err := input.BodyDecoder.Decode(cBody, &pet)
+				if err != nil {
+					return err
+				}
+				input.Request.Body = ioutil.NopCloser(respBody)
+				return nil
+			}),
+			Response: rest.NewResponse(400).WithDescription("Invalid ID supplied")})
 
 	// Uri Parameters declaration, so it is available to all anonymous resources functions
 	petIDURIParam := rest.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return").WithExample(1)
@@ -92,14 +93,17 @@ func GeneratePetStore() rest.API {
 			WithSummary("Deletes a pet").
 			WithParameter(
 				petIDURIParam.WithDescription("Pet id to delete").
-					WithValidation(rest.ValidatorFunc(func(i rest.Input) error {
-						petID, _ := i.GetURIParam("petId")
-						_, err := getInt64Id(petID)
-						if err != nil {
-							return err
-						}
-						return nil
-					}), rest.NewResponse(400).WithDescription("Invalid ID supplied"))).
+					WithValidation(
+						rest.Validation{
+							Validator: rest.ValidatorFunc(func(i rest.Input) error {
+								petID, _ := i.GetURIParam("petId")
+								_, err := getInt64Id(petID)
+								if err != nil {
+									return err
+								}
+								return nil
+							}),
+							Response: rest.NewResponse(400).WithDescription("Invalid ID supplied")})).
 			WithParameter(rest.NewHeaderParameter("api_key", reflect.String))
 		r.Resource("uploadImage", func(r *rest.Resource) {
 			// Upload image resource under URIParameter Resource

@@ -1,6 +1,6 @@
 package rest
 
-type validation struct {
+type Validation struct {
 	Validator
-	validationResponse Response
+	Response Response
 }
