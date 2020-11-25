@@ -38,7 +38,7 @@ func TestNegotiateEncoder(t *testing.T) {
 			}
 		})
 	}
-	t.Run("no default renderer", func(t *testing.T) {
+	t.Run("no default content-type", func(t *testing.T) {
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		ctsnd := mustGetCTSNoDefault()
@@ -47,10 +47,10 @@ func TestNegotiateEncoder(t *testing.T) {
 			t.Errorf("Was expecting an error")
 		}
 	})
-	t.Run("no renderer registered", func(t *testing.T) {
+	t.Run("no content-type registered", func(t *testing.T) {
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		void := rest.NewRenderers()
+		void := rest.NewContentTypes()
 		_, _, err := n.NegotiateEncoder(request, &void)
 		if err == nil {
 			t.Errorf("Was expecting an error")
@@ -58,16 +58,16 @@ func TestNegotiateEncoder(t *testing.T) {
 	})
 }
 
-func mustGetCTS() rest.Renderers {
-	cts := rest.NewRenderers()
+func mustGetCTS() rest.ContentTypes {
+	cts := rest.NewContentTypes()
 	cts.Add(octetMimeType, &EncodeDecoderSpy{}, false)
 	cts.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	cts.Add("application/xml", &EncodeDecoderSpy{}, false)
 	return cts
 }
 
-func mustGetCTSNoDefault() rest.Renderers {
-	cts := rest.NewRenderers()
+func mustGetCTSNoDefault() rest.ContentTypes {
+	cts := rest.NewContentTypes()
 	cts.Add(octetMimeType, &EncodeDecoderSpy{}, false)
 	cts.Add("application/json", encdec.JSONEncoderDecoder{}, false)
 	cts.Add("application/xml", &EncodeDecoderSpy{}, false)
@@ -77,7 +77,7 @@ func mustGetCTSNoDefault() rest.Renderers {
 func TestNegotiateDecoder(t *testing.T) {
 	cts := mustGetCTS()
 
-	t.Run("with body, no renderer, nodefault renderer", func(t *testing.T) {
+	t.Run("with body, no content-type, nodefault content-type", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
@@ -87,7 +87,7 @@ func TestNegotiateDecoder(t *testing.T) {
 			t.Error("Was expecting an error")
 		}
 	})
-	t.Run("with body, no renderer", func(t *testing.T) {
+	t.Run("with body, no content-type", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
@@ -96,7 +96,7 @@ func TestNegotiateDecoder(t *testing.T) {
 			t.Error("Was expecting an error")
 		}
 	})
-	t.Run("no body, no renderer", func(t *testing.T) {
+	t.Run("no body, no content-type", func(t *testing.T) {
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		_, _, err := n.NegotiateDecoder(request, &cts)
@@ -104,7 +104,7 @@ func TestNegotiateDecoder(t *testing.T) {
 			t.Fatalf("Was not expecting an error")
 		}
 	})
-	t.Run("with body, with unavailable renderer", func(t *testing.T) {
+	t.Run("with body, with unavailable content-type", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
@@ -114,7 +114,7 @@ func TestNegotiateDecoder(t *testing.T) {
 			t.Error("Was expecting an error")
 		}
 	})
-	t.Run("with body, with multiple unavailable renderer", func(t *testing.T) {
+	t.Run("with body, with multiple unavailable content-type", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
@@ -124,7 +124,7 @@ func TestNegotiateDecoder(t *testing.T) {
 			t.Error("Was expecting an error")
 		}
 	})
-	t.Run("with body, with blank renderer", func(t *testing.T) {
+	t.Run("with body, with blank content-type", func(t *testing.T) {
 		n := rest.DefaultNegotiator{}
 		body := bytes.NewBufferString("Not empty body")
 		request, _ := http.NewRequest(http.MethodPost, "/", body)
@@ -134,7 +134,7 @@ func TestNegotiateDecoder(t *testing.T) {
 			t.Error("Was expecting an error")
 		}
 	})
-	t.Run("with body, with multiple unavailable renderer and one available", func(t *testing.T) {
+	t.Run("with body, with multiple unavailable content-type and one available", func(t *testing.T) {
 		body := bytes.NewBufferString("Not empty body")
 		n := rest.DefaultNegotiator{}
 		request, _ := http.NewRequest(http.MethodPost, "/", body)

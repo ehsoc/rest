@@ -25,7 +25,7 @@ func TestNoEmptyResources(t *testing.T) {
 	api.Resource("car", func(r *rest.Resource) {
 		carIDParam := rest.NewURIParameter("carId", reflect.String)
 		r.Resource("{carId}", func(r *rest.Resource) {
-			r.Get(rest.MethodOperation{}, rest.Renderers{}).WithParameter(carIDParam)
+			r.Get(rest.MethodOperation{}, rest.ContentTypes{}).WithParameter(carIDParam)
 		})
 	})
 
@@ -58,7 +58,7 @@ func TestDateTime(t *testing.T) {
 		mo := rest.NewMethodOperation(rest.OperationFunc(func(i rest.Input) (body interface{}, success bool, err error) {
 			return nil, true, nil
 		}), rest.NewResponse(200).WithBody(TestStruct{}))
-		r.Post(mo, rest.NewRenderers())
+		r.Post(mo, rest.NewContentTypes())
 	})
 	generatedSpec := new(bytes.Buffer)
 	decoder := json.NewDecoder(generatedSpec)

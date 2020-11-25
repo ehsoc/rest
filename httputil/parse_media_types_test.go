@@ -8,8 +8,8 @@ import (
 )
 
 var negotiatorTests = []struct {
-	accept    string
-	renderers []httputil.MediaType
+	accept       string
+	contentTypes []httputil.MediaType
 }{
 	{"", []httputil.MediaType{{}}},
 	{"application/json, application/xml", []httputil.MediaType{
@@ -29,8 +29,8 @@ func TestParseAccept(t *testing.T) {
 	for _, tt := range negotiatorTests {
 		t.Run("", func(t *testing.T) {
 			got := httputil.ParseMediaTypes(tt.accept)
-			if !reflect.DeepEqual(got, tt.renderers) {
-				t.Errorf("got:%v want:%v", got, tt.renderers)
+			if !reflect.DeepEqual(got, tt.contentTypes) {
+				t.Errorf("got:%v want:%v", got, tt.contentTypes)
 			}
 		})
 	}

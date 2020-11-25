@@ -12,10 +12,10 @@ import (
 var moTest = rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(404))
 
 func TestAddMethod(t *testing.T) {
-	renderers := rest.NewRenderers()
+	ct := rest.NewContentTypes()
 	t.Run("get method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		m := rest.NewMethod("GET", moTest, renderers)
+		m := rest.NewMethod("GET", moTest, ct)
 		r.AddMethod(m)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
@@ -31,19 +31,19 @@ func TestAddMethod(t *testing.T) {
 	t.Run("methods map nil", func(t *testing.T) {
 		defer assertNoPanic(t)
 		r := rest.Resource{}
-		r.Get(rest.MethodOperation{}, rest.Renderers{})
+		r.Get(rest.MethodOperation{}, rest.ContentTypes{})
 	})
 	t.Run("methods map nil with constructor", func(t *testing.T) {
 		defer assertNoPanic(t)
 		r := rest.NewResource("pet")
-		r.Get(rest.MethodOperation{}, rest.Renderers{})
+		r.Get(rest.MethodOperation{}, rest.ContentTypes{})
 	})
 	t.Run("override existing method", func(t *testing.T) {
 		description := "second get"
 		r := rest.NewResource("")
-		r.Get(rest.MethodOperation{}, rest.Renderers{}).WithDescription("first get")
-		r.Post(rest.MethodOperation{}, rest.Renderers{})
-		r.Get(rest.MethodOperation{}, rest.Renderers{}).WithDescription(description)
+		r.Get(rest.MethodOperation{}, rest.ContentTypes{}).WithDescription("first get")
+		r.Post(rest.MethodOperation{}, rest.ContentTypes{})
+		r.Get(rest.MethodOperation{}, rest.ContentTypes{}).WithDescription(description)
 		if len(r.Methods()) != 2 {
 			t.Fatalf("expecting 2 methods, got: %v", len(r.Methods()))
 		}
@@ -58,10 +58,10 @@ func TestAddMethod(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	renderers := rest.NewRenderers()
+	ct := rest.NewContentTypes()
 	t.Run("get method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Get(moTest, renderers)
+		r.Get(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -75,7 +75,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("post method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Post(moTest, renderers)
+		r.Post(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -89,7 +89,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("options put", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Put(moTest, renderers)
+		r.Put(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -103,7 +103,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("options patch", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Patch(moTest, renderers)
+		r.Patch(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -117,7 +117,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("delete method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Delete(moTest, renderers)
+		r.Delete(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -131,7 +131,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("options method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Options(moTest, renderers)
+		r.Options(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -145,7 +145,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("connect method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Connect(moTest, renderers)
+		r.Connect(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -159,7 +159,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("head method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Head(moTest, renderers)
+		r.Head(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}
@@ -173,7 +173,7 @@ func TestGet(t *testing.T) {
 	})
 	t.Run("trace method", func(t *testing.T) {
 		r := rest.NewResource("pet")
-		r.Trace(moTest, renderers)
+		r.Trace(moTest, ct)
 		if len(r.Methods()) != 1 {
 			t.Errorf("expecting on method")
 		}

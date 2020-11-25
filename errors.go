@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-// ErrorNoDefaultContentTypeIsSet error when no default renderer is set
-var ErrorNoDefaultContentTypeIsSet = errors.New("no default renderer is set")
+// ErrorNoDefaultContentTypeIsSet error when no default content-type is set
+var ErrorNoDefaultContentTypeIsSet = errors.New("no default content-type is set")
 
 // ErrorRequestBodyNotDefined error describes a specification/parameter check error trying to get the request body,
 // but it was not declared as parameter.

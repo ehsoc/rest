@@ -16,7 +16,7 @@ type Method struct {
 	Description     string
 	RequestBody     RequestBody
 	MethodOperation MethodOperation
-	renderers       Renderers
+	contentTypes    ContentTypes
 	Negotiator
 	SecuritySchemes []*Security
 	http.Handler
@@ -25,11 +25,11 @@ type Method struct {
 }
 
 // NewMethod returns a Method instance
-func NewMethod(httpMethod string, methodOperation MethodOperation, renderers Renderers) *Method {
+func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypes ContentTypes) *Method {
 	m := Method{}
 	m.HTTPMethod = httpMethod
 	m.MethodOperation = methodOperation
-	m.renderers = renderers
+	m.contentTypes = contentTypes
 	m.Negotiator = DefaultNegotiator{}
 	m.parameters = make(map[ParameterType]map[string]Parameter)
 	m.Handler = m.negotiationMiddleware(http.HandlerFunc(m.mainHandler))
@@ -38,19 +38,19 @@ func NewMethod(httpMethod string, methodOperation MethodOperation, renderers Ren
 
 func (m *Method) negotiationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		responseContentType, encoder, err := m.Negotiator.NegotiateEncoder(r, &m.renderers)
+		responseContentType, encoder, err := m.Negotiator.NegotiateEncoder(r, &m.contentTypes)
 		if err != nil {
-			mutateResponseBody(&m.renderers.UnsupportedMediaTypeResponse, nil, false, err)
-			m.writeResponseFallBack(w, m.renderers.UnsupportedMediaTypeResponse)
+			mutateResponseBody(&m.contentTypes.UnsupportedMediaTypeResponse, nil, false, err)
+			m.writeResponseFallBack(w, m.contentTypes.UnsupportedMediaTypeResponse)
 			return
 		}
 		ctx := context.WithValue(r.Context(), EncoderDecoderContextKey("encoder"), encoder)
 		ctx = context.WithValue(ctx, ContentTypeContextKey("encoder"), responseContentType)
-		decoderContentType, decoder, err := m.Negotiator.NegotiateDecoder(r, &m.renderers)
+		decoderContentType, decoder, err := m.Negotiator.NegotiateDecoder(r, &m.contentTypes)
 		ctx = context.WithValue(ctx, ContentTypeContextKey("decoder"), decoderContentType)
 		if err != nil && r.Body != http.NoBody && r.Body != nil {
-			mutateResponseBody(&m.renderers.UnsupportedMediaTypeResponse, nil, false, err)
-			writeResponse(ctx, w, m.renderers.UnsupportedMediaTypeResponse)
+			mutateResponseBody(&m.contentTypes.UnsupportedMediaTypeResponse, nil, false, err)
+			writeResponse(ctx, w, m.contentTypes.UnsupportedMediaTypeResponse)
 			return
 		}
 		ctx = context.WithValue(ctx, EncoderDecoderContextKey("decoder"), decoder)
@@ -60,7 +60,7 @@ func (m *Method) negotiationMiddleware(next http.Handler) http.Handler {
 }
 
 func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response) {
-	_, encoder, err := m.renderers.GetDefaultEncoder()
+	_, encoder, err := m.contentTypes.GetDefaultEncoder()
 	// if no default encdec is set will only return the header code
 	if err != nil {
 		w.WriteHeader(response.Code())
@@ -188,7 +188,7 @@ func write(w http.ResponseWriter, encoder encdec.Encoder, resp Response) {
 // GetEncoderMediaTypes gets a string slice of the method's encoder media types
 func (m *Method) GetEncoderMediaTypes() []string {
 	mediaTypes := []string{}
-	for m := range m.renderers.encoderContentTypes {
+	for m := range m.contentTypes.encoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
 	// Sorting map keys for order consistency
@@ -199,7 +199,7 @@ func (m *Method) GetEncoderMediaTypes() []string {
 // GetDecoderMediaTypes gets a string slice of the method's decoder media types
 func (m *Method) GetDecoderMediaTypes() []string {
 	mediaTypes := []string{}
-	for m := range m.renderers.decoderContentTypes {
+	for m := range m.contentTypes.decoderContentTypes {
 		mediaTypes = append(mediaTypes, m)
 	}
 	// Sorting map keys for consistency

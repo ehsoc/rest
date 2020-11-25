@@ -45,9 +45,9 @@ func GenerateServer() http.Handler {
 	failResponse := rest.NewResponse(404)
 	// Method Operation
 	getCar := rest.NewMethodOperation(rest.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
-	// Renderers
-	rds := rest.NewRenderers()
-	rds.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	// ContentTypes
+	ct := rest.NewContentTypes()
+	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 	api := rest.API{}
 	api.BasePath = "/v1"
@@ -56,7 +56,7 @@ func GenerateServer() http.Handler {
 	api.Resource("car", func(r *rest.Resource) {
 		carIDParam := rest.NewURIParameter("carID", reflect.String)
 		r.Resource("{carID}", func(r *rest.Resource) {
-			r.Get(getCar, rds).WithParameter(carIDParam)
+			r.Get(getCar, ct).WithParameter(carIDParam)
 		})
 	})
 	// Generating OpenAPI v2 specification to standard output

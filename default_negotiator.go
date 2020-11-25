@@ -14,7 +14,7 @@ type DefaultNegotiator struct {
 }
 
 // NegotiateEncoder resolves the MIME type and Encoder to be used by the Handler to process the response.
-func (d DefaultNegotiator) NegotiateEncoder(r *http.Request, cts *Renderers) (string, encdec.Encoder, error) {
+func (d DefaultNegotiator) NegotiateEncoder(r *http.Request, cts *ContentTypes) (string, encdec.Encoder, error) {
 	accept := r.Header.Get("Accept")
 	if strings.Trim(accept, "") != "" {
 		mediaTypes := httputil.ParseMediaTypes(accept)
@@ -29,7 +29,7 @@ func (d DefaultNegotiator) NegotiateEncoder(r *http.Request, cts *Renderers) (st
 }
 
 // NegotiateDecoder resolves the MIME type and Decoder to be used by the Handler to process the request.
-func (d DefaultNegotiator) NegotiateDecoder(r *http.Request, cts *Renderers) (string, encdec.Decoder, error) {
+func (d DefaultNegotiator) NegotiateDecoder(r *http.Request, cts *ContentTypes) (string, encdec.Decoder, error) {
 	ct := r.Header.Get("Content-Type")
 	// Only if it is a non-empty and not nil Body we will require a Content-Type header
 	if r.Body != http.NoBody && r.Body != nil {

@@ -44,14 +44,14 @@ func TestGenerateServer(t *testing.T) {
 		api := rest.API{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		renderers := rest.NewRenderers()
-		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		ct := rest.NewContentTypes()
+		ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		getMethodOp := rest.NewMethodOperation(operation, rest.NewResponse(200)).WithFailResponse(rest.NewResponse(http.StatusNotFound))
 		petResource := rest.NewResource("pet")
 		petResource.Resource("{petId}", func(r *rest.Resource) {
 			uriParam := rest.NewURIParameter("petId", reflect.String)
-			r.Get(getMethodOp, renderers).WithParameter(uriParam)
+			r.Get(getMethodOp, ct).WithParameter(uriParam)
 		})
 		myID := "101"
 		api.AddResource(petResource)
@@ -76,11 +76,11 @@ func TestGenerateServer(t *testing.T) {
 		api := rest.API{}
 		api.BasePath = "/v2"
 		api.Host = "localhost"
-		renderers := rest.NewRenderers()
-		renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		ct := rest.NewContentTypes()
+		ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		operation := &OperationStub{}
 		postMethodOp := rest.NewMethodOperation(operation, rest.NewResponse(http.StatusCreated).WithBody(petstore.Pet{})).WithFailResponse(rest.NewResponse(http.StatusBadRequest))
-		postMethod := rest.NewMethod(http.MethodPost, postMethodOp, renderers)
+		postMethod := rest.NewMethod(http.MethodPost, postMethodOp, ct)
 		petResource := rest.NewResource("pet")
 		postMethod.RequestBody = rest.RequestBody{Description: "", Body: petstore.Pet{}}
 		petResource.AddMethod(postMethod)
@@ -121,7 +121,7 @@ var testRoutes = []struct {
 
 func TestNestedRoutes(t *testing.T) {
 	mo := rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(http.StatusOK)).WithFailResponse(rest.NewResponse(500))
-	ct := rest.NewRenderers()
+	ct := rest.NewContentTypes()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	rootResource := rest.NewResource("1")
 	rootResource.Resource("2", func(r *rest.Resource) {

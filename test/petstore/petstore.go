@@ -21,9 +21,9 @@ var notFoundResponse = rest.NewResponse(404)
 func GeneratePetStore() rest.API {
 	// Resource /pet
 	pets := rest.NewResource("pet")
-	renderers := rest.NewRenderers()
-	renderers.Add("application/json", encdec.JSONEncoderDecoder{}, true)
-	renderers.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
+	ct := rest.NewContentTypes()
+	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	ct.Add("application/xml", encdec.XMLEncoderDecoder{}, false)
 	// POST
 	create := rest.NewMethodOperation(rest.OperationFunc(operationCreate), rest.NewResponse(201)).WithFailResponse(rest.NewResponse(400))
 	petScopes := map[string]string{"write:pets": "modify pets in your account", "read:pets": "read your pets"}
@@ -37,14 +37,14 @@ func GeneratePetStore() rest.API {
 	petAuth := rest.NewOAuth2Security("petstore_auth", petSO).
 		WithImplicitOAuth2Flow("localhost:5050/oauth/dialog", petScopes)
 
-	pets.Post(create, renderers).
+	pets.Post(create, ct).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Add a new pet to the store").
 		WithSecurity(petAuth)
 
 	// PUT
 	update := rest.NewMethodOperation(rest.OperationFunc(operationUpdate), rest.NewResponse(200)).WithFailResponse(rest.NewResponse(404).WithDescription("Pet not found"))
-	pets.Put(update, renderers).
+	pets.Put(update, ct).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Update an existing pet").
 		WithValidation(rest.Validation{
@@ -67,7 +67,7 @@ func GeneratePetStore() rest.API {
 	// SubResource
 	// New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
 	pets.Resource("{petId}", func(r *rest.Resource) {
-		ct := rest.NewRenderers()
+		ct := rest.NewContentTypes()
 		ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
 		getByID := rest.NewMethodOperation(rest.OperationFunc(operationGetPetByID), rest.NewResponse(200).WithOperationResultBody(Pet{})).WithFailResponse(notFoundResponse)
@@ -108,7 +108,7 @@ func GeneratePetStore() rest.API {
 		r.Resource("uploadImage", func(r *rest.Resource) {
 			// Upload image resource under URIParameter Resource
 			uploadImage := rest.NewMethodOperation(rest.OperationFunc(operationUploadImage), rest.NewResponse(200).WithBody(APIResponse{200, "OK", "image created"}).WithDescription("successful operation"))
-			ct := rest.NewRenderers()
+			ct := rest.NewContentTypes()
 			ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 			ct.AddDecoder("multipart/form-data", encdec.XMLEncoderDecoder{}, true)
 			r.Post(uploadImage, ct).
@@ -121,7 +121,7 @@ func GeneratePetStore() rest.API {
 	})
 	// Resource /pet/findByStatus
 	pets.Resource("findByStatus", func(r *rest.Resource) {
-		ct := rest.NewRenderers()
+		ct := rest.NewContentTypes()
 		ct.AddEncoder("application/json", encdec.JSONEncoderDecoder{}, true)
 		ct.AddEncoder("application/xml", encdec.XMLEncoderDecoder{}, false)
 		// GET
