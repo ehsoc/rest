@@ -130,16 +130,11 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 					secSchemes[securityScheme.Name] = []string{}
 					o.addSecurityDefinition(securityScheme.Name, secScheme)
 				case rest.APIKeySecurityType:
-					params := securityScheme.Parameters()
-					if len(params) > 0 {
-						secParam := convertParameter(params[0])
-						secScheme := spec.APIKeyAuth(securityScheme.Name, secParam.In)
-						// Add to secSchemes map
-						secSchemes[securityScheme.Name] = []string{}
-						o.addSecurityDefinition(secScheme.Name, secScheme)
-					} else {
-						log.Printf("oaiv2: warning, no parameter was defined in '%v' API Key security scheme type.", securityScheme.Name)
-					}
+					secParam := convertParameter(securityScheme.Parameter)
+					secScheme := spec.APIKeyAuth(securityScheme.Name, secParam.In)
+					// Add to secSchemes map
+					secSchemes[securityScheme.Name] = []string{}
+					o.addSecurityDefinition(secScheme.Name, secScheme)
 				case rest.OAuth2SecurityType:
 					if securityScheme.OAuth2Flows != nil {
 						// OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow

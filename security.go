@@ -16,7 +16,7 @@ type SecurityScheme struct {
 	Type        string
 	Name        string
 	Description string
-	ParameterCollection
+	Parameter   Parameter
 	SecurityOperation
 	OAuth2Flows []OAuth2Flow
 }
@@ -63,12 +63,18 @@ const (
 // If you want to enforce the security you must turn the Enforce property to true.
 func NewSecurityScheme(name string, securityType string, securityOperation SecurityOperation) *SecurityScheme {
 	s := &SecurityScheme{
-		Name:                name,
-		Type:                securityType,
-		SecurityOperation:   securityOperation,
-		ParameterCollection: NewParameterCollection(),
+		Name:              name,
+		Type:              securityType,
+		SecurityOperation: securityOperation,
 	}
 
+	return s
+}
+
+// NewApiKeySecurityScheme creates a new security scheme of APIKeySecurityType type.
+func NewApiKeySecurityScheme(name string, p Parameter, securityOperation SecurityOperation) *SecurityScheme {
+	s := NewSecurityScheme(name, APIKeySecurityType, securityOperation)
+	s.Parameter = p
 	return s
 }
 

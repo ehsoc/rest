@@ -235,9 +235,9 @@ func TestSecurityTwoSchemes(t *testing.T) {
 		ct := rest.NewContentTypes()
 		ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 		apiKeySchema := rest.NewSecurityScheme("api-key", rest.APIKeySecurityType, SecOpStub)
-		apiKeySchema.AddParameter(rest.NewHeaderParameter("X-API-KEY", reflect.String))
+		apiKeySchema.Parameter = rest.NewHeaderParameter("X-API-KEY", reflect.String)
 		IDKeySchema := rest.NewSecurityScheme("id-key", rest.APIKeySecurityType, SecOpStub)
-		IDKeySchema.AddParameter(rest.NewHeaderParameter("X-ID-KEY", reflect.String))
+		IDKeySchema.Parameter = rest.NewHeaderParameter("X-ID-KEY", reflect.String)
 
 		r.Get(mo, ct).
 			WithSecurity(

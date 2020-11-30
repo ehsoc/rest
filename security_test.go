@@ -11,10 +11,9 @@ import (
 func TestNewOAuth2SecurityScheme(t *testing.T) {
 	so := rest.SecurityOperation{}
 	want := &rest.SecurityScheme{
-		Type:                rest.OAuth2SecurityType,
-		Name:                "myName",
-		SecurityOperation:   so,
-		ParameterCollection: rest.NewParameterCollection(),
+		Type:              rest.OAuth2SecurityType,
+		Name:              "myName",
+		SecurityOperation: so,
 	}
 	got := rest.NewOAuth2SecurityScheme("myName", so)
 
@@ -26,10 +25,9 @@ func TestNewOAuth2SecurityScheme(t *testing.T) {
 func TestNewSecurityScheme(t *testing.T) {
 	so := rest.SecurityOperation{}
 	want := &rest.SecurityScheme{
-		Type:                rest.OAuth2SecurityType,
-		Name:                "myName",
-		SecurityOperation:   so,
-		ParameterCollection: rest.NewParameterCollection(),
+		Type:              rest.OAuth2SecurityType,
+		Name:              "myName",
+		SecurityOperation: so,
 	}
 	got := rest.NewSecurityScheme("myName", rest.OAuth2SecurityType, so)
 
@@ -43,10 +41,9 @@ func TestWithImplicitOAuth2Flow(t *testing.T) {
 	authURL := "http://localhost:7070"
 	scopes := map[string]string{"a": "aa"}
 	want := &rest.SecurityScheme{
-		Type:                rest.OAuth2SecurityType,
-		Name:                "myName",
-		SecurityOperation:   so,
-		ParameterCollection: rest.NewParameterCollection(),
+		Type:              rest.OAuth2SecurityType,
+		Name:              "myName",
+		SecurityOperation: so,
 		OAuth2Flows: []rest.OAuth2Flow{
 			rest.OAuth2Flow{
 				Name:             rest.FlowImplicitType,
@@ -67,10 +64,9 @@ func TestWithPasswordOAuth2Flow(t *testing.T) {
 	tokenURL := "http://localhost:7070"
 	scopes := map[string]string{"a": "aa"}
 	want := &rest.SecurityScheme{
-		Type:                rest.OAuth2SecurityType,
-		Name:                "myName",
-		SecurityOperation:   so,
-		ParameterCollection: rest.NewParameterCollection(),
+		Type:              rest.OAuth2SecurityType,
+		Name:              "myName",
+		SecurityOperation: so,
 		OAuth2Flows: []rest.OAuth2Flow{
 			rest.OAuth2Flow{
 				Name:     rest.FlowPasswordType,
@@ -92,10 +88,9 @@ func TestWithAuthCodeOAuth2Flow(t *testing.T) {
 	tokenURL := "http://localhost:7070/token"
 	scopes := map[string]string{"a": "aa"}
 	want := &rest.SecurityScheme{
-		Type:                rest.OAuth2SecurityType,
-		Name:                "myName",
-		SecurityOperation:   so,
-		ParameterCollection: rest.NewParameterCollection(),
+		Type:              rest.OAuth2SecurityType,
+		Name:              "myName",
+		SecurityOperation: so,
 		OAuth2Flows: []rest.OAuth2Flow{
 			rest.OAuth2Flow{
 				Name:             rest.FlowAuthCodeType,
@@ -117,10 +112,9 @@ func TestWithClientCredentialOAuth2Flow(t *testing.T) {
 	tokenURL := "http://localhost:7070"
 	scopes := map[string]string{"a": "aa"}
 	want := &rest.SecurityScheme{
-		Type:                rest.OAuth2SecurityType,
-		Name:                "myName",
-		SecurityOperation:   so,
-		ParameterCollection: rest.NewParameterCollection(),
+		Type:              rest.OAuth2SecurityType,
+		Name:              "myName",
+		SecurityOperation: so,
 		OAuth2Flows: []rest.OAuth2Flow{
 			rest.OAuth2Flow{
 				Name:     rest.FlowClientCredentialType,
@@ -146,10 +140,9 @@ func TestWithOAuth2Flow(t *testing.T) {
 		Scopes:   scopes,
 	}
 	want := &rest.SecurityScheme{
-		Type:                rest.OAuth2SecurityType,
-		Name:                "myName",
-		SecurityOperation:   so,
-		ParameterCollection: rest.NewParameterCollection(),
+		Type:              rest.OAuth2SecurityType,
+		Name:              "myName",
+		SecurityOperation: so,
 		OAuth2Flows: []rest.OAuth2Flow{
 			flow,
 		},
