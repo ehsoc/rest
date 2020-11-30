@@ -78,7 +78,7 @@ func GeneratePetStore() rest.API {
 			FailedAuthenticationResponse: rest.NewResponse(401),
 			FailedAuthorizationResponse:  rest.NewResponse(403),
 		}
-		apiKeyScheme := rest.NewApiKeySecurityScheme("api_key", rest.NewHeaderParameter("api_key", reflect.String), petAPIKeySO)
+		apiKeyScheme := rest.NewAPIKeySecurityScheme("api_key", rest.NewHeaderParameter("api_key", reflect.String), petAPIKeySO)
 
 		r.Get(getByID, ct).
 			WithSummary("Find pet by ID").

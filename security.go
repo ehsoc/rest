@@ -71,8 +71,8 @@ func NewSecurityScheme(name string, securityType string, securityOperation Secur
 	return s
 }
 
-// NewApiKeySecurityScheme creates a new security scheme of APIKeySecurityType type.
-func NewApiKeySecurityScheme(name string, p Parameter, securityOperation SecurityOperation) *SecurityScheme {
+// NewAPIKeySecurityScheme creates a new security scheme of APIKeySecurityType type.
+func NewAPIKeySecurityScheme(name string, p Parameter, securityOperation SecurityOperation) *SecurityScheme {
 	s := NewSecurityScheme(name, APIKeySecurityType, securityOperation)
 	s.Parameter = p
 	return s
