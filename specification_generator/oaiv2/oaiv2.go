@@ -27,6 +27,7 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		specMethod := spec.NewOperation("")
 		specMethod.Description = method.Description
 		specMethod.Summary = method.Summary
+
 		if method.RequestBody.Body != nil {
 			param := spec.BodyParam("body", o.toSchema(method.RequestBody.Body)).AsRequired()
 			param.SimpleSchema = spec.SimpleSchema{}
@@ -39,26 +40,33 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		// URI params will go first
 		pURIKeys := make([]rest.Parameter, 0)
 		pHeaderKeys := make([]rest.Parameter, 0)
+
 		for _, p := range method.Parameters() {
 			if p.HTTPType == rest.URIParameter {
 				pURIKeys = append(pURIKeys, p)
 				continue
 			}
+
 			if p.HTTPType == rest.HeaderParameter {
 				pHeaderKeys = append(pHeaderKeys, p)
 				continue
 			}
+
 			pKeys = append(pKeys, p)
 		}
+
 		sort.Slice(pHeaderKeys, func(i, j int) bool {
 			return pHeaderKeys[i].Name < pHeaderKeys[j].Name
 		})
+
 		sort.Slice(pURIKeys, func(i, j int) bool {
 			return pURIKeys[i].Name < pURIKeys[j].Name
 		})
+
 		sort.Slice(pKeys, func(i, j int) bool {
 			return pKeys[i].Name < pKeys[j].Name
 		})
+
 		// Append two slices, uri params and the rest
 		pHeaderKeys = append(pHeaderKeys, pURIKeys...)
 		pKeys = append(pHeaderKeys, pKeys...)
@@ -112,38 +120,47 @@ func (o *OpenAPIV2SpecGenerator) resolveResource(basePath string, apiResource re
 		specMethod.Consumes = method.GetDecoderMediaTypes()
 		specMethod.Produces = method.GetEncoderMediaTypes()
 		// Security
-		for _, security := range method.SecuritySchemes {
-			switch security.Type {
-			case rest.BasicSecurityType:
-				secScheme := spec.BasicAuth()
-				specMethod.SecuredWith(security.Name, []string{}...)
-				o.addSecurityDefinition(security.Name, secScheme)
-			case rest.APIKeySecurityType:
-				params := security.Parameters()
-				if len(params) > 0 {
-					secParam := convertParameter(params[0])
-					secScheme := spec.APIKeyAuth(security.Name, secParam.In)
-					specMethod.SecuredWith(secScheme.Name, []string{}...)
-					o.addSecurityDefinition(secScheme.Name, secScheme)
-				}
-			case rest.OAuth2SecurityType:
-				if security.OAuth2Flows != nil {
-					// OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow
-					for k, flow := range security.OAuth2Flows {
-						secScheme := getOAuth2SecScheme(flow)
-						if k != 0 {
-							security.Name += "_" + secScheme.Flow
+		for _, security := range method.SecurityCollection {
+			secSchemes := map[string][]string{}
+			for _, securityScheme := range security.SecuritySchemes {
+				switch securityScheme.Type {
+				case rest.BasicSecurityType:
+					secScheme := spec.BasicAuth()
+					// Add to secSchemes map
+					secSchemes[securityScheme.Name] = []string{}
+					o.addSecurityDefinition(securityScheme.Name, secScheme)
+				case rest.APIKeySecurityType:
+					params := securityScheme.Parameters()
+					if len(params) > 0 {
+						secParam := convertParameter(params[0])
+						secScheme := spec.APIKeyAuth(securityScheme.Name, secParam.In)
+						// Add to secSchemes map
+						secSchemes[securityScheme.Name] = []string{}
+						o.addSecurityDefinition(secScheme.Name, secScheme)
+					} else {
+						log.Printf("oaiv2: warning, no parameter was defined in '%v' API Key security scheme type.", securityScheme.Name)
+					}
+				case rest.OAuth2SecurityType:
+					if securityScheme.OAuth2Flows != nil {
+						// OpenAPI v2 doesn't support multiple flows, so will create a oauth scheme per flow
+						for k, flow := range securityScheme.OAuth2Flows {
+							secScheme := getOAuth2SecScheme(flow)
+							if k != 0 {
+								securityScheme.Name += "_" + secScheme.Flow
+							}
+							scopes := []string{}
+							for scp := range secScheme.Scopes {
+								scopes = append(scopes, scp)
+							}
+							sort.Strings(scopes)
+							// Add to secSchemes map
+							secSchemes[securityScheme.Name] = scopes
+							o.addSecurityDefinition(securityScheme.Name, secScheme)
 						}
-						scopes := []string{}
-						for scp := range secScheme.Scopes {
-							scopes = append(scopes, scp)
-						}
-						sort.Strings(scopes)
-						specMethod.SecuredWith(security.Name, scopes...)
-						o.addSecurityDefinition(security.Name, secScheme)
 					}
 				}
 			}
+			specMethod.Security = append(specMethod.Security, secSchemes)
 		}
 		// Responses
 		for _, response := range method.Responses() {
@@ -203,23 +220,23 @@ func typedParam(param *spec.Parameter, tpe reflect.Kind) {
 
 func convertParameter(parameter rest.Parameter) *spec.Parameter {
 	specParam := &spec.Parameter{}
+
 	switch parameter.HTTPType {
 	case rest.QueryParameter:
 		specParam = spec.QueryParam(parameter.Name)
+
 		if parameter.Type == reflect.Array {
 			specParam.Type = "array"
 			specParam.Items = spec.NewItems()
+
 			if parameter.EnumValues != nil && len(parameter.EnumValues) > 0 {
 				specParam.Items.WithEnum(parameter.EnumValues...).WithDefault(parameter.EnumValues[0])
 				specParam.CollectionFormat = parameter.CollectionFormat
-				// ssch := o.toSchema(parameter.EnumValues[0])
-				// if len(ssch.SchemaProps.Type) > 0 {
-				// 	specParam.Items.Type = ssch.SchemaProps.Type[0]
-				// }
 			}
 		} else {
 			typedParam(specParam, parameter.Type)
 		}
+
 	case rest.URIParameter:
 		specParam = spec.PathParam(parameter.Name)
 		typedParam(specParam, parameter.Type)
@@ -236,6 +253,7 @@ func convertParameter(parameter rest.Parameter) *spec.Parameter {
 	case rest.FileParameter:
 		specParam = spec.FileParam(parameter.Name)
 	}
+
 	specParam.Description = parameter.Description
 	specParam.Required = parameter.Required
 	// Example on parameters is not allowed, so a extension is set.
@@ -256,10 +274,13 @@ func (o *OpenAPIV2SpecGenerator) GenerateAPISpec(w io.Writer, api rest.API) {
 	info.Title = api.Title
 	info.Version = api.Version
 	o.swagger.Info = info
+
 	for _, apiResource := range api.Resources() {
 		o.resolveResource("/", apiResource)
 	}
+
 	e := json.NewEncoder(w)
+
 	e.SetIndent(" ", "  ")
 	e.Encode(o.swagger)
 }
@@ -295,6 +316,7 @@ func (o *OpenAPIV2SpecGenerator) addDefinition(name string, schema *spec.Schema)
 	if o.swagger.Definitions == nil {
 		o.swagger.Definitions = make(spec.Definitions)
 	}
+
 	o.swagger.Definitions[name] = *schema
 }
 
@@ -302,6 +324,7 @@ func (o *OpenAPIV2SpecGenerator) addSecurityDefinition(name string, schema *spec
 	if o.swagger.SecurityDefinitions == nil {
 		o.swagger.SecurityDefinitions = make(spec.SecurityDefinitions)
 	}
+
 	o.swagger.SecurityDefinitions[name] = schema
 }
 

@@ -18,7 +18,7 @@ type Method struct {
 	MethodOperation MethodOperation
 	contentTypes    ContentTypes
 	Negotiator
-	SecuritySchemes []*Security
+	SecurityCollection []Security
 	http.Handler
 	ParameterCollection
 	validation Validation
@@ -82,14 +82,14 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	input := Input{r, m.ParameterCollection, m.RequestBody, decoder}
 
 	// Security only if SecuritySchemeEnforcement is true
-	if len(m.SecuritySchemes) > 0 {
+	if len(m.SecurityCollection) > 0 {
 		passSecurity := false
 
 		var securityFailedResponse Response
 
-		for _, ss := range m.SecuritySchemes {
-			if ss.Enforce {
-				resp, err := processSecurity(ss, input)
+		for _, s := range m.SecurityCollection {
+			if s.Enforce {
+				resp, err := processSecurity(s, input)
 				if err != nil {
 					securityFailedResponse = resp
 					continue
@@ -149,7 +149,18 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 	writeResponse(r.Context(), w, m.MethodOperation.successResponse)
 }
 
-func processSecurity(ss *Security, input Input) (Response, error) {
+func processSecurity(s Security, input Input) (Response, error) {
+	for _, ss := range s.SecuritySchemes {
+		response, err := processSecurityScheme(ss, input)
+		if err != nil {
+			return response, err
+		}
+	}
+
+	return Response{}, nil
+}
+
+func processSecurityScheme(ss *SecurityScheme, input Input) (Response, error) {
 	err := ss.Authenticate(input)
 	if err != nil {
 		if authErr, ok := err.(AuthError); ok {
@@ -238,9 +249,34 @@ func (m *Method) WithValidation(v Validation) *Method {
 	return m
 }
 
-// WithSecurity adds a security to SecuritySchemes slice
-func (m *Method) WithSecurity(security *Security) *Method {
-	m.SecuritySchemes = append(m.SecuritySchemes, security)
+// SecurityOption
+type SecurityOption func(*Security)
+
+// AddScheme is a SecurityOption that adds a SecurityScheme to Security
+func AddScheme(scheme *SecurityScheme) SecurityOption {
+	return func(s *Security) {
+		s.SecuritySchemes = append(s.SecuritySchemes, scheme)
+	}
+}
+
+// Enforce is a SecurityOption that sets the Enforce option to true.
+// The Enforce option will activate and apply the SecurityOperation logic in the method handler, this
+// option should be used only for testing or development, and not in production.
+// Please use your own security middleware implementation.
+func Enforce() SecurityOption {
+	return func(s *Security) {
+		s.Enforce = true
+	}
+}
+
+// Security adds a set of one or more security schemes.
+// When more than one Security is defined it will follow an `or` logic with other Security definitions.
+func (m *Method) WithSecurity(opts ...SecurityOption) *Method {
+	security := Security{SecuritySchemes: []*SecurityScheme{}}
+	for _, o := range opts {
+		o(&security)
+	}
+	m.SecurityCollection = append(m.SecurityCollection, security)
 	return m
 }
 

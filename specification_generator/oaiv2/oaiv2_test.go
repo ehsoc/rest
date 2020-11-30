@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/encdec"
 	"github.com/ehsoc/rest/specification_generator/oaiv2"
 	"github.com/ehsoc/rest/test/petstore"
 	"github.com/go-openapi/spec"
@@ -214,5 +215,51 @@ func assertNoErrorFatal(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {
 		t.Fatalf("Was not expecting error: %v", err)
+	}
+}
+
+var SecOpStub = rest.SecurityOperation{
+	Authenticator: rest.AuthenticatorFunc(func(i rest.Input) rest.AuthError {
+		return nil
+	}),
+	FailedAuthenticationResponse: rest.NewResponse(401),
+	FailedAuthorizationResponse:  rest.NewResponse(403),
+}
+
+func TestSecurityTwoSchemes(t *testing.T) {
+	api := rest.API{}
+	api.Resource("one", func(r *rest.Resource) {
+		mo := rest.NewMethodOperation(rest.OperationFunc(func(i rest.Input) (interface{}, bool, error) {
+			return nil, true, nil
+		}), rest.NewResponse(200))
+		ct := rest.NewContentTypes()
+		ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+		apiKeySchema := rest.NewSecurityScheme("api-key", rest.APIKeySecurityType, SecOpStub)
+		apiKeySchema.AddParameter(rest.NewHeaderParameter("X-API-KEY", reflect.String))
+		IDKeySchema := rest.NewSecurityScheme("id-key", rest.APIKeySecurityType, SecOpStub)
+		IDKeySchema.AddParameter(rest.NewHeaderParameter("X-ID-KEY", reflect.String))
+
+		r.Get(mo, ct).
+			WithSecurity(
+				rest.AddScheme(apiKeySchema),
+				rest.AddScheme(IDKeySchema),
+				rest.Enforce(),
+			)
+	})
+	gen := oaiv2.OpenAPIV2SpecGenerator{}
+	generatedSpec := new(bytes.Buffer)
+	decoder := json.NewDecoder(generatedSpec)
+	gen.GenerateAPISpec(generatedSpec, api)
+	gotSwagger := spec.Swagger{}
+	decoder.Decode(&gotSwagger)
+	sec := gotSwagger.Paths.Paths["/one"].Get.Security
+	if len(sec) != 1 {
+		t.Fatalf("got: %d, expecting 1 in security slice", len(sec))
+	}
+	if _, ok := sec[0]["api-key"]; !ok {
+		t.Errorf("expecting api-key map key")
+	}
+	if _, ok := sec[0]["id-key"]; !ok {
+		t.Errorf("expecting id-key map key")
 	}
 }

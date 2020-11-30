@@ -667,10 +667,10 @@ func TestSecurity(t *testing.T) {
 		operation := &OperationStub{}
 		auth := &AuthenticatorStub{}
 		so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
-		security := rest.NewSecurity("apiKey", rest.APIKeySecurityType, so)
-		security.Enforce = true
+		apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(security)
+		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce())
+
 		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -690,12 +690,13 @@ func TestSecurity(t *testing.T) {
 		basicAuth := &Authenticator2Stub{}
 		apiKeySo := rest.SecurityOperation{apiKeyAuth, rest.NewResponse(401), rest.NewResponse(403)}
 		basicSo := rest.SecurityOperation{basicAuth, rest.NewResponse(401), rest.NewResponse(405)}
-		apiKeySecurity := rest.NewSecurity("apiKey", rest.APIKeySecurityType, apiKeySo)
-		apiKeySecurity.Enforce = true
-		basicSecurity := rest.NewSecurity("basicAuth", rest.BasicSecurityType, basicSo)
-		basicSecurity.Enforce = true
+		apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, apiKeySo)
+		basicScheme := rest.NewSecurityScheme("basicAuth", rest.BasicSecurityType, basicSo)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(apiKeySecurity).WithSecurity(basicSecurity)
+		method := rest.NewMethod(http.MethodGet, mo, ct).
+			WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce()).
+			WithSecurity(rest.AddScheme(basicScheme), rest.Enforce())
+
 		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 		response := httptest.NewRecorder()
 		method.ServeHTTP(response, request)
@@ -715,12 +716,13 @@ func TestSecurity(t *testing.T) {
 		basicAuth := &Authenticator2Stub{}
 		apiKeySo := rest.SecurityOperation{apiKeyAuth, rest.NewResponse(401), rest.NewResponse(403)}
 		basicSo := rest.SecurityOperation{basicAuth, rest.NewResponse(401), rest.NewResponse(405)}
-		apiKeySecurity := rest.NewSecurity("apiKey", rest.APIKeySecurityType, apiKeySo)
-		apiKeySecurity.Enforce = true
-		basicSecurity := rest.NewSecurity("basicAuth", rest.BasicSecurityType, basicSo)
+		apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, apiKeySo)
+		basicScheme := rest.NewSecurityScheme("basicAuth", rest.BasicSecurityType, basicSo)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		basicSecurity.Enforce = true
-		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(apiKeySecurity).WithSecurity(basicSecurity)
+		method := rest.NewMethod(http.MethodGet, mo, ct).
+			WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce()).
+			WithSecurity(rest.AddScheme(basicScheme), rest.Enforce())
+
 		method.AddParameter(rest.NewQueryParameter("fail", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?token=authzfail", nil)
 		response := httptest.NewRecorder()
@@ -732,4 +734,26 @@ func TestSecurity(t *testing.T) {
 		assertTrue(t, apiKeyAuth.called)
 		assertTrue(t, basicAuth.called)
 	})
+}
+
+func TestWithSecurity(t *testing.T) {
+	successResponse := rest.NewResponse(200)
+	ct := rest.NewContentTypes()
+	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	failResponse := rest.NewResponse(404)
+	operation := &OperationStub{}
+	auth := &AuthenticatorStub{}
+	so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
+	apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
+	mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
+	method := rest.NewMethod(http.MethodGet, mo, ct).
+		WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce())
+	request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
+	response := httptest.NewRecorder()
+	method.ServeHTTP(response, request)
+	if !operation.wasCall {
+		t.Errorf("Expecting operation execution.")
+	}
+	assertResponseCode(t, response, successResponse.Code())
+	assertTrue(t, auth.called)
 }

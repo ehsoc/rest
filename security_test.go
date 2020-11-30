@@ -8,30 +8,30 @@ import (
 	"github.com/ehsoc/rest"
 )
 
-func TestNewOAuth2Security(t *testing.T) {
+func TestNewOAuth2SecurityScheme(t *testing.T) {
 	so := rest.SecurityOperation{}
-	want := &rest.Security{
+	want := &rest.SecurityScheme{
 		Type:                rest.OAuth2SecurityType,
 		Name:                "myName",
 		SecurityOperation:   so,
 		ParameterCollection: rest.NewParameterCollection(),
 	}
-	got := rest.NewOAuth2Security("myName", so)
+	got := rest.NewOAuth2SecurityScheme("myName", so)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot:\n %#v \nwant:\n %#v", got, want)
 	}
 }
 
-func TestNewSecurity(t *testing.T) {
+func TestNewSecurityScheme(t *testing.T) {
 	so := rest.SecurityOperation{}
-	want := &rest.Security{
+	want := &rest.SecurityScheme{
 		Type:                rest.OAuth2SecurityType,
 		Name:                "myName",
 		SecurityOperation:   so,
 		ParameterCollection: rest.NewParameterCollection(),
 	}
-	got := rest.NewSecurity("myName", rest.OAuth2SecurityType, so)
+	got := rest.NewSecurityScheme("myName", rest.OAuth2SecurityType, so)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot:\n %#v \nwant:\n %#v", got, want)
@@ -42,7 +42,7 @@ func TestWithImplicitOAuth2Flow(t *testing.T) {
 	so := rest.SecurityOperation{}
 	authURL := "http://localhost:7070"
 	scopes := map[string]string{"a": "aa"}
-	want := &rest.Security{
+	want := &rest.SecurityScheme{
 		Type:                rest.OAuth2SecurityType,
 		Name:                "myName",
 		SecurityOperation:   so,
@@ -55,7 +55,7 @@ func TestWithImplicitOAuth2Flow(t *testing.T) {
 			},
 		},
 	}
-	got := rest.NewSecurity("myName", rest.OAuth2SecurityType, so).WithImplicitOAuth2Flow(authURL, scopes)
+	got := rest.NewSecurityScheme("myName", rest.OAuth2SecurityType, so).WithImplicitOAuth2Flow(authURL, scopes)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot:\n %#v \nwant:\n %#v", got, want)
@@ -66,7 +66,7 @@ func TestWithPasswordOAuth2Flow(t *testing.T) {
 	so := rest.SecurityOperation{}
 	tokenURL := "http://localhost:7070"
 	scopes := map[string]string{"a": "aa"}
-	want := &rest.Security{
+	want := &rest.SecurityScheme{
 		Type:                rest.OAuth2SecurityType,
 		Name:                "myName",
 		SecurityOperation:   so,
@@ -79,7 +79,7 @@ func TestWithPasswordOAuth2Flow(t *testing.T) {
 			},
 		},
 	}
-	got := rest.NewSecurity("myName", rest.OAuth2SecurityType, so).WithPasswordOAuth2Flow(tokenURL, scopes)
+	got := rest.NewSecurityScheme("myName", rest.OAuth2SecurityType, so).WithPasswordOAuth2Flow(tokenURL, scopes)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot:\n %#v \nwant:\n %#v", got, want)
@@ -91,7 +91,7 @@ func TestWithAuthCodeOAuth2Flow(t *testing.T) {
 	authURL := "http://localhost:7070/auth"
 	tokenURL := "http://localhost:7070/token"
 	scopes := map[string]string{"a": "aa"}
-	want := &rest.Security{
+	want := &rest.SecurityScheme{
 		Type:                rest.OAuth2SecurityType,
 		Name:                "myName",
 		SecurityOperation:   so,
@@ -105,7 +105,7 @@ func TestWithAuthCodeOAuth2Flow(t *testing.T) {
 			},
 		},
 	}
-	got := rest.NewSecurity("myName", rest.OAuth2SecurityType, so).WithAuthCodeOAuth2Flow(authURL, tokenURL, scopes)
+	got := rest.NewSecurityScheme("myName", rest.OAuth2SecurityType, so).WithAuthCodeOAuth2Flow(authURL, tokenURL, scopes)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot:\n %#v \nwant:\n %#v", got, want)
@@ -116,7 +116,7 @@ func TestWithClientCredentialOAuth2Flow(t *testing.T) {
 	so := rest.SecurityOperation{}
 	tokenURL := "http://localhost:7070"
 	scopes := map[string]string{"a": "aa"}
-	want := &rest.Security{
+	want := &rest.SecurityScheme{
 		Type:                rest.OAuth2SecurityType,
 		Name:                "myName",
 		SecurityOperation:   so,
@@ -129,7 +129,7 @@ func TestWithClientCredentialOAuth2Flow(t *testing.T) {
 			},
 		},
 	}
-	got := rest.NewSecurity("myName", rest.OAuth2SecurityType, so).WithClientCredentialOAuth2Flow(tokenURL, scopes)
+	got := rest.NewSecurityScheme("myName", rest.OAuth2SecurityType, so).WithClientCredentialOAuth2Flow(tokenURL, scopes)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot:\n %#v \nwant:\n %#v", got, want)
@@ -145,7 +145,7 @@ func TestWithOAuth2Flow(t *testing.T) {
 		TokenURL: tokenURL,
 		Scopes:   scopes,
 	}
-	want := &rest.Security{
+	want := &rest.SecurityScheme{
 		Type:                rest.OAuth2SecurityType,
 		Name:                "myName",
 		SecurityOperation:   so,
@@ -154,7 +154,7 @@ func TestWithOAuth2Flow(t *testing.T) {
 			flow,
 		},
 	}
-	got := rest.NewSecurity("myName", rest.OAuth2SecurityType, so).WithOAuth2Flow(flow)
+	got := rest.NewSecurityScheme("myName", rest.OAuth2SecurityType, so).WithOAuth2Flow(flow)
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("\ngot:\n %#v \nwant:\n %#v", got, want)

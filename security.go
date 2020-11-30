@@ -1,13 +1,23 @@
 package rest
 
-// Security contains the authentication and authorization data, and methods.
+// Security is the container of one or more SecurityScheme.
+// The SecurityScheme's will follow a `and` logic with other schemes in the SecuritySchemes slice,
+// this mean that the user need to pass all the SecuritySchemes.
+// The Enforce option will activate and apply the SecurityOperation logic in the method handler, this
+// option should be used only for testing or development, and not in production.
+// Please use your own security middleware implementation.
 type Security struct {
+	SecuritySchemes []*SecurityScheme
+	Enforce         bool
+}
+
+// SecurityScheme contains the authentication and authorization data, and methods.
+type SecurityScheme struct {
 	Type        string
 	Name        string
 	Description string
 	ParameterCollection
 	SecurityOperation
-	Enforce     bool
 	OAuth2Flows []OAuth2Flow
 }
 
@@ -48,14 +58,13 @@ const (
 	OAuth2SecurityType = "oauth2"
 )
 
-// NewSecurity creates a new security scheme
-// This security is not enforced by default as is not recommended to turn the enforcement on in production.
+// NewSecurityScheme creates a new security scheme
 // This should serve for specification purposes only, and you should provide the security through middleware implementation.
 // If you want to enforce the security you must turn the Enforce property to true.
-func NewSecurity(name string, typ string, securityOperation SecurityOperation) *Security {
-	s := &Security{
+func NewSecurityScheme(name string, securityType string, securityOperation SecurityOperation) *SecurityScheme {
+	s := &SecurityScheme{
 		Name:                name,
-		Type:                typ,
+		Type:                securityType,
 		SecurityOperation:   securityOperation,
 		ParameterCollection: NewParameterCollection(),
 	}
@@ -63,9 +72,9 @@ func NewSecurity(name string, typ string, securityOperation SecurityOperation) *
 	return s
 }
 
-// NewOAuth2Security creates a new security scheme of OAuth2SecurityType type
-func NewOAuth2Security(name string, securityOperation SecurityOperation) *Security {
-	return NewSecurity(name, OAuth2SecurityType, securityOperation)
+// NewOAuth2SecurityScheme creates a new security scheme of OAuth2SecurityType type
+func NewOAuth2SecurityScheme(name string, securityOperation SecurityOperation) *SecurityScheme {
+	return NewSecurityScheme(name, OAuth2SecurityType, securityOperation)
 }
 
 func (o OAuth2Flow) checkScopesMap() {
@@ -75,7 +84,7 @@ func (o OAuth2Flow) checkScopesMap() {
 }
 
 // WithImplicitOAuth2Flow adds a new oauth2 flow of implicit type with the necessary parameters
-func (s *Security) WithImplicitOAuth2Flow(authorizationURL string, scopes map[string]string) *Security {
+func (s *SecurityScheme) WithImplicitOAuth2Flow(authorizationURL string, scopes map[string]string) *SecurityScheme {
 	flow := OAuth2Flow{Name: FlowImplicitType, AuthorizationURL: authorizationURL}
 	flow.Scopes = scopes
 	flow.checkScopesMap()
@@ -84,7 +93,7 @@ func (s *Security) WithImplicitOAuth2Flow(authorizationURL string, scopes map[st
 }
 
 // WithPasswordOAuth2Flow adds a new oauth2 flow of password type with the necessary parameters
-func (s *Security) WithPasswordOAuth2Flow(tokenURL string, scopes map[string]string) *Security {
+func (s *SecurityScheme) WithPasswordOAuth2Flow(tokenURL string, scopes map[string]string) *SecurityScheme {
 	flow := OAuth2Flow{Name: FlowPasswordType, TokenURL: tokenURL}
 	flow.Scopes = scopes
 	flow.checkScopesMap()
@@ -93,7 +102,7 @@ func (s *Security) WithPasswordOAuth2Flow(tokenURL string, scopes map[string]str
 }
 
 // WithAuthCodeOAuth2Flow adds a new oauth2 flow of authorization_code type with the necessary parameters
-func (s *Security) WithAuthCodeOAuth2Flow(authorizationURL, tokenURL string, scopes map[string]string) *Security {
+func (s *SecurityScheme) WithAuthCodeOAuth2Flow(authorizationURL, tokenURL string, scopes map[string]string) *SecurityScheme {
 	flow := OAuth2Flow{Name: FlowAuthCodeType, AuthorizationURL: authorizationURL, TokenURL: tokenURL}
 	flow.Scopes = scopes
 	flow.checkScopesMap()
@@ -102,7 +111,7 @@ func (s *Security) WithAuthCodeOAuth2Flow(authorizationURL, tokenURL string, sco
 }
 
 // WithClientCredentialOAuth2Flow adds a new oauth2 flow of client_credential type with the necessary parameters
-func (s *Security) WithClientCredentialOAuth2Flow(tokenURL string, scopes map[string]string) *Security {
+func (s *SecurityScheme) WithClientCredentialOAuth2Flow(tokenURL string, scopes map[string]string) *SecurityScheme {
 	flow := OAuth2Flow{Name: FlowClientCredentialType, TokenURL: tokenURL}
 	flow.Scopes = scopes
 	flow.checkScopesMap()
@@ -111,7 +120,7 @@ func (s *Security) WithClientCredentialOAuth2Flow(tokenURL string, scopes map[st
 }
 
 // WithOAuth2Flow adds a new oauth2 flow
-func (s *Security) WithOAuth2Flow(flow OAuth2Flow) *Security {
+func (s *SecurityScheme) WithOAuth2Flow(flow OAuth2Flow) *SecurityScheme {
 	flow.checkScopesMap()
 	s.OAuth2Flows = append(s.OAuth2Flows, flow)
 	return s

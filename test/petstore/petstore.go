@@ -34,13 +34,13 @@ func GeneratePetStore() rest.API {
 		FailedAuthenticationResponse: rest.NewResponse(401),
 		FailedAuthorizationResponse:  rest.NewResponse(403),
 	}
-	petAuth := rest.NewOAuth2Security("petstore_auth", petSO).
+	petAuthScheme := rest.NewOAuth2SecurityScheme("petstore_auth", petSO).
 		WithImplicitOAuth2Flow("localhost:5050/oauth/dialog", petScopes)
 
 	pets.Post(create, ct).
 		WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 		WithSummary("Add a new pet to the store").
-		WithSecurity(petAuth)
+		WithSecurity(rest.AddScheme(petAuthScheme), rest.Enforce())
 
 	// PUT
 	update := rest.NewMethodOperation(rest.OperationFunc(operationUpdate), rest.NewResponse(200)).WithFailResponse(rest.NewResponse(404).WithDescription("Pet not found"))
@@ -78,15 +78,14 @@ func GeneratePetStore() rest.API {
 			FailedAuthenticationResponse: rest.NewResponse(401),
 			FailedAuthorizationResponse:  rest.NewResponse(403),
 		}
-		apiKeyAuth := rest.NewSecurity("api_key", rest.APIKeySecurityType, petAPIKeySO)
-
-		apiKeyAuth.AddParameter(rest.NewHeaderParameter("api_key", reflect.String))
+		apiKeyScheme := rest.NewSecurityScheme("api_key", rest.APIKeySecurityType, petAPIKeySO)
+		apiKeyScheme.AddParameter(rest.NewHeaderParameter("api_key", reflect.String))
 
 		r.Get(getByID, ct).
 			WithSummary("Find pet by ID").
 			WithDescription("Returns a single pet").
 			WithParameter(petIDURIParam).
-			WithSecurity(apiKeyAuth)
+			WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce())
 		// Delete
 		deleteByID := rest.NewMethodOperation(rest.OperationFunc(operationDeletePet), rest.NewResponse(200)).WithFailResponse(notFoundResponse)
 		r.Delete(deleteByID, ct).
@@ -135,12 +134,12 @@ func GeneratePetStore() rest.API {
 			FailedAuthenticationResponse: rest.NewResponse(401),
 			FailedAuthorizationResponse:  rest.NewResponse(403),
 		}
-		basicSecurity := rest.NewSecurity("basicSecurity", rest.BasicSecurityType, petBasicAuthSO)
+		basicSecurity := rest.NewSecurityScheme("basicSecurity", rest.BasicSecurityType, petBasicAuthSO)
 		r.Get(findByStatus, ct).
 			WithSummary("Finds Pets by status").
 			WithDescription("Multiple status values can be provided with comma separated strings").
 			WithParameter(statusParam).
-			WithSecurity(basicSecurity)
+			WithSecurity(rest.AddScheme(basicSecurity), rest.Enforce())
 	})
 
 	api := rest.API{}
