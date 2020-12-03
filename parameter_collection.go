@@ -8,7 +8,7 @@ type ParameterCollection struct {
 // NewParameterCollection returns a new ParameterCollection
 func NewParameterCollection() ParameterCollection {
 	p := ParameterCollection{}
-	p.parameters = map[ParameterType]map[string]Parameter{}
+	p.parameters = make(map[ParameterType]map[string]Parameter)
 	return p
 }
 

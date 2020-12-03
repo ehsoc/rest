@@ -26,14 +26,15 @@ type Method struct {
 
 // NewMethod returns a Method instance
 func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypes ContentTypes) *Method {
-	m := Method{}
-	m.HTTPMethod = httpMethod
-	m.MethodOperation = methodOperation
-	m.contentTypes = contentTypes
-	m.Negotiator = DefaultNegotiator{}
+	m := &Method{
+		HTTPMethod:      httpMethod,
+		MethodOperation: methodOperation,
+		contentTypes:    contentTypes,
+		Negotiator:      DefaultNegotiator{},
+	}
 	m.parameters = make(map[ParameterType]map[string]Parameter)
 	m.Handler = m.negotiationMiddleware(http.HandlerFunc(m.mainHandler))
-	return &m
+	return m
 }
 
 func (m *Method) negotiationMiddleware(next http.Handler) http.Handler {
@@ -112,6 +113,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			mutateResponseBody(&m.validation.Response, nil, false, err)
 			writeResponse(r.Context(), w, m.validation.Response)
+
 			return
 		}
 	}
@@ -135,6 +137,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 		writeResponse(r.Context(), w, errResponse)
 		return
 	}
+
 	if !success {
 		if m.MethodOperation.failResponse.disabled {
 			panic(&TypeErrorFailResponseNotDefined{errorf{messageErrFailResponseNotDefined, r.URL.Path + " " + m.HTTPMethod}})
