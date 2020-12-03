@@ -1,7 +1,10 @@
 package rest_test
 
 import (
+	"bytes"
+	"io"
 	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"sort"
 	"testing"
@@ -233,5 +236,121 @@ func TestResourceIntegration(t *testing.T) {
 	}
 	if directionResources[1].Path() != "right" {
 		t.Errorf("got : %v want: %v", findNode.Resources()[1].Path(), "right")
+	}
+}
+
+type MiddlewareSpy struct {
+	name   string
+	writer io.Writer
+	called bool
+}
+
+func (m *MiddlewareSpy) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		m.called = true
+		if m.writer != nil {
+			m.writer.Write([]byte(m.name + "->"))
+		}
+		next.ServeHTTP(rw, r)
+	})
+}
+
+func TestUseMiddlewareOnMethods(t *testing.T) {
+	t.Run("method get middleware stack from resource stack", func(t *testing.T) {
+		middleware := &MiddlewareSpy{}
+		r := rest.NewResource("my name")
+		r.Use(middleware.Middleware)
+		op := &OperationStub{}
+		m := r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
+		req, _ := http.NewRequest("GET", "", nil)
+		resp := httptest.NewRecorder()
+		m.ServeHTTP(resp, req)
+		if !op.wasCall {
+			t.Errorf("operation was not called")
+		}
+		if !middleware.called {
+			t.Errorf("middleware was not called")
+		}
+	})
+	t.Run("only methods declared after calling Use ", func(t *testing.T) {
+		middleware := &MiddlewareSpy{}
+		r := rest.NewResource("my name")
+		opnm := &OperationStub{}
+
+		mNoMiddleware := r.Get(rest.NewMethodOperation(opnm, rest.NewResponse(200)), mustGetJSONContentType())
+
+		r.Use(middleware.Middleware)
+
+		opm := &OperationStub{}
+
+		mMiddleware := r.Get(rest.NewMethodOperation(opm, rest.NewResponse(200)), mustGetJSONContentType())
+		req, _ := http.NewRequest("GET", "", nil)
+		resp := httptest.NewRecorder()
+
+		mMiddleware.ServeHTTP(resp, req)
+
+		if !opm.wasCall {
+			t.Errorf("operation was not called")
+		}
+
+		if !middleware.called {
+			t.Errorf("middleware was not called")
+		}
+
+		middleware.called = false
+		respnm := httptest.NewRecorder()
+
+		mNoMiddleware.ServeHTTP(respnm, req)
+
+		if !opnm.wasCall {
+			t.Errorf("operation was not called")
+		}
+
+		if middleware.called {
+			t.Errorf("not expecting calling the middleware")
+		}
+	})
+	t.Run("middleware order", func(t *testing.T) {
+		orderWriter := bytes.NewBufferString("")
+		m1 := &MiddlewareSpy{name: "m1", writer: orderWriter}
+		m2 := &MiddlewareSpy{name: "m2", writer: orderWriter}
+		m3 := &MiddlewareSpy{name: "m3", writer: orderWriter}
+		r := rest.NewResource("test")
+		r.Use(m1.Middleware, m2.Middleware, m3.Middleware)
+		op := &OperationStub{}
+		method := r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
+		req, _ := http.NewRequest("GET", "/", nil)
+		res := httptest.NewRecorder()
+		method.ServeHTTP(res, req)
+		want := "m1->m2->m3->"
+		if orderWriter.String() != want {
+			t.Errorf("got: %v want: %v", orderWriter.String(), want)
+		}
+	})
+}
+
+func TestUseMiddlewareOnResource(t *testing.T) {
+	middleware := &MiddlewareSpy{}
+	r := rest.NewResource("my name")
+
+	r.Use(middleware.Middleware)
+
+	op := &OperationStub{}
+	var m *rest.Method
+	r.Resource("sub1", func(r *rest.Resource) {
+		m = r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
+	})
+
+	req, _ := http.NewRequest("GET", "", nil)
+	resp := httptest.NewRecorder()
+
+	m.ServeHTTP(resp, req)
+
+	if !op.wasCall {
+		t.Errorf("operation was not called")
+	}
+
+	if !middleware.called {
+		t.Errorf("middleware was not called")
 	}
 }

@@ -3,7 +3,8 @@ package rest
 // ResourceCollection encapsulate a collection of resource nodes and the methods to add new ones.
 // Each node name is unique, in case of conflict the new node will replace the old one silently
 type ResourceCollection struct {
-	resources map[string]Resource
+	resources  map[string]Resource
+	middleware []Middleware
 }
 
 // Resources returns the collection of the resource nodes.
@@ -33,17 +34,12 @@ func (rs *ResourceCollection) Resources() []Resource {
 func (rs *ResourceCollection) Resource(name string, fn func(r *Resource)) {
 	rs.checkMap()
 	newResource := NewResource(name)
+	// pass middleware of parent resource to the new resource
+	newResource.middleware = rs.middleware
 	if fn != nil {
 		fn(&newResource)
 	}
 	rs.resources[name] = newResource
-}
-
-// AddResource adds a resource node to the collection of resources.
-// If other node with the same name is in the collection, it will replace it silently
-func (rs *ResourceCollection) AddResource(resource Resource) {
-	rs.checkMap()
-	rs.resources[resource.path] = resource
 }
 
 // checkMap initialize the internal map if is nil

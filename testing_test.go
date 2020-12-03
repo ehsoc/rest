@@ -3,6 +3,9 @@ package rest_test
 import (
 	"net/http/httptest"
 	"testing"
+
+	"github.com/ehsoc/rest"
+	"github.com/ehsoc/rest/encdec"
 )
 
 var octetMimeType = "application/octet-stream"
@@ -47,4 +50,10 @@ func assertNoPanic(t *testing.T) {
 	if err := recover(); err != nil {
 		t.Fatalf("Not expecting panic: %v", err)
 	}
+}
+
+func mustGetJSONContentType() rest.ContentTypes {
+	jsonContentType := rest.NewContentTypes()
+	jsonContentType.Add("application/json", encdec.JSONEncoderDecoder{}, true)
+	return jsonContentType
 }

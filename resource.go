@@ -16,6 +16,9 @@ type Resource struct {
 	ResourceCollection
 }
 
+// Middleware is a function that gets a `next` Handler and returns the middleware Handler
+type Middleware func(http.Handler) http.Handler
+
 // NewResource creates a new resource node.
 // `name` parameter should not contain a slash.
 // Use brackets to indicate a URI Parameter node name, example: {pathNodeName}
@@ -101,6 +104,7 @@ func (rs *Resource) Methods() []Method {
 	for _, m := range rs.methods {
 		ms = append(ms, *m)
 	}
+
 	return ms
 }
 
@@ -111,8 +115,14 @@ func (rs *Resource) Path() string {
 
 // AddMethod adds a new method to the method collection.
 // If the same HTTPMethod (POST, GET, etc) is already in the collection, will be replace it silently.
+// The current resource's middleware stack will be applied
 func (rs *Resource) AddMethod(method *Method) {
 	rs.checkNilMethods()
+	// appling resource's middleware stack to the method in the inverse slice order,
+	// because the last applied will be the first in execution order in the server.
+	for i := len(rs.middleware) - 1; i >= 0; i-- {
+		method.Handler = rs.middleware[i](method.Handler)
+	}
 	rs.methods[strings.ToUpper(method.HTTPMethod)] = method
 }
 
@@ -120,4 +130,17 @@ func (rs *Resource) checkNilMethods() {
 	if rs.methods == nil {
 		rs.methods = make(map[string]*Method)
 	}
+}
+
+// Use adds one or more middlewares to the middleware stack of the resource.
+// This middleware stack will be applied to the resource methods declared after the Use method.
+// The stack will be pass down to the child resources in the same fashion.
+// Example:
+// r.Get( ... // Not applied here
+// r.Resource( ... // Not applied here
+// r.Use(middleware) // <-- Use method applied from here
+// r.Put( .. // middleware applied here
+// r.Resource( .. // middleware passed to the new resource and sub-resources and methods.
+func (rs *Resource) Use(m ...Middleware) {
+	rs.middleware = append(rs.middleware, m...)
 }
