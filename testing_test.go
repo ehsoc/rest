@@ -31,6 +31,13 @@ func assertTrue(t *testing.T, got bool) {
 	}
 }
 
+func assertFalse(t *testing.T, got bool) {
+	t.Helper()
+	if got {
+		t.Errorf("expecting to be false, got: %v", got)
+	}
+}
+
 func assertNoErrorFatal(t *testing.T, err error) {
 	t.Helper()
 	if err != nil {

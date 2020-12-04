@@ -736,21 +736,43 @@ func TestSecurity(t *testing.T) {
 	})
 }
 
-func TestWithSecurity(t *testing.T) {
+func TestOverWriteMiddlewareOption(t *testing.T) {
+	middleware := MiddlewareSpy{}
 	successResponse := rest.NewResponse(200)
-	ct := rest.NewContentTypes()
-	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 	failResponse := rest.NewResponse(404)
 	operation := &OperationStub{}
 	auth := &AuthenticatorStub{}
 	so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
 	apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
 	mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-	method := rest.NewMethod(http.MethodGet, mo, ct).
+	method := rest.NewMethod(http.MethodGet, mo, mustGetJSONContentType()).
+		WithSecurity(rest.AddScheme(apiKeyScheme)).OverwriteSecurityMiddleware(middleware.Middleware)
+	request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
+	response := httptest.NewRecorder()
+	method.ServeHTTP(response, request)
+
+	if !operation.wasCall {
+		t.Errorf("Expecting operation execution.")
+	}
+	assertResponseCode(t, response, successResponse.Code())
+	assertFalse(t, auth.called)
+	assertTrue(t, middleware.called)
+}
+
+func TestWithSecurity(t *testing.T) {
+	successResponse := rest.NewResponse(200)
+	failResponse := rest.NewResponse(404)
+	operation := &OperationStub{}
+	auth := &AuthenticatorStub{}
+	so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
+	apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
+	mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
+	method := rest.NewMethod(http.MethodGet, mo, mustGetJSONContentType()).
 		WithSecurity(rest.AddScheme(apiKeyScheme))
 	request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 	response := httptest.NewRecorder()
 	method.ServeHTTP(response, request)
+
 	if !operation.wasCall {
 		t.Errorf("Expecting operation execution.")
 	}

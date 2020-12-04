@@ -7,6 +7,8 @@ type ResourceCollection struct {
 	// middleware slice is a temporary description of the middleware stack to be applied
 	// by a method or other sub-resources at the moment of their declaration.
 	middleware []Middleware
+	// overWriteCoreSecurityMiddleware value nil means default core middleware is applied
+	overWriteCoreSecurityMiddleware Middleware
 }
 
 // Resources returns the collection of the resource nodes.
@@ -38,6 +40,8 @@ func (rs *ResourceCollection) Resource(name string, fn func(r *Resource)) {
 	newResource := NewResource(name)
 	// pass middleware of parent resource to the new resource
 	newResource.middleware = rs.middleware
+	// pass the coreSecurityMiddleware to he new resource
+	newResource.overWriteCoreSecurityMiddleware = rs.overWriteCoreSecurityMiddleware
 	if fn != nil {
 		fn(&newResource)
 	}

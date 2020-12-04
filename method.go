@@ -56,8 +56,11 @@ func (m *Method) buildDefaultCoreMiddlewareStack() {
 // buildHandler sets the main handler and apply the coreMiddleware
 func (m *Method) buildHandler() {
 	m.Handler = http.HandlerFunc(m.mainHandler)
+
 	for i := len(m.coreMiddleware) - 1; i >= 0; i-- {
-		m.Handler = m.coreMiddleware[i](m.Handler)
+		if m.coreMiddleware[i] != nil {
+			m.Handler = m.coreMiddleware[i](m.Handler)
+		}
 	}
 }
 
@@ -303,6 +306,14 @@ func AddScheme(scheme *SecurityScheme) SecurityOption {
 	return func(s *Security) {
 		s.SecuritySchemes = append(s.SecuritySchemes, scheme)
 	}
+}
+
+// OverwriteSecurityMiddleware replaces the core security middleware with the provided middleware for this method.
+func (m *Method) OverwriteSecurityMiddleware(mid Middleware) *Method {
+	m.securityMw = mid
+	m.buildDefaultCoreMiddlewareStack()
+	m.buildHandler()
+	return m
 }
 
 // Security adds a set of one or more security schemes.

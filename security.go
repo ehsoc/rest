@@ -7,7 +7,8 @@ package rest
 // option should be used only for testing or development, and not in production.
 // Please use your own security middleware implementation.
 type Security struct {
-	SecuritySchemes []*SecurityScheme
+	SecuritySchemes     []*SecurityScheme
+	overwriteMiddleware Middleware
 }
 
 // SecurityScheme contains the authentication and authorization data, and methods.

@@ -316,12 +316,18 @@ func TestUseMiddlewareOnMethods(t *testing.T) {
 		m2 := &MiddlewareSpy{name: "m2", writer: orderWriter}
 		m3 := &MiddlewareSpy{name: "m3", writer: orderWriter}
 		r := rest.NewResource("test")
+
 		r.Use(m1.Middleware, m2.Middleware, m3.Middleware)
+
 		op := &OperationStub{}
 		method := r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
-		req, _ := http.NewRequest("GET", "/", nil)
+		req, _ := http.NewRequest("GET", "", nil)
 		res := httptest.NewRecorder()
+
 		method.ServeHTTP(res, req)
+
+		assertResponseCode(t, res, 200)
+
 		want := "m1->m2->m3->"
 		if orderWriter.String() != want {
 			t.Errorf("got: %v want: %v", orderWriter.String(), want)
@@ -348,6 +354,49 @@ func TestUseMiddlewareOnResource(t *testing.T) {
 
 	if !op.wasCall {
 		t.Errorf("operation was not called")
+	}
+
+	if !middleware.called {
+		t.Errorf("middleware was not called")
+	}
+}
+
+type AuthenticatorSpy struct {
+	called bool
+}
+
+func (s *AuthenticatorSpy) Authenticate(i rest.Input) rest.AuthError {
+	s.called = true
+	return nil
+}
+
+func TestOverwriteCoreSecurityMiddleware(t *testing.T) {
+	middleware := &MiddlewareSpy{}
+	r := rest.NewResource("my name")
+
+	r.OverwriteCoreSecurityMiddleware(middleware.Middleware)
+
+	op := &OperationStub{}
+	auth := &AuthenticatorSpy{}
+	so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
+	apiKeyScheme := rest.NewAPIKeySecurityScheme("apikey", rest.NewHeaderParameter("X-Key", reflect.String), so)
+	var m *rest.Method
+	r.Resource("sub1", func(r *rest.Resource) {
+		m = r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType()).
+			WithSecurity(rest.AddScheme(apiKeyScheme))
+	})
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	resp := httptest.NewRecorder()
+
+	m.ServeHTTP(resp, req)
+
+	if !op.wasCall {
+		t.Errorf("operation was not called")
+	}
+
+	if auth.called {
+		t.Errorf("not expecting calling auth operation")
 	}
 
 	if !middleware.called {

@@ -123,6 +123,11 @@ func (rs *Resource) AddMethod(method *Method) {
 	for i := len(rs.middleware) - 1; i >= 0; i-- {
 		method.Handler = rs.middleware[i](method.Handler)
 	}
+	// pass the coreSecurityMiddleware
+	if rs.overWriteCoreSecurityMiddleware != nil {
+		method.OverwriteSecurityMiddleware(rs.overWriteCoreSecurityMiddleware)
+	}
+
 	rs.methods[strings.ToUpper(method.HTTPMethod)] = method
 }
 
@@ -143,4 +148,10 @@ func (rs *Resource) checkNilMethods() {
 // r.Resource( .. // middleware passed to the new resource and sub-resources and methods.
 func (rs *Resource) Use(m ...Middleware) {
 	rs.middleware = append(rs.middleware, m...)
+}
+
+// OverwriteCoreSecurityMiddleware will replace the core default security middleware
+// of all the child methods and resources declared after the call of this method.
+func (rs *Resource) OverwriteCoreSecurityMiddleware(m Middleware) {
+	rs.overWriteCoreSecurityMiddleware = m
 }
