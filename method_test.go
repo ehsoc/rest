@@ -669,7 +669,7 @@ func TestSecurity(t *testing.T) {
 		so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
 		apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce())
+		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(rest.AddScheme(apiKeyScheme))
 
 		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 		response := httptest.NewRecorder()
@@ -694,8 +694,8 @@ func TestSecurity(t *testing.T) {
 		basicScheme := rest.NewSecurityScheme("basicAuth", rest.BasicSecurityType, basicSo)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 		method := rest.NewMethod(http.MethodGet, mo, ct).
-			WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce()).
-			WithSecurity(rest.AddScheme(basicScheme), rest.Enforce())
+			WithSecurity(rest.AddScheme(apiKeyScheme)).
+			WithSecurity(rest.AddScheme(basicScheme))
 
 		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 		response := httptest.NewRecorder()
@@ -720,8 +720,8 @@ func TestSecurity(t *testing.T) {
 		basicScheme := rest.NewSecurityScheme("basicAuth", rest.BasicSecurityType, basicSo)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 		method := rest.NewMethod(http.MethodGet, mo, ct).
-			WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce()).
-			WithSecurity(rest.AddScheme(basicScheme), rest.Enforce())
+			WithSecurity(rest.AddScheme(apiKeyScheme)).
+			WithSecurity(rest.AddScheme(basicScheme))
 
 		method.AddParameter(rest.NewQueryParameter("fail", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?token=authzfail", nil)
@@ -747,7 +747,7 @@ func TestWithSecurity(t *testing.T) {
 	apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
 	mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 	method := rest.NewMethod(http.MethodGet, mo, ct).
-		WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce())
+		WithSecurity(rest.AddScheme(apiKeyScheme))
 	request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 	response := httptest.NewRecorder()
 	method.ServeHTTP(response, request)

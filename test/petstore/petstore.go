@@ -42,7 +42,7 @@ func GeneratePetStore() rest.API {
 		r.Post(create, ct).
 			WithRequestBody("Pet object that needs to be added to the store", Pet{}).
 			WithSummary("Add a new pet to the store").
-			WithSecurity(rest.AddScheme(petAuthScheme), rest.Enforce())
+			WithSecurity(rest.AddScheme(petAuthScheme))
 
 		// PUT
 		update := rest.NewMethodOperation(rest.OperationFunc(operationUpdate), rest.NewResponse(200)).WithFailResponse(rest.NewResponse(404).WithDescription("Pet not found"))
@@ -86,7 +86,7 @@ func GeneratePetStore() rest.API {
 				WithSummary("Find pet by ID").
 				WithDescription("Returns a single pet").
 				WithParameter(petIDURIParam).
-				WithSecurity(rest.AddScheme(apiKeyScheme), rest.Enforce())
+				WithSecurity(rest.AddScheme(apiKeyScheme))
 			// Delete
 			deleteByID := rest.NewMethodOperation(rest.OperationFunc(operationDeletePet), rest.NewResponse(200)).WithFailResponse(notFoundResponse)
 			r.Delete(deleteByID, ct).
@@ -140,7 +140,7 @@ func GeneratePetStore() rest.API {
 				WithSummary("Finds Pets by status").
 				WithDescription("Multiple status values can be provided with comma separated strings").
 				WithParameter(statusParam).
-				WithSecurity(rest.AddScheme(basicSecurity), rest.Enforce())
+				WithSecurity(rest.AddScheme(basicSecurity))
 		})
 	})
 

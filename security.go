@@ -8,7 +8,6 @@ package rest
 // Please use your own security middleware implementation.
 type Security struct {
 	SecuritySchemes []*SecurityScheme
-	Enforce         bool
 }
 
 // SecurityScheme contains the authentication and authorization data, and methods.

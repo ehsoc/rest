@@ -243,7 +243,6 @@ func TestSecurityTwoSchemes(t *testing.T) {
 			WithSecurity(
 				rest.AddScheme(apiKeyScheme),
 				rest.AddScheme(IDKeyScheme),
-				rest.Enforce(),
 			)
 	})
 	gen := oaiv2.OpenAPIV2SpecGenerator{}

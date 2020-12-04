@@ -21,7 +21,11 @@ type Method struct {
 	SecurityCollection []Security
 	http.Handler
 	ParameterCollection
-	validation Validation
+	validation     Validation
+	negotiationMw  Middleware
+	securityMw     Middleware
+	validationMw   Middleware
+	coreMiddleware []Middleware
 }
 
 // NewMethod returns a Method instance
@@ -33,8 +37,28 @@ func NewMethod(httpMethod string, methodOperation MethodOperation, contentTypes 
 		Negotiator:      DefaultNegotiator{},
 	}
 	m.parameters = make(map[ParameterType]map[string]Parameter)
-	m.Handler = m.negotiationMiddleware(http.HandlerFunc(m.mainHandler))
+	m.negotiationMw = m.negotiationMiddleware
+	m.securityMw = m.securityMiddleware
+	m.validationMw = m.validationMiddleware
+	m.buildDefaultCoreMiddlewareStack()
+	m.buildHandler()
 	return m
+}
+
+func (m *Method) buildDefaultCoreMiddlewareStack() {
+	m.coreMiddleware = []Middleware{
+		m.negotiationMw,
+		m.securityMw,
+		m.validationMw,
+	}
+}
+
+// buildHandler sets the main handler and apply the coreMiddleware
+func (m *Method) buildHandler() {
+	m.Handler = http.HandlerFunc(m.mainHandler)
+	for i := len(m.coreMiddleware) - 1; i >= 0; i-- {
+		m.Handler = m.coreMiddleware[i](m.Handler)
+	}
 }
 
 func (m *Method) negotiationMiddleware(next http.Handler) http.Handler {
@@ -60,6 +84,67 @@ func (m *Method) negotiationMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (m *Method) securityMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		decoder := mustGetDecoder(r.Context())
+		input := Input{r, m.ParameterCollection, m.RequestBody, decoder}
+
+		if len(m.SecurityCollection) > 0 {
+			passSecurity := false
+
+			var securityFailedResponse Response
+
+			for _, s := range m.SecurityCollection {
+				resp, err := processSecurity(s, input)
+				if err != nil {
+					securityFailedResponse = resp
+					continue
+				}
+
+				passSecurity = true
+
+				break
+			}
+
+			if !passSecurity {
+				writeResponse(r.Context(), w, securityFailedResponse)
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (m *Method) validationMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		decoder := mustGetDecoder(r.Context())
+		input := Input{r, m.ParameterCollection, m.RequestBody, decoder}
+		// Validation
+		// Method validation
+		if m.validation.Validator != nil {
+			err := m.validation.Validate(input)
+			if err != nil {
+				mutateResponseBody(&m.validation.Response, nil, false, err)
+				writeResponse(r.Context(), w, m.validation.Response)
+
+				return
+			}
+		}
+		// Parameter validation
+		for _, p := range m.Parameters() {
+			if p.validation.Validator != nil && p.validation.Response.code != 0 {
+				err := p.validation.Validate(input)
+				if err != nil {
+					mutateResponseBody(&p.validation.Response, nil, false, err)
+					writeResponse(r.Context(), w, p.validation.Response)
+					return
+				}
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response) {
 	_, encoder, err := m.contentTypes.GetDefaultEncoder()
 	// if no default encdec is set will only return the header code
@@ -72,62 +157,11 @@ func (m *Method) writeResponseFallBack(w http.ResponseWriter, response Response)
 }
 
 func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
-	decoder, ok := r.Context().Value(EncoderDecoderContextKey("decoder")).(encdec.Decoder)
-	if !ok {
-		// Fallback decoder is a simple string decoder, so we will avoid to pass a nil decoder
-		decoder = encdec.TextDecoder{}
-	}
+	decoder := mustGetDecoder(r.Context())
 	if m.MethodOperation.Operation == nil {
 		panic(fmt.Sprintf("resource: resource %s method %s doesn't have an operation.", r.URL.Path, m.HTTPMethod))
 	}
 	input := Input{r, m.ParameterCollection, m.RequestBody, decoder}
-
-	// Security only if SecuritySchemeEnforcement is true
-	if len(m.SecurityCollection) > 0 {
-		passSecurity := false
-
-		var securityFailedResponse Response
-
-		for _, s := range m.SecurityCollection {
-			if s.Enforce {
-				resp, err := processSecurity(s, input)
-				if err != nil {
-					securityFailedResponse = resp
-					continue
-				}
-			}
-			passSecurity = true
-
-			break
-		}
-		if !passSecurity {
-			writeResponse(r.Context(), w, securityFailedResponse)
-			return
-		}
-	}
-
-	// Validation
-	// Method validation
-	if m.validation.Validator != nil {
-		err := m.validation.Validate(input)
-		if err != nil {
-			mutateResponseBody(&m.validation.Response, nil, false, err)
-			writeResponse(r.Context(), w, m.validation.Response)
-
-			return
-		}
-	}
-	// Parameter validation
-	for _, p := range m.Parameters() {
-		if p.validation.Validator != nil && p.validation.Response.code != 0 {
-			err := p.validation.Validate(input)
-			if err != nil {
-				mutateResponseBody(&p.validation.Response, nil, false, err)
-				writeResponse(r.Context(), w, p.validation.Response)
-				return
-			}
-		}
-	}
 
 	// Operation
 	entity, success, err := m.MethodOperation.Execute(input)
@@ -161,6 +195,15 @@ func processSecurity(s Security, input Input) (Response, error) {
 	}
 
 	return Response{}, nil
+}
+
+func mustGetDecoder(ctx context.Context) encdec.Decoder {
+	decoder, ok := ctx.Value(EncoderDecoderContextKey("decoder")).(encdec.Decoder)
+	if !ok {
+		// Fallback decoder is a simple string decoder, so we will avoid to pass a nil decoder
+		decoder = encdec.TextDecoder{}
+	}
+	return decoder
 }
 
 func processSecurityScheme(ss *SecurityScheme, input Input) (Response, error) {
@@ -259,16 +302,6 @@ type SecurityOption func(*Security)
 func AddScheme(scheme *SecurityScheme) SecurityOption {
 	return func(s *Security) {
 		s.SecuritySchemes = append(s.SecuritySchemes, scheme)
-	}
-}
-
-// Enforce is a SecurityOption that sets the Enforce option to true.
-// The Enforce option will activate and apply the SecurityOperation logic in the method handler, this
-// option should be used only for testing or development, and not in production.
-// Please use your own security middleware implementation.
-func Enforce() SecurityOption {
-	return func(s *Security) {
-		s.Enforce = true
 	}
 }
 
