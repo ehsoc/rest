@@ -3,7 +3,9 @@ package rest
 // ResourceCollection encapsulate a collection of resource nodes and the methods to add new ones.
 // Each node name is unique, in case of conflict the new node will replace the old one silently
 type ResourceCollection struct {
-	resources  map[string]Resource
+	resources map[string]Resource
+	// middleware slice is a temporary description of the middleware stack to be applied
+	// by a method or other sub-resources at the moment of their declaration.
 	middleware []Middleware
 }
 
