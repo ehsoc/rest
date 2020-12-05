@@ -3,12 +3,8 @@ package rest
 // Security is the container of one or more SecurityScheme.
 // The SecurityScheme's will follow a `and` logic with other schemes in the SecuritySchemes slice,
 // this mean that the user need to pass all the SecuritySchemes.
-// The Enforce option will activate and apply the SecurityOperation logic in the method handler, this
-// option should be used only for testing or development, and not in production.
-// Please use your own security middleware implementation.
 type Security struct {
-	SecuritySchemes     []*SecurityScheme
-	overwriteMiddleware Middleware
+	SecuritySchemes []*SecurityScheme
 }
 
 // SecurityScheme contains the authentication and authorization data, and methods.
