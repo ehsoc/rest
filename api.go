@@ -25,18 +25,18 @@ func NewAPI(basePath, hostname, title, version string) API {
 	return API{BasePath: basePath, Host: hostname, Title: title, Version: version}
 }
 
-// GenerateSpec will generate the API specification using APISpecGenerator interface implementation (specGenerator),
-// and will write into a io.Writer implementation (writer)
-func (a API) GenerateSpec(writer io.Writer, specGenerator APISpecGenerator) {
-	specGenerator.GenerateAPISpec(writer, a)
+// GenerateSpec will generate the API specification using APISpecGenerator interface implementation (g),
+// and will write into a io.Writer implementation (w)
+func (a API) GenerateSpec(w io.Writer, g APISpecGenerator) {
+	g.GenerateAPISpec(w, a)
 }
 
-// GenerateServer generates a http.Handler using a ServerGenerator implementation (serverGenerator)
-func (a API) GenerateServer(serverGenerator ServerGenerator) http.Handler {
+// GenerateServer generates a http.Handler using a ServerGenerator implementation (g)
+func (a API) GenerateServer(g ServerGenerator) http.Handler {
 	resourcesCheck(a.resources)
-	server := serverGenerator.GenerateServer(a)
+	server := g.GenerateServer(a)
 
-	return inputGetFunctionsMiddleware(serverGenerator.GetURIParam(), server)
+	return inputGetFunctionsMiddleware(g.GetURIParam(), server)
 }
 
 func inputGetFunctionsMiddleware(getURIParamFunc func(r *http.Request, key string) string, next http.Handler) http.Handler {
