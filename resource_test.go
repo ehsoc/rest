@@ -383,7 +383,7 @@ func TestOverwriteCoreSecurityMiddleware(t *testing.T) {
 	var m *rest.Method
 	r.Resource("sub1", func(r *rest.Resource) {
 		m = r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType()).
-			WithSecurity(rest.AddScheme(apiKeyScheme))
+			WithSecurity(apiKeyScheme)
 	})
 
 	req, _ := http.NewRequest("GET", "/", nil)
@@ -402,4 +402,76 @@ func TestOverwriteCoreSecurityMiddleware(t *testing.T) {
 	if !middleware.called {
 		t.Errorf("middleware was not called")
 	}
+
+	t.Run("order", func(t *testing.T) {
+		orderWriter := bytes.NewBufferString("")
+		m1 := &MiddlewareSpy{name: "m1", writer: orderWriter}
+		m2 := &MiddlewareSpy{name: "m2", writer: orderWriter}
+		m3 := &MiddlewareSpy{name: "m3", writer: orderWriter}
+		m4 := &MiddlewareSpy{name: "m4", writer: orderWriter}
+		m5 := &MiddlewareSpy{name: "m5", writer: orderWriter}
+
+		r := rest.NewResource("test")
+
+		op := &OperationStub{}
+		method := r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
+
+		var sub1Method *rest.Method
+		var sub1MethodSecMidd *rest.Method
+		var sub2Method *rest.Method
+
+		r.Resource("sub1", func(r *rest.Resource) {
+			r.Use(m1.Middleware)
+			sub1Method = r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
+			r.OverwriteCoreSecurityMiddleware(m4.Middleware)
+			r.Use(m2.Middleware, m3.Middleware)
+			sub1MethodSecMidd = r.Post(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
+			r.Resource("sub2", func(r *rest.Resource) {
+				r.Use(m5.Middleware)
+				sub2Method = r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType())
+			})
+		})
+
+		req, _ := http.NewRequest("GET", "", nil)
+		res := httptest.NewRecorder()
+		orderWriter.Reset()
+		method.ServeHTTP(res, req)
+
+		assertResponseCode(t, res, 200)
+
+		want := ""
+		if orderWriter.String() != want {
+			t.Errorf("got: %v want: %v", orderWriter.String(), want)
+		}
+
+		orderWriter.Reset()
+		sub1Method.ServeHTTP(res, req)
+
+		assertResponseCode(t, res, 200)
+
+		want = "m1->"
+		if orderWriter.String() != want {
+			t.Errorf("got: %v want: %v", orderWriter.String(), want)
+		}
+
+		orderWriter.Reset()
+		sub1MethodSecMidd.ServeHTTP(res, req)
+
+		assertResponseCode(t, res, 200)
+
+		want = "m1->m2->m3->m4->"
+		if orderWriter.String() != want {
+			t.Errorf("got: %v want: %v", orderWriter.String(), want)
+		}
+
+		orderWriter.Reset()
+		sub2Method.ServeHTTP(res, req)
+
+		assertResponseCode(t, res, 200)
+
+		want = "m1->m2->m3->m5->m4->"
+		if orderWriter.String() != want {
+			t.Errorf("got: %v want: %v", orderWriter.String(), want)
+		}
+	})
 }

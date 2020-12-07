@@ -5,7 +5,7 @@ package rest
 type ResourceCollection struct {
 	resources map[string]Resource
 	// middleware slice is a temporary description of the middleware stack to be applied
-	// by a method or other sub-resources at the moment of their declaration.
+	// by a method or other sub-resources
 	middleware []Middleware
 	// overWriteCoreSecurityMiddleware value nil means default core middleware is applied
 	overWriteCoreSecurityMiddleware Middleware
@@ -29,10 +29,8 @@ func (rs *ResourceCollection) Resources() []Resource {
 //	r := rest.NewResource("root")
 // 	r.Resource("parent", func(r *rest.Resource) {
 // 		r.Resource("child1", func(r *rest.Resource) {
-//
 // 		})
 // 	r.Resource("child2", func(r *rest.Resource) {
-//
 // 		})
 // 	})
 func (rs *ResourceCollection) Resource(name string, fn func(r *Resource)) {

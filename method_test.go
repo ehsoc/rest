@@ -669,7 +669,7 @@ func TestSecurity(t *testing.T) {
 		so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
 		apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
-		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(rest.AddScheme(apiKeyScheme))
+		method := rest.NewMethod(http.MethodGet, mo, ct).WithSecurity(apiKeyScheme)
 
 		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 		response := httptest.NewRecorder()
@@ -694,8 +694,8 @@ func TestSecurity(t *testing.T) {
 		basicScheme := rest.NewSecurityScheme("basicAuth", rest.BasicSecurityType, basicSo)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 		method := rest.NewMethod(http.MethodGet, mo, ct).
-			WithSecurity(rest.AddScheme(apiKeyScheme)).
-			WithSecurity(rest.AddScheme(basicScheme))
+			WithSecurity(apiKeyScheme).
+			WithSecurity(basicScheme)
 
 		request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 		response := httptest.NewRecorder()
@@ -720,8 +720,8 @@ func TestSecurity(t *testing.T) {
 		basicScheme := rest.NewSecurityScheme("basicAuth", rest.BasicSecurityType, basicSo)
 		mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 		method := rest.NewMethod(http.MethodGet, mo, ct).
-			WithSecurity(rest.AddScheme(apiKeyScheme)).
-			WithSecurity(rest.AddScheme(basicScheme))
+			WithSecurity(apiKeyScheme).
+			WithSecurity(basicScheme)
 
 		method.AddParameter(rest.NewQueryParameter("fail", reflect.String))
 		request, _ := http.NewRequest(http.MethodPost, "/?token=authzfail", nil)
@@ -745,8 +745,11 @@ func TestOverWriteMiddlewareOption(t *testing.T) {
 	so := rest.SecurityOperation{auth, rest.NewResponse(401), rest.NewResponse(403)}
 	apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
 	mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
+
 	method := rest.NewMethod(http.MethodGet, mo, mustGetJSONContentType()).
-		WithSecurity(rest.AddScheme(apiKeyScheme)).OverwriteSecurityMiddleware(middleware.Middleware)
+		WithSecurity(apiKeyScheme).
+		OverwriteCoreSecurityMiddleware(middleware.Middleware)
+
 	request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 	response := httptest.NewRecorder()
 	method.ServeHTTP(response, request)
@@ -757,6 +760,46 @@ func TestOverWriteMiddlewareOption(t *testing.T) {
 	assertResponseCode(t, response, successResponse.Code())
 	assertFalse(t, auth.called)
 	assertTrue(t, middleware.called)
+
+	t.Run("middleware order on overwriting security middleware", func(t *testing.T) {
+		orderWriter := bytes.NewBufferString("")
+		m1 := &MiddlewareSpy{name: "m1", writer: orderWriter}
+		m2 := &MiddlewareSpy{name: "m2", writer: orderWriter}
+		m3 := &MiddlewareSpy{name: "m3", writer: orderWriter}
+		m4 := &MiddlewareSpy{name: "m4", writer: orderWriter}
+		r := rest.NewResource("test")
+
+		r.Use(m1.Middleware, m2.Middleware, m3.Middleware)
+
+		op := &OperationStub{}
+		method := r.Get(rest.NewMethodOperation(op, rest.NewResponse(200)), mustGetJSONContentType()).
+			OverwriteCoreSecurityMiddleware(m4.Middleware)
+
+		req, _ := http.NewRequest("GET", "", nil)
+		res := httptest.NewRecorder()
+
+		method.ServeHTTP(res, req)
+
+		assertResponseCode(t, res, 200)
+
+		if !m1.called {
+			t.Errorf("m1 middleware was not called")
+		}
+		if !m2.called {
+			t.Errorf("m2 middleware was not called")
+		}
+		if !m3.called {
+			t.Errorf("m3 middleware was not called")
+		}
+		if !m4.called {
+			t.Errorf("m4 middleware was not called")
+		}
+
+		want := "m1->m2->m3->m4->"
+		if orderWriter.String() != want {
+			t.Errorf("got: %v want: %v", orderWriter.String(), want)
+		}
+	})
 }
 
 func TestWithSecurity(t *testing.T) {
@@ -768,7 +811,7 @@ func TestWithSecurity(t *testing.T) {
 	apiKeyScheme := rest.NewSecurityScheme("apiKey", rest.APIKeySecurityType, so)
 	mo := rest.NewMethodOperation(operation, successResponse).WithFailResponse(failResponse)
 	method := rest.NewMethod(http.MethodGet, mo, mustGetJSONContentType()).
-		WithSecurity(rest.AddScheme(apiKeyScheme))
+		WithSecurity(apiKeyScheme)
 	request, _ := http.NewRequest(http.MethodPost, "/?apikey=test", nil)
 	response := httptest.NewRecorder()
 	method.ServeHTTP(response, request)

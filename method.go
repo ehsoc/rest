@@ -26,6 +26,7 @@ type Method struct {
 	securityMw     Middleware
 	validationMw   Middleware
 	coreMiddleware []Middleware
+	middleware     []Middleware
 }
 
 // NewMethod returns a Method instance
@@ -53,13 +54,19 @@ func (m *Method) buildDefaultCoreMiddlewareStack() {
 	}
 }
 
-// buildHandler sets the main handler and apply the coreMiddleware
+// buildHandler sets the main handler and apply the coreMiddleware and then other middleware
 func (m *Method) buildHandler() {
 	m.Handler = http.HandlerFunc(m.mainHandler)
-
+	// apply core middleware first
 	for i := len(m.coreMiddleware) - 1; i >= 0; i-- {
 		if m.coreMiddleware[i] != nil {
 			m.Handler = m.coreMiddleware[i](m.Handler)
+		}
+	}
+	// apply middleware
+	for i := len(m.middleware) - 1; i >= 0; i-- {
+		if m.middleware[i] != nil {
+			m.Handler = m.middleware[i](m.Handler)
 		}
 	}
 }
@@ -298,31 +305,24 @@ func (m *Method) WithValidation(v Validation) *Method {
 	return m
 }
 
-// SecurityOption
-type SecurityOption func(*Security)
-
-// AddScheme is a SecurityOption that adds a SecurityScheme to Security
-func AddScheme(scheme *SecurityScheme) SecurityOption {
-	return func(s *Security) {
-		s.SecuritySchemes = append(s.SecuritySchemes, scheme)
-	}
-}
-
 // OverwriteSecurityMiddleware replaces the core security middleware with the provided middleware for this method.
-func (m *Method) OverwriteSecurityMiddleware(mid Middleware) *Method {
-	m.securityMw = mid
-	m.buildDefaultCoreMiddlewareStack()
+func (m *Method) OverwriteCoreSecurityMiddleware(mid Middleware) *Method {
+	m.replaceSecurityMiddleware(mid)
 	m.buildHandler()
 	return m
 }
 
+func (m *Method) replaceSecurityMiddleware(mid Middleware) {
+	m.securityMw = mid
+	// build the core stack
+	m.buildDefaultCoreMiddlewareStack()
+}
+
 // Security adds a set of one or more security schemes.
 // When more than one Security is defined it will follow an `or` logic with other Security definitions.
-func (m *Method) WithSecurity(opts ...SecurityOption) *Method {
+func (m *Method) WithSecurity(s ...*SecurityScheme) *Method {
 	security := Security{SecuritySchemes: []*SecurityScheme{}}
-	for _, o := range opts {
-		o(&security)
-	}
+	security.SecuritySchemes = append(security.SecuritySchemes, s...)
 	m.SecurityCollection = append(m.SecurityCollection, security)
 	return m
 }

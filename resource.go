@@ -118,16 +118,13 @@ func (rs *Resource) Path() string {
 // The current resource's middleware stack will be applied
 func (rs *Resource) AddMethod(method *Method) {
 	rs.checkNilMethods()
-	// appling resource's middleware stack to the method in the inverse slice order,
-	// because the last applied will be the first in execution order in the server.
-	for i := len(rs.middleware) - 1; i >= 0; i-- {
-		method.Handler = rs.middleware[i](method.Handler)
-	}
-	// pass the coreSecurityMiddleware
+	// prepend resource middlewares to themethod
+	method.middleware = append(rs.middleware, method.middleware...)
+	// replace the core security middleware
 	if rs.overWriteCoreSecurityMiddleware != nil {
-		method.OverwriteSecurityMiddleware(rs.overWriteCoreSecurityMiddleware)
+		method.replaceSecurityMiddleware(rs.overWriteCoreSecurityMiddleware)
 	}
-
+	method.buildHandler()
 	rs.methods[strings.ToUpper(method.HTTPMethod)] = method
 }
 
@@ -137,15 +134,9 @@ func (rs *Resource) checkNilMethods() {
 	}
 }
 
-// Use adds one or more middlewares to the middleware stack of the resource.
-// This middleware stack will be applied to the resource methods declared after the Use method.
+// Use adds one or more middlewares to the resources's middleware stack.
+// This middleware stack will be applied to the resource methods declared after the call of the this method.
 // The stack will be pass down to the child resources in the same fashion.
-// Example:
-// r.Get( ... // Not applied here
-// r.Resource( ... // Not applied here
-// r.Use(middleware) // <-- Use method applied from here
-// r.Put( .. // middleware applied here
-// r.Resource( .. // middleware passed to the new resource and sub-resources and methods.
 func (rs *Resource) Use(m ...Middleware) {
 	rs.middleware = append(rs.middleware, m...)
 }

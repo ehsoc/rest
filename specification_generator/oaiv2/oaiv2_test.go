@@ -240,10 +240,7 @@ func TestSecurityTwoSchemes(t *testing.T) {
 		IDKeyScheme.Parameter = rest.NewHeaderParameter("X-ID-KEY", reflect.String)
 
 		r.Get(mo, ct).
-			WithSecurity(
-				rest.AddScheme(apiKeyScheme),
-				rest.AddScheme(IDKeyScheme),
-			)
+			WithSecurity(apiKeyScheme, IDKeyScheme)
 	})
 	gen := oaiv2.OpenAPIV2SpecGenerator{}
 	generatedSpec := new(bytes.Buffer)
