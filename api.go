@@ -21,9 +21,8 @@ type API struct {
 }
 
 // NewAPI creates a new API.
-// host parameter should not be an URL, but the server host name
-func NewAPI(basePath, host, title, version string) API {
-	return API{BasePath: basePath, Host: host, Title: title, Version: version}
+func NewAPI(basePath, hostname, title, version string) API {
+	return API{BasePath: basePath, Host: hostname, Title: title, Version: version}
 }
 
 // GenerateSpec will generate the API specification using APISpecGenerator interface implementation (specGenerator),
