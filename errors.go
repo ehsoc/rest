@@ -50,9 +50,9 @@ func (e *errorf) Error() string {
 	return fmt.Sprintf(e.format, e.Var)
 }
 
-// AuthError describes a authentication/authorization error.
+// AuthError describes an authentication/authorization error.
 // Use the following implementations:
-// For an authentication failure use the TypeErrorAuthentication error
+// For an authentication failure use the TypeErrorAuthentication error.
 // For an authorization failure use TypeErrorAuthorization error
 type AuthError interface {
 	isAuthorization() bool

@@ -25,7 +25,7 @@ type SecurityOperation struct {
 }
 
 // Authenticator describes the method for authentication/authorization.
-// AuthError represents either a authentication or authorization failure.
+// AuthError represents either an authentication or authorization failure.
 // Authentication function should be executed first, then the authorization.
 // To indicate an authentication failure return a TypeErrorAuthentication, and
 // for an authorization failure TypeErrorAuthorization error type.
