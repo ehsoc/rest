@@ -3,11 +3,12 @@ package rest
 // Operation defines a resource operation.
 // Execute method will execute the operation.
 // Return values:
-// Body: can be nil, and it will be the body to be returned if it sets to do so.
-// Success: will be true if the operation did what the client was expecting in the most positive outcome.
-// Success false means that the operation has no errors, but the positive outcome was not achieved (something was not found in a database)
-// Error: means that an error was risen and the operation was not executed because an internal error in the API.
-// Error should cause a 500's error code.
+// `body`: can be nil, and it will be the body to be returned if the operation's success response is set
+// with `WithOperationResultBody`.
+// `success`: should be true if the operation got the most positive outcome.
+// Success with false value means that the operation has no errors, but the positive outcome was not achieved (something was not found in a database).
+// `err`: means that an error was risen and the operation was not executed because an internal error in the API.
+// Error should cause a 500's http error code.
 type Operation interface {
 	Execute(i Input) (body interface{}, success bool, err error)
 }

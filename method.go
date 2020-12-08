@@ -9,7 +9,7 @@ import (
 	"github.com/ehsoc/rest/encdec"
 )
 
-// Method represents a http operation that is performed on a rest.
+// Method represents a http operation that is performed on a resource.
 type Method struct {
 	HTTPMethod      string
 	Summary         string
@@ -274,8 +274,8 @@ func (m *Method) GetDecoderMediaTypes() []string {
 	return mediaTypes
 }
 
-// WithParameter will add a new parameter to the collection with the unique key compose by HTTPType and Name properties.
-// It will silently override a parameter if the same key was already set.
+// WithParameter will add a new parameter to the collection with the unique key composed by the HTTPType and Name properties.
+// It will silently override a parameter with the same key.
 func (m *Method) WithParameter(parameter Parameter) *Method {
 	m.AddParameter(parameter)
 	return m

@@ -19,6 +19,10 @@ type Car struct {
 }
 
 func GenerateServer() http.Handler {
+	// Responses
+	successResponse := rest.NewResponse(200).WithOperationResultBody(Car{})
+	failResponse := rest.NewResponse(404)
+
 	getCarOperation := func(i rest.Input) (body interface{}, success bool, err error) {
 		carID, err := i.GetURIParam("carID")
 
@@ -33,16 +37,13 @@ func GenerateServer() http.Handler {
 		}
 
 		if carID != "101" {
-			// Car not found, success is false, no error. This will trigger a response code 404
+			// Car not found, success is false, no error. This will trigger the `failResponse` (response code 404)
 			return nil, false, nil
 		}
 
-		// Car found, success true, error nil. This will trigger a response code 200
+		// Car found, success true, error nil. This will trigger the `successResponse` (response code 200)
 		return Car{carID, "Foo"}, true, nil
 	}
-	// Responses
-	successResponse := rest.NewResponse(200).WithOperationResultBody(Car{})
-	failResponse := rest.NewResponse(404)
 	// Method Operation
 	getCar := rest.NewMethodOperation(rest.OperationFunc(getCarOperation), successResponse).WithFailResponse(failResponse)
 	// ContentTypes

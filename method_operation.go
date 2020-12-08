@@ -1,6 +1,6 @@
 package rest
 
-// MethodOperation contains the operation, and its responses in case of success or failure.
+// MethodOperation contains the operation, and its responses for success and failure.
 // Operation Execute method will return a body (interface{}), success (bool), and err (error).
 type MethodOperation struct {
 	// Logic operation of the method

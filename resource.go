@@ -114,7 +114,7 @@ func (rs *Resource) Path() string {
 }
 
 // AddMethod adds a new method to the method collection.
-// If the same HTTPMethod (POST, GET, etc) is already in the collection, will be replace it silently.
+// If the same HTTPMethod (POST, GET, etc) is already in the collection, will be replaced silently.
 // The current resource's middleware stack will be applied
 func (rs *Resource) AddMethod(method *Method) {
 	rs.checkNilMethods()
@@ -135,8 +135,8 @@ func (rs *Resource) checkNilMethods() {
 }
 
 // Use adds one or more middlewares to the resources's middleware stack.
-// This middleware stack will be applied to the resource methods declared after the call of the this method.
-// The stack will be pass down to the child resources in the same fashion.
+// This middleware stack will be applied to the resource methods declared after the call of `Use`.
+// The stack will be passed down to the child resources.
 func (rs *Resource) Use(m ...Middleware) {
 	rs.middleware = append(rs.middleware, m...)
 }
