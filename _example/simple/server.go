@@ -49,10 +49,7 @@ func GenerateServer() http.Handler {
 	ct := rest.NewContentTypes()
 	ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
-	api := rest.API{}
-	api.BasePath = "/v1"
-	api.Version = "v1"
-	api.Title = "My simple car API"
+	api := rest.NewAPI("/v1", "localhost", "My simple car API", "v1")
 	api.Resource("car", func(r *rest.Resource) {
 		carIDParam := rest.NewURIParameter("carID", reflect.String)
 		r.Resource("{carID}", func(r *rest.Resource) {
