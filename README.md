@@ -12,9 +12,7 @@ Rest is an experimental Web Resource abstraction for composing REST APIs in Go (
 **Code example:**
 
 ```go
-api := rest.API{}
-api.BasePath = "/v2"
-api.Host = "localhost"
+api := rest.NewAPI("/api/v1", "localhost", "My simple car API", "v1")
 
 api.Resource("car", func(r *rest.Resource) {
 	r.Resource("findMatch", func(r *rest.Resource) {
