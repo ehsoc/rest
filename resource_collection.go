@@ -34,16 +34,35 @@ func (rs *ResourceCollection) Resources() []Resource {
 // 		})
 // 	})
 func (rs *ResourceCollection) Resource(name string, fn func(r *Resource)) {
-	rs.checkMap()
 	newResource := NewResource(name)
-	// pass middleware of parent resource to the new resource
-	newResource.middleware = rs.middleware
-	// pass the coreSecurityMiddleware to he new resource
-	newResource.overWriteCoreSecurityMiddleware = rs.overWriteCoreSecurityMiddleware
+	rs.addResource(&newResource)
 	if fn != nil {
 		fn(&newResource)
 	}
-	rs.resources[name] = newResource
+}
+
+// ResourceParam adds a new Resource with a URI parameter path.
+// p Parameter must be URIParameter type, use NewURIParameter to create one.
+func (rs *ResourceCollection) ResourceParam(p Parameter, fn func(r *Resource)) {
+	newResource := NewResourceParam(p)
+	rs.addResource(&newResource)
+	if fn != nil {
+		fn(&newResource)
+	}
+}
+
+// addResource adds a resource to the resource collection, the parent resource's middleware stack
+// will be prepend to the added resource's stack, also if the resource overWriteCoreSecurityMiddleware is nil
+// the parent one will be passed to the child, the child security middleware always override the parent one.
+func (rs *ResourceCollection) addResource(r *Resource) {
+	// prepend middleware from parent
+	r.middleware = append(rs.middleware, r.middleware...)
+	// pass the coreSecurityMiddleware if the new resource doesn't have one
+	if r.overWriteCoreSecurityMiddleware == nil {
+		r.overWriteCoreSecurityMiddleware = rs.overWriteCoreSecurityMiddleware
+	}
+	rs.checkMap()
+	rs.resources[r.path] = *r
 }
 
 // checkMap initialize the internal map if is nil

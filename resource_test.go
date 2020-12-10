@@ -196,16 +196,47 @@ func TestNewResource(t *testing.T) {
 		rest.NewResource(name)
 		defer assertNoPanic(t)
 	})
-	t.Run("new resource with slash", func(t *testing.T) {
-		defer func() {
-			if err := recover(); err != nil {
-				if _, ok := err.(*rest.TypeErrorResourceSlashesNotAllowed); !ok {
-					t.Fatalf("got: %T want: %T", err, rest.TypeErrorResourceSlashesNotAllowed{})
+
+	testCase := []struct {
+		name           string
+		expectingPanic bool
+	}{
+		{"abcd122344_", false},
+		{"abc_2344323wfwef123123weddvsdGGGGGGG", false},
+		{"eerewrWERWERWERWrw", false},
+	}
+
+	// appending invalid character test cases for every char in rest.ResourceReservedChar
+	for _, char := range rest.ResourceReservedChar {
+		testCase = append(testCase, struct {
+			name           string
+			expectingPanic bool
+		}{"aasd123" + string(char) + "abcd1234_", true})
+	}
+
+	t.Run("invalid char set panic", func(t *testing.T) {
+		for _, tt := range testCase {
+			t.Run(tt.name, func(t *testing.T) {
+				if tt.expectingPanic {
+					defer func() {
+						err := recover()
+						if err != nil {
+							if _, ok := err.(*rest.TypeErrorResourceCharNotAllowed); !ok {
+								t.Errorf("got: %T want: %T", err, &rest.TypeErrorResourceCharNotAllowed{})
+							}
+						}
+					}()
+				} else {
+					defer assertNoPanic(t)
 				}
-			}
-		}()
-		name := "/pet"
-		rest.NewResource(name)
+
+				rest.NewResource(tt.name)
+
+				if tt.expectingPanic {
+					t.Fatalf("The code did not panic")
+				}
+			})
+		}
 	})
 }
 

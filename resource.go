@@ -20,11 +20,12 @@ type Resource struct {
 type Middleware func(http.Handler) http.Handler
 
 // NewResource creates a new resource node.
-// `name` parameter should not contain a slash.
-// Use brackets to indicate a URI Parameter node name, example: {pathNodeName}
+// `name` parameter value should not contain any reserved chars like ":/?#[]@!$&'()*+,;=" (RFC 3986 https://tools.ietf.org/html/rfc3986#section-2.2)
+// nor curly brackets "{}"
 func NewResource(name string) Resource {
-	if strings.ContainsAny(name, "/") {
-		panic(&TypeErrorResourceSlashesNotAllowed{errorf{messageErrResourceSlashesNotAllowed, name}})
+	err := validateResourceName(name)
+	if err != nil {
+		panic(err)
 	}
 	name = strings.TrimSpace(name)
 	r := Resource{}
@@ -32,6 +33,27 @@ func NewResource(name string) Resource {
 	r.resources = make(map[string]Resource)
 	r.path = name
 	return r
+}
+
+// NewResourceParam creates a new URI parameter resource node.
+// p Parameter must be URIParameter type. Use NewURIParameter to create one.
+func NewResourceParam(p Parameter) Resource {
+	err := validateResourceName(p.Name)
+	if err != nil {
+		panic(err)
+	}
+	r := Resource{}
+	r.methods = make(map[string]*Method)
+	r.resources = make(map[string]Resource)
+	r.path = "{" + strings.TrimSpace(p.Name) + "}"
+	return r
+}
+
+func validateResourceName(name string) error {
+	if strings.ContainsAny(name, ResourceReservedChar) {
+		return &TypeErrorResourceCharNotAllowed{errorf{messageErrResourceCharNotAllowed, name}}
+	}
+	return nil
 }
 
 // Get adds a new GET method to the method collection

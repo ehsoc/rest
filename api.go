@@ -20,6 +20,14 @@ type API struct {
 	ResourceCollection
 }
 
+const (
+	// URIReservedChar is the reserved char set as in RFC 3986 (https://tools.ietf.org/html/rfc3986#section-2.2)
+	URIReservedChar = ":/?#[]@!$&'()*+,;="
+	// ResourceReservedChar is URIReservedChar + "{}" that represents the charset that is not allowed on resource names.
+	// The curly brackets are reserved for internally denoting a path URI parameter, also used by API specification formats.
+	ResourceReservedChar = URIReservedChar + "{}"
+)
+
 // NewAPI creates a new API.
 func NewAPI(basePath, hostname, title, version string) API {
 	return API{BasePath: basePath, Host: hostname, Title: title, Version: version}

@@ -374,18 +374,64 @@ func TestOperations(t *testing.T) {
 	})
 }
 
-func TestAddParameter(t *testing.T) {
+func TestAddParameterI(t *testing.T) {
 	t.Run("nil parameters", func(t *testing.T) {
 		defer assertNoPanic(t)
 		m := rest.NewMethod("POST", rest.MethodOperation{}, rest.ContentTypes{})
 		m.AddParameter(rest.NewQueryParameter("myparam", reflect.String))
 	})
-	m := rest.Method{}
-	p := rest.Parameter{HTTPType: rest.URIParameter, Name: "id"}
-	m.AddParameter(p)
-	if !reflect.DeepEqual(m.Parameters()[0], p) {
-		t.Errorf("got: %v want: %v", m.Parameters()[0], p)
+
+	t.Run("add", func(t *testing.T) {
+		m := rest.Method{}
+		p := rest.Parameter{HTTPType: rest.URIParameter, Name: "id"}
+		m.AddParameter(p)
+		if !reflect.DeepEqual(m.Parameters()[0], p) {
+			t.Errorf("got: %v want: %v", m.Parameters()[0], p)
+		}
+	})
+
+	testCase := []struct {
+		name           string
+		expectingPanic bool
+	}{
+		{"abcd122344_", false},
+		{"abc_2344323wfwef123123weddvsdGGGGGGG", false},
+		{"eerewrWERWERWERWrw}{}}", false},
 	}
+
+	// appending invalid character test cases for every char in rest.URIReservedChar
+	for _, char := range rest.URIReservedChar {
+		testCase = append(testCase, struct {
+			name           string
+			expectingPanic bool
+		}{"aasd123" + string(char) + "abcd1234_", true})
+	}
+
+	t.Run("invalid char set panic", func(t *testing.T) {
+		for _, tt := range testCase {
+			t.Run(tt.name, func(t *testing.T) {
+				m := rest.Method{}
+				p := rest.Parameter{HTTPType: rest.URIParameter, Name: tt.name}
+				if tt.expectingPanic {
+					defer func() {
+						err := recover()
+						if err != nil {
+							if _, ok := err.(*rest.TypeErrorParameterCharNotAllowed); !ok {
+								t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterCharNotAllowed{})
+							}
+						}
+					}()
+				} else {
+					defer assertNoPanic(t)
+				}
+				m.AddParameter(p)
+				if tt.expectingPanic {
+					t.Fatalf("The code did not panic")
+				}
+				assertNoPanic(t)
+			})
+		}
+	})
 }
 
 func TestWithParameter(t *testing.T) {

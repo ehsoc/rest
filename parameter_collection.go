@@ -1,5 +1,7 @@
 package rest
 
+import "strings"
+
 // ParameterCollection is a collection of parameters
 type ParameterCollection struct {
 	parameters map[ParameterType]map[string]Parameter
@@ -16,6 +18,10 @@ func NewParameterCollection() ParameterCollection {
 // It will silently override a parameter if the same key is already set.
 func (p *ParameterCollection) AddParameter(parameter Parameter) {
 	p.checkNilMap()
+	// The uri charset is checked here because is the parameter's only point of enter
+	if strings.ContainsAny(parameter.Name, URIReservedChar) {
+		panic(&TypeErrorParameterCharNotAllowed{errorf{messageErrParameterCharNotAllowed, parameter.Name}})
+	}
 	if _, ok := p.parameters[parameter.HTTPType]; !ok {
 		p.parameters[parameter.HTTPType] = make(map[string]Parameter)
 	}
