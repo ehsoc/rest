@@ -151,9 +151,9 @@ ct.Add("application/json", encdec.JSONEncoderDecoder{}, true)
 
 api := rest.NewAPI("/v1", "localhost", "My simple car API", "v1")
 api.Resource("car", func(r *rest.Resource) {
-    carIDParam := rest.NewURIParameter("carID", reflect.String)
-    r.Resource("{carID}", func(r *rest.Resource) {
-        r.Get(getCar, ct).WithParameter(carIDParam)
+    carID := rest.NewURIParameter("carID", reflect.String)
+    r.ResourceP(carID, func(r *rest.Resource) {
+        r.Get(getCar, ct).WithParameter(carID)
     })
 })
 // Generating OpenAPI v2 specification to standard output

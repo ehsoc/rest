@@ -62,7 +62,7 @@ func TestUriParamResource(t *testing.T) {
 
 	mo := rest.NewMethodOperation(&OperationStub{}, rest.NewResponse(200))
 
-	collection.ResourceParam(carIDParam, func(r *rest.Resource) {
+	collection.ResourceP(carIDParam, func(r *rest.Resource) {
 		r.Resource("left", func(r *rest.Resource) {
 			r.Get(mo, mustGetJSONContentType()).AddParameter(carIDParam)
 		})

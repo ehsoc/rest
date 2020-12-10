@@ -25,7 +25,7 @@ func TestNoEmptyResources(t *testing.T) {
 	api.Title = "My simple car API"
 	api.Resource("car", func(r *rest.Resource) {
 		carIDParam := rest.NewURIParameter("carId", reflect.String)
-		r.ResourceParam(carIDParam, func(r *rest.Resource) {
+		r.ResourceP(carIDParam, func(r *rest.Resource) {
 			r.Get(rest.MethodOperation{}, rest.ContentTypes{}).WithParameter(carIDParam)
 		})
 	})

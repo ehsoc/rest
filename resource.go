@@ -35,9 +35,9 @@ func NewResource(name string) Resource {
 	return r
 }
 
-// NewResourceParam creates a new URI parameter resource node.
+// NewResourceP creates a new URI parameter resource node.
 // p Parameter must be URIParameter type. Use NewURIParameter to create one.
-func NewResourceParam(p Parameter) Resource {
+func NewResourceP(p Parameter) Resource {
 	err := validateResourceName(p.Name)
 	if err != nil {
 		panic(err)

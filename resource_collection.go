@@ -41,10 +41,10 @@ func (rs *ResourceCollection) Resource(name string, fn func(r *Resource)) {
 	}
 }
 
-// ResourceParam adds a new Resource with a URI parameter path.
+// ResourceP adds a new Resource with a URI parameter path.
 // p Parameter must be URIParameter type, use NewURIParameter to create one.
-func (rs *ResourceCollection) ResourceParam(p Parameter, fn func(r *Resource)) {
-	newResource := NewResourceParam(p)
+func (rs *ResourceCollection) ResourceP(p Parameter, fn func(r *Resource)) {
+	newResource := NewResourceP(p)
 	rs.addResource(&newResource)
 	if fn != nil {
 		fn(&newResource)

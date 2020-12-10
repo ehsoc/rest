@@ -68,7 +68,7 @@ func GeneratePetStore() rest.API {
 		petIDURIParam := rest.NewURIParameter("petId", reflect.Int64).WithDescription("ID of pet to return").WithExample(1)
 		// SubResource
 		// New Resource with URIParam Resource GET By ID {petId} = /pet/{petId}
-		r.ResourceParam(petIDURIParam, func(r *rest.Resource) {
+		r.ResourceP(petIDURIParam, func(r *rest.Resource) {
 			ct := rest.NewContentTypes()
 			ct.AddEncoder("application/json", encdec.JSONEncoder{}, true)
 			ct.AddEncoder("application/xml", encdec.XMLEncoder{}, false)
