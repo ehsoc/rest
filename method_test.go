@@ -153,8 +153,8 @@ func TestOperations(t *testing.T) {
 		defer func() {
 			err := recover()
 			if err != nil {
-				if _, ok := err.(*rest.TypeErrorFailResponseNotDefined); !ok {
-					t.Errorf("got: %T want: %T", err, &rest.TypeErrorFailResponseNotDefined{})
+				if _, ok := err.(*rest.ErrorFailResponseNotDefined); !ok {
+					t.Errorf("got: %T want: %T", err, &rest.ErrorFailResponseNotDefined{})
 				}
 			}
 		}()
@@ -416,8 +416,8 @@ func TestAddParameterI(t *testing.T) {
 					defer func() {
 						err := recover()
 						if err != nil {
-							if _, ok := err.(*rest.TypeErrorParameterCharNotAllowed); !ok {
-								t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterCharNotAllowed{})
+							if _, ok := err.(*rest.ErrorParameterCharNotAllowed); !ok {
+								t.Errorf("got: %T want: %T", err, &rest.ErrorParameterCharNotAllowed{})
 							}
 						}
 					}()
@@ -681,10 +681,10 @@ type AuthenticatorStub struct {
 func (s *AuthenticatorStub) Authenticate(i rest.Input) rest.AuthError {
 	s.called = true
 	if i.Request.URL.Query().Get("apikey") == "" {
-		return &rest.TypeErrorAuthentication{}
+		return rest.ErrorAuthentication{}
 	}
 	if i.Request.URL.Query().Get("apikey") != "test" {
-		return &rest.TypeErrorAuthorization{}
+		return rest.ErrorAuthorization{}
 	}
 	return nil
 }
@@ -696,10 +696,10 @@ type Authenticator2Stub struct {
 func (s *Authenticator2Stub) Authenticate(i rest.Input) rest.AuthError {
 	s.called = true
 	if i.Request.URL.Query().Get("token") == "" {
-		return &rest.TypeErrorAuthentication{}
+		return rest.ErrorAuthentication{}
 	}
 	if i.Request.URL.Query().Get("token") != "test" {
-		return &rest.TypeErrorAuthorization{}
+		return rest.ErrorAuthorization{}
 	}
 	return nil
 }

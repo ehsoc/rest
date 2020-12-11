@@ -33,16 +33,16 @@ func TestGetParameter(t *testing.T) {
 	t.Run("parameter nil collection", func(t *testing.T) {
 		params := rest.ParameterCollection{}
 		_, err := params.GetParameter(rest.QueryParameter, "foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %v want: %T", err, rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %v want: %T", err, rest.ErrorParameterNotDefined{})
 		}
 	})
 	t.Run("parameter not defined (empty parameter type)", func(t *testing.T) {
 		params := rest.ParameterCollection{}
 		params.AddParameter(rest.NewURIParameter("", reflect.Int))
 		_, err := params.GetParameter(rest.QueryParameter, "foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %v want: %T", err, rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %v want: %T", err, rest.ErrorParameterNotDefined{})
 		}
 	})
 }

@@ -51,7 +51,7 @@ func NewResourceP(p Parameter) Resource {
 
 func validateResourceName(name string) error {
 	if strings.ContainsAny(name, ResourceReservedChar) {
-		return &TypeErrorResourceCharNotAllowed{errorf{messageErrResourceCharNotAllowed, name}}
+		return &ErrorResourceCharNotAllowed{name}
 	}
 	return nil
 }

@@ -35,7 +35,7 @@ func (i Input) GetURIParam(key string) (string, error) {
 	getURIParamFunc, ok := getURIValue.(func(r *http.Request, key string) string)
 
 	if !ok {
-		return "", &TypeErrorGetURIParamFunctionNotDefined{errorf{messageErrGetURIParamFunctionNotDefined, key}}
+		return "", &ErrorGetURIParamFunctionNotDefined{key}
 	}
 	return getURIParamFunc(i.Request, key), nil
 }

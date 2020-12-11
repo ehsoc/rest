@@ -6,54 +6,65 @@ import (
 )
 
 // ErrorNoDefaultContentTypeIsSet error when no default content-type is set
-var ErrorNoDefaultContentTypeIsSet = errors.New("no default content-type is set")
+var ErrorNoDefaultContentTypeIsSet = errors.New("rest: no default content-type is set")
 
 // ErrorRequestBodyNotDefined error describes a specification/parameter check error trying to get the request body,
 // but it was not declared as parameter.
 var ErrorRequestBodyNotDefined = errors.New("rest: a request body was not defined")
 
-var messageErrResourceCharNotAllowed = "rest: char not allowed on resource name '%s'"
-var messageErrParameterCharNotAllowed = "rest: char not allowed on parameter name '%s'"
-var messageErrParameterNotDefined = "rest: parameter '%s' not defined"
-var messageErrGetURIParamFunctionNotDefined = "rest: no get uri parameter function is defined in context value InputContextKey(\"uriparamfunc\") for '%v' parameter"
-var messageErrFailResponseNotDefined = "rest: resource '%s' failedResponse was not defined, but the operation was expecting one"
+var msgErrResourceCharNotAllowed = "rest: char not allowed on resource name '%s'"
+var msgErrParameterCharNotAllowed = "rest: char not allowed on parameter name '%s'"
+var msgErrParameterNotDefined = "rest: parameter '%s' not defined"
+var msgErrGetURIParamFunctionNotDefined = "rest: no get uri parameter function is defined in context value InputContextKey(\"uriparamfunc\") for '%v' parameter"
+var msgErrFailResponseNotDefined = "rest: resource '%s' failedResponse was not defined, but the operation was expecting one"
 
-// TypeErrorResourceCharNotAllowed typed error when a forbidden character is included in the `name` parameter of a `Resource`.
-type TypeErrorResourceCharNotAllowed struct {
-	errorf
+// ErrorResourceCharNotAllowed error when a forbidden character is included in the `name` parameter of a `Resource`.
+type ErrorResourceCharNotAllowed struct {
+	Name string
 }
 
-// TypeErrorParameterCharNotAllowed typed error when a forbidden character is included in the `name` parameter of a `Parameter`.
-type TypeErrorParameterCharNotAllowed struct {
-	errorf
+func (e *ErrorResourceCharNotAllowed) Error() string {
+	return fmt.Sprintf(msgErrResourceCharNotAllowed, e.Name)
 }
 
-// TypeErrorParameterNotDefined typed error describes a specification/parameter check error trying to get a parameter,
+// ErrorParameterCharNotAllowed error when a forbidden character is included in the `name` parameter of a `Parameter`.
+type ErrorParameterCharNotAllowed struct {
+	Name string
+}
+
+func (e *ErrorParameterCharNotAllowed) Error() string {
+	return fmt.Sprintf(msgErrParameterCharNotAllowed, e.Name)
+}
+
+// ErrorParameterNotDefined describes a specification/parameter check error trying to get a parameter,
 // but it was not declared.
-type TypeErrorParameterNotDefined struct {
-	errorf
+type ErrorParameterNotDefined struct {
+	Name string
 }
 
-// TypeErrorGetURIParamFunctionNotDefined typed error describes a
+func (e *ErrorParameterNotDefined) Error() string {
+	return fmt.Sprintf(msgErrParameterNotDefined, e.Name)
+}
+
+// ErrorGetURIParamFunctionNotDefined describes a
 // problem when the method GetURIParam has not been declared or correctely set up in the context value key
 // by the ServerGenerator implementation.
-type TypeErrorGetURIParamFunctionNotDefined struct {
-	errorf
+type ErrorGetURIParamFunctionNotDefined struct {
+	Name string
 }
 
-// TypeErrorFailResponseNotDefined typed error will be trigger when the fail response in the Operation
+func (e *ErrorGetURIParamFunctionNotDefined) Error() string {
+	return fmt.Sprintf(msgErrGetURIParamFunctionNotDefined, e.Name)
+}
+
+// ErrorFailResponseNotDefined will be trigger when the fail response in the Operation
 // was not defined, but the Execute method returns a false value in the success return value.
-type TypeErrorFailResponseNotDefined struct {
-	errorf
+type ErrorFailResponseNotDefined struct {
+	Name string
 }
 
-type errorf struct {
-	format string
-	Var    interface{}
-}
-
-func (e *errorf) Error() string {
-	return fmt.Sprintf(e.format, e.Var)
+func (e *ErrorFailResponseNotDefined) Error() string {
+	return fmt.Sprintf(msgErrFailResponseNotDefined, e.Name)
 }
 
 // AuthError describes an authentication/authorization error.
@@ -65,20 +76,28 @@ type AuthError interface {
 	Error() string
 }
 
-// TypeErrorAuthorization is an AuthError implementation respresenting an authorization failure
-type TypeErrorAuthorization struct {
-	errorf
+// ErrorAuthorization is an AuthError implementation respresenting an authorization failure
+type ErrorAuthorization struct {
+	Message string
 }
 
-func (ia TypeErrorAuthorization) isAuthorization() bool {
+func (ia ErrorAuthorization) Error() string {
+	return ia.Message
+}
+
+func (ia ErrorAuthorization) isAuthorization() bool {
 	return true
 }
 
-// TypeErrorAuthentication is an AuthError implementation respresenting an authentication failure
-type TypeErrorAuthentication struct {
-	errorf
+// ErrorAuthentication is an AuthError implementation respresenting an authentication failure
+type ErrorAuthentication struct {
+	Message string
 }
 
-func (ia TypeErrorAuthentication) isAuthorization() bool {
+func (ia ErrorAuthentication) isAuthorization() bool {
 	return false
+}
+
+func (ia ErrorAuthentication) Error() string {
+	return ia.Message
 }

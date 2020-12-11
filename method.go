@@ -184,7 +184,7 @@ func (m *Method) mainHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !success {
 		if m.MethodOperation.failResponse.disabled {
-			panic(&TypeErrorFailResponseNotDefined{errorf{messageErrFailResponseNotDefined, r.URL.Path + " " + m.HTTPMethod}})
+			panic(&ErrorFailResponseNotDefined{r.URL.Path + " " + m.HTTPMethod})
 		}
 
 		mutateResponseBody(&m.MethodOperation.failResponse, entity, success, err)

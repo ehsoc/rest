@@ -20,7 +20,7 @@ func (p *ParameterCollection) AddParameter(parameter Parameter) {
 	p.checkNilMap()
 	// The uri charset is checked here because is the parameter's only point of enter
 	if strings.ContainsAny(parameter.Name, URIReservedChar) {
-		panic(&TypeErrorParameterCharNotAllowed{errorf{messageErrParameterCharNotAllowed, parameter.Name}})
+		panic(&ErrorParameterCharNotAllowed{parameter.Name})
 	}
 	if _, ok := p.parameters[parameter.HTTPType]; !ok {
 		p.parameters[parameter.HTTPType] = make(map[string]Parameter)
@@ -54,13 +54,13 @@ func (p *ParameterCollection) GetParameter(paramType ParameterType, name string)
 	params, ok := p.parameters[paramType]
 
 	if !ok {
-		return Parameter{}, &TypeErrorParameterNotDefined{errorf{messageErrParameterNotDefined, name}}
+		return Parameter{}, &ErrorParameterNotDefined{name}
 	}
 	if params == nil {
-		return Parameter{}, &TypeErrorParameterNotDefined{errorf{messageErrParameterNotDefined, name}}
+		return Parameter{}, &ErrorParameterNotDefined{name}
 	}
 	if parameter, ok := params[name]; ok {
 		return parameter, nil
 	}
-	return Parameter{}, &TypeErrorParameterNotDefined{errorf{messageErrParameterNotDefined, name}}
+	return Parameter{}, &ErrorParameterNotDefined{name}
 }

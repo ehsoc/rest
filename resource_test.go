@@ -221,8 +221,8 @@ func TestNewResource(t *testing.T) {
 					defer func() {
 						err := recover()
 						if err != nil {
-							if _, ok := err.(*rest.TypeErrorResourceCharNotAllowed); !ok {
-								t.Errorf("got: %T want: %T", err, &rest.TypeErrorResourceCharNotAllowed{})
+							if _, ok := err.(*rest.ErrorResourceCharNotAllowed); !ok {
+								t.Errorf("got: %T want: %T", err, &rest.ErrorResourceCharNotAllowed{})
 							}
 						}
 					}()

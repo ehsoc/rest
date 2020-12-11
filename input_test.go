@@ -33,8 +33,8 @@ func TestGetQuery(t *testing.T) {
 		parameters.AddParameter(p)
 		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetQuery("foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.ErrorParameterNotDefined{})
 		}
 	})
 }
@@ -57,8 +57,8 @@ func TestGetHeader(t *testing.T) {
 		parameters := rest.ParameterCollection{}
 		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetHeader("foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.ErrorParameterNotDefined{})
 		}
 	})
 }
@@ -91,8 +91,8 @@ func TestGetURIParam(t *testing.T) {
 		parameters.AddParameter(p)
 		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetURIParam("myId")
-		if _, ok := err.(*rest.TypeErrorGetURIParamFunctionNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &rest.TypeErrorGetURIParamFunctionNotDefined{})
+		if _, ok := err.(*rest.ErrorGetURIParamFunctionNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.ErrorGetURIParamFunctionNotDefined{})
 		}
 	})
 	t.Run("get uri parameter not defined", func(t *testing.T) {
@@ -105,8 +105,8 @@ func TestGetURIParam(t *testing.T) {
 		parameters.AddParameter(p)
 		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, err := input.GetURIParam("foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.ErrorParameterNotDefined{})
 		}
 	})
 }
@@ -173,8 +173,8 @@ func TestGetFormFiles(t *testing.T) {
 		parameters.AddParameter(p)
 		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, _, err := input.GetFormFile("foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.ErrorParameterNotDefined{})
 		}
 	})
 }
@@ -206,8 +206,8 @@ func TestGetFormFile(t *testing.T) {
 		parameters.AddParameter(p)
 		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, _, err := input.GetFormFile("foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.ErrorParameterNotDefined{})
 		}
 	})
 }
@@ -252,8 +252,8 @@ func TestGetFormValues(t *testing.T) {
 		parameters.AddParameter(p)
 		input := rest.Input{r, parameters, rest.RequestBody{}, nil}
 		_, _, err := input.GetFormFile("foo")
-		if _, ok := err.(*rest.TypeErrorParameterNotDefined); !ok {
-			t.Errorf("got: %T want: %T", err, &rest.TypeErrorParameterNotDefined{})
+		if _, ok := err.(*rest.ErrorParameterNotDefined); !ok {
+			t.Errorf("got: %T want: %T", err, &rest.ErrorParameterNotDefined{})
 		}
 	})
 }
