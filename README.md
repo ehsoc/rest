@@ -70,7 +70,7 @@ server := api.GenerateServer(chigenerator.ChiGenerator{})
 ```
 
 ## Resource
-A Resource can contain:
+A Resource contains:
 - Methods: A collection of HTTP methods.
 - Resources: Collection of child resources.
 
