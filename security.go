@@ -1,8 +1,8 @@
 package rest
 
 // Security is the container of one or more SecurityScheme.
-// The SecurityScheme's will follow a `and` logic with other schemes in the SecuritySchemes slice,
-// this mean that the user need to pass all the SecuritySchemes.
+// One SecurityScheme will follow an `and` logic with other schemes in the same Security,
+// this mean that the user need to pass all the SecuritySchemes defined in the same Security.
 type Security struct {
 	SecuritySchemes []*SecurityScheme
 }
