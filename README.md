@@ -6,8 +6,8 @@ Rest is an experimental web resource abstraction for composing REST APIs in Go (
 - **REST API Specification generation (Open-API v2)**
 
 ## Base components:
-- API. Is the root, it contains the server information, and can generate the server handler, and the API specification.
-- Resource. Each resource is a node in a URL path.
+- API. Is the root of all resources. It contains the server information, and can generate the server handler, and the API specification.
+- Resource. Each resource is a node in a URL path, and contains the method and other resources.
 
 **Code example:**
 
@@ -93,11 +93,9 @@ The first argument must be a Parameter of URIParameter type. Use NewURIParameter
 
 ## Example:
 ```go
-api.Resource("car", func(r *rest.Resource) {
-    carID := rest.NewURIParameter("carID", reflect.String)
-    r.ResourceP(carID, func(r *rest.Resource) {
-        r.Get(getCar, ct).WithParameter(carID)
-    })
+carID := rest.NewURIParameter("carID", reflect.String)
+r.ResourceP(carID, func(r *rest.Resource) {
+    r.Get(getCar, ct).WithParameter(carID)
 })
 ```
 In the example the route to get a car will be `/car/{carID}`, where `{carID}` is the variable part.
