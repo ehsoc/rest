@@ -17,8 +17,10 @@ linters:
     - structcheck
     - whitespace
     - maligned
+    - gosimple
+    - unused
 issues:
   exclude-rules:
     - linters:
         - golint
-      text: 'name .* stutters'
+      text: "name .* stutters"
