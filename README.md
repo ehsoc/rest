@@ -6,8 +6,8 @@ Rest is an experimental web resource abstraction for composing REST APIs in Go (
 - **REST API Specification generation (Open-API v2)**
 
 ## Base components:
-- API. Is the root of all resources. It contains the server information, and can generate the server handler, and the API specification.
-- Resource. Each resource is a node in a URL path, and contains the method and other resources.
+- **API**: It's the root that contains resources and server information. Also, it generates the server handler and the API specification.
+- **Resource**: Each resource is a node in a URL path, and contains methods and other resources.
 
 **Code example:**
 
