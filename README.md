@@ -1,12 +1,12 @@
 # rest
-Rest is an experimental Web Resource abstraction for composing REST APIs in Go (Golang).
+Rest is an experimental web resource abstraction for composing REST APIs in Go (Golang).
 
 - **Rapid prototyping**.
 - **Web Server generation (http.Handler)**
 - **REST API Specification generation (Open-API v2)**
 
 ## Base components:
-- API (Like a Resource, but it is the root resource node)
+- API. Is the root, it contains the server information, and can generate the server handler, and the API specification.
 - Resource. Each resource is a node in a URL path.
 
 **Code example:**
@@ -17,7 +17,8 @@ api := rest.NewAPI("/api/v1", "localhost", "My simple car API", "v1")
 api.Resource("car", func(r *rest.Resource) {
 	r.Resource("findMatch", func(r *rest.Resource) {
 	})
-	r.Resource("{carId}", func(r *rest.Resource) {
+	carID := rest.NewURIParameter("carID", reflect.String)
+	r.ResourceP(carID, func(r *rest.Resource) {
 	})
 })
 
@@ -35,7 +36,7 @@ api.Resource("user", func(r *rest.Resource) {
 
 ```
                                      +-----------+
-                                     |  API      |
+                                     |   API     |
                           +----------+   "/2"    +-----------+
                           |          |           |           |
                           |          +-----+-----+           |
@@ -56,19 +57,58 @@ api.Resource("user", func(r *rest.Resource) {
 
 
 ## API methods:
-- GenerateServer(a API) http.Handler
-- GenerateAPISpec(w io.Writer, api API)
+- GenerateServer(g rest.ServerGenerator) http.Handler
+- GenerateSpec(w io.Writer, api rest.API)
+
+## Example:
+```go
+api := rest.NewAPI("/v1", "localhost", "My simple car API", "v1")
+// Generating OpenAPI v2 specification to standard output
+api.GenerateSpec(os.Stdout, &oaiv2.OpenAPIV2SpecGenerator{})
+// Generating server handler
+server := api.GenerateServer(chigenerator.ChiGenerator{})
+```
 
 ## Resource
-- Methods: A collection of HTTP methods (`Method`)
+A Resource can contain:
+- Methods: A collection of HTTP methods.
 - Resources: Collection of child resources.
 
+## Example:
+```go
+api.Resource("user", func(r *rest.Resource) {
+    // Method
+    r.Get(getUser, ct)
+    // Resource
+    r.Resource("logout", func(r *rest.Resource) {
+        // Method
+        r.Get(logOut, ct)
+    })
+})
+```
+
+## ResourceP (URI parameter Resource)
+ResourceP creates a new URI parameter resource node.
+The first argument must be a Parameter of URIParameter type. Use NewURIParameter to create one.
+
+## Example:
+```go
+api.Resource("car", func(r *rest.Resource) {
+    carID := rest.NewURIParameter("carID", reflect.String)
+    r.ResourceP(carID, func(r *rest.Resource) {
+        r.Get(getCar, ct).WithParameter(carID)
+    })
+})
+```
+In the example the route to get a car will be `/car/{carID}`, where `{carID}` is the variable part.
+
 ### Method
-A `Method` represents an HTTP method with an HTTP Handler. A default handler will make sense of the method specification and return the appropriate HTTP response. The specification elements to be managed by the default handler are: Content negotiation, validation, and operation. 
+A `Method` represents an HTTP method with an HTTP Handler. A default handler will make sense of the method specification and return the appropriate HTTP response. The specification elements to be managed by the default handler are: **Content negotiation, security, validation, and operation.**
 
 - MethodOperation: Describes an `Operation` and responses (`Response` for success and failure).
 - ContentTypes: Describes the available content-types and encoder/decoders for request and responses. 
 - Negotiator: Interface for content negotiation. A default implementation will be set when you create a Method.
+- SecurityCollection: Is the security definition.
 - Parameters: The parameters expected to be sent by the client. The main purpose of the declaration of parameters is for API specification generation.
 - Handler: The http.Handler of the method.  The default handler will be set when you create a new Method.
 
@@ -81,42 +121,34 @@ Represents a logical operation upon a resource, like delete, list, create, ping,
 
 
 	1. `body` (interface{}): Is the body that is going to be send to the client.(Optional)
-	2. `success` (bool): If the value is true, it will trigger the `successResponse` (argument passed in the `NewMethodOperation` function). If the value is false, it will trigger the `failResponse` (argument passed in the `NewMethodOperation` function). False means that the most positive operation output didn't happened, but is not either an API error or a client error.
-	
+	2. `success` (bool): If the value is true, it will trigger the `successResponse` (argument passed in the `NewMethodOperation` function). If the value is false, it will trigger the `failResponse` (set it with `WithFailResponse` method). False means that the most positive operation output didn't happened, but is not an API nor a client error.
 	3.  `err` (error): The `err`(error) is meant to indicate an API error, or any internal server error, like a database failure, i/o error, etc. The `err`!=nil will always trigger a 500 code error.
 
-### Resource main components diagram:
+### Method:
 
 ```
-                                                                   +-----------+
-                                                                   | Resource  |
-                                                               +---+ "{carId}" +---+
-                                                               |   |           |   |
-                                                               |   +-----------+   |
-                                                               |                   |
-                                                         +-----+-----+        +----+------+
-                                                         |  Method   |        |  Method   |
-                                        +----------------+   "GET"   |        | "DELETE"  +----------+
-                                        |                |           |        |           |          |
-                                        |                +-----+-----+        +----+------+          |
-                                        |                      |                   +                 +
-                               +--------+-------+      +-------+--------+
-                               | MethodOperation|      |  ContentTypes  |
-                           +---+                +---+  |                |
-                           |   |                |   |  |                |
-Your operation method      |   +--------+-------+   |  +----------------+
+                               +----------------+
+                               |                |
+                               |     Method     |
+                               |                |
+                               +--------+-------+
+                                        |
+                               +--------+-------+
+                               |                |
+                           +---+ MethodOperation+---+
+                           |   |                |   |
+Your operation method      |   +--------+-------+   |
 goes here                  |            |           |
       +                    |            |           |
       |             +------+----+ +-----+-----+ +---+-------+
-      |             | Operation | | Response  | |  Response |
-      +-----------> |           | | success   | |  fail     |
+      |             |           | | Response  | |  Response |
+      +-----------> | Operation | | success   | |  fail     |
                     |           | |           | |           |
                     +-----------+ +-----------+ +-----------+
 
-
 ```
 
-## Code example:
+## Full code example:
 ```go
 // Responses
 successResponse := rest.NewResponse(200).WithOperationResultBody(Car{})
@@ -161,4 +193,6 @@ api.GenerateSpec(os.Stdout, &oaiv2.OpenAPIV2SpecGenerator{})
 
 // Generating server routes
 server := api.GenerateServer(chigenerator.ChiGenerator{})
+http.ListenAndServe(":8080", server)
+
 ```
