@@ -12,7 +12,7 @@ import (
 
 	"github.com/ehsoc/rest"
 	"github.com/ehsoc/rest/encdec"
-	"github.com/ehsoc/rest/specification_generator/oaiv2"
+	"github.com/ehsoc/rest/generator/spec/oaiv2"
 	"github.com/ehsoc/rest/test/petstore"
 	"github.com/go-openapi/spec"
 	"github.com/nsf/jsondiff"
@@ -202,7 +202,7 @@ func assertJSONStructEqual(t *testing.T, got, want interface{}) {
 }
 
 func getPetJSON() []byte {
-	jsonFile, err := os.Open("../../test/fixtures/petstore_oav2.json")
+	jsonFile, err := os.Open("../../../test/fixtures/petstore_oav2.json")
 	if err != nil {
 		log.Println(err)
 	}

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/ehsoc/rest/server_generator/chigenerator"
-	"github.com/ehsoc/rest/specification_generator/oaiv2"
+	"github.com/ehsoc/rest/generator/server/chigenerator"
+	"github.com/ehsoc/rest/generator/spec/oaiv2"
 	"github.com/ehsoc/rest/test/petstore"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
