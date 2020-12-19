@@ -3,7 +3,7 @@ Rest is an experimental web resource abstraction for composing REST APIs in Go (
 
 - **Rapid prototyping**.
 - **Web Server generation (http.Handler)**
-- **REST API Specification generation (Open-API v2)**
+- **REST API Specification generation (OpenAPI v2)**
 
 ## Base components:
 - **API**: It's the root that contains resources and server information. Also, it generates the server handler and the API specification.
@@ -70,7 +70,7 @@ server := api.GenerateServer(chigenerator.ChiGenerator{})
 ```
 
 ## Resource
-A Resource contains:
+Resource main components:
 - Methods: A collection of HTTP methods.
 - Resources: Collection of child resources.
 
